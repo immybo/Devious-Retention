@@ -16,22 +16,26 @@ namespace Devious_Retention
         // As most attributes will change only under circumstances where
         // the UnitType will change as well, this provides most attributes
         // so not many fields are needed.
-        UnitType type;
+        private UnitType type { get; }
         // In addition to the maximum hitpoints provided by the type,
         // a unit must keep track of its current hitpoints.
-        int hitpoints;
+        private int hitpoints { get; }
 
         // If this unit hasn't been commanded to move or attack, these will be
         // null,-1,-1 (respectively). If it has, however, it will attempt to move
         // towards the spot or the unit, or attack the unit if it's within range.
         // Attacking will take priority (although they should never both be active).
-        Unit unitToAttack;
-        double xToMove;
-        double yToMove;
-        int direction;
+        private Unit unitToAttack;
+        private double xToMove;
+        private double yToMove;
+        private int direction;
 
         // If this unit has been tasked to construct a building, this will specify the building
         Building buildingToConstruct;
+
+        // The co-ordinates of the top-left corner of this unit
+        private double x { get; }
+        private double y { get; }
 
         /// <summary>
         /// A unit will get all of its attributes from
@@ -87,6 +91,8 @@ namespace Devious_Retention
         /// <summary>
         /// Increases the hitpoints of this unit such that it retains the same
         /// percentage after a max hitpoints change to the new value.
+        /// This should be called on all units of a type before it is called
+        /// on the UnitType.
         /// </summary>
         public void ChangeMaxHP(int newMaxHP)
         {
@@ -98,6 +104,15 @@ namespace Devious_Retention
         /// Does nothing if this unit is not performing any action.
         /// </summary>
         public void Tick()
+        {
+
+        }
+
+        /// <summary>
+        /// Returns the current image for this unit, based on its direction,
+        /// animations and type.
+        /// </summary>
+        public Image GetImage()
         {
 
         }
