@@ -72,7 +72,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Processes any key events on the game window. If they are recognised as
-        /// utilised keys, passes the event on to the client.
+        /// utilised keys, performs the appropriate action on the client.
         /// </summary>
         public void KeyEvent(KeyEventArgs e)
         {
@@ -80,8 +80,8 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Processes any mouse events on the game window. Usually passes on the
-        /// event to the client.
+        /// Processes any mouse events on the game window. Usually performs the
+        /// appropriate action on the client.
         /// </summary>
         public void MouseEvent(MouseEventArgs e)
         {
