@@ -12,7 +12,7 @@ namespace Devious_Retention
     /// </summary>
     public class Faction
     {
-        private String name { get; }
+        public String name { get; private set; }
 
         // Each string has a few components, seperated by spaces:
         // - an identifier for whether it affects a unit, a building or a technology

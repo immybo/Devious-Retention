@@ -15,14 +15,14 @@ namespace Devious_Retention
     public class Resource : Entity
     {
         // Every resource belongs to a type, which gives most of its statistics
-        private ResourceType type { get; }
+        public ResourceType type { get; private set; }
 
         // The current amount of the given resource in this resource
-        private int amount { get; }
+        public int amount { get; private set; }
 
         // The position of the top-left of this resource
-        private double x { get; }
-        private double y { get; }
+        public double x { get; private set; }
+        public double y { get; private set; }
 
         /// <summary>
         /// Most of a resource's statistics are gathered from its type,

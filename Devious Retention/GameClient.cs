@@ -18,15 +18,15 @@ namespace Devious_Retention
         // The client's GameInfo is changed over time by technologies, etc
         private GameInfo info;
         // Entities are gotten from the server every tick
-        private HashSet<Resource> resources { get; }
-        private HashSet<Unit> units { get; }
-        private HashSet<Building> buildings { get; }
+        public HashSet<Resource> resources { get; private set; }
+        public HashSet<Unit> units { get; private set; }
+        public HashSet<Building> buildings { get; private set; }
 
-        private List<Entity> selected { get; }
+        public List<Entity> selected { get; private set; }
         // The type of building that has been selected from the create buildings panel
-        private BuildingType selectedBuilding;
+        public BuildingType selectedBuilding { get; private set; }
 
-        private Map map { get; set; }
+        public Map map { get; private set; }
 
         private GameWindow window;
 
@@ -34,20 +34,16 @@ namespace Devious_Retention
         private int playerNumber;
 
         // Where the top-left of the screen is, in map co-ordinates.
-        private double screenY;
-        private double screenX;
-
-        // Where the mouse started dragging, for selection purposes
-        private double mouseStartX;
-        private double mouseStartY;
+        public double screenY { get; private set; }
+        public double screenX { get; private set; }
 
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
         // metal, oil, energy, science
-        private int[] resources;
+        public int[] resources { get; private set; }
 
         // Whether the building panel or the technology panel is open
-        private bool buildingPanelOpen;
+        public bool buildingPanelOpen { get; private set; }
 
         // The faction this player belongs to
         private Faction faction;

@@ -16,10 +16,10 @@ namespace Devious_Retention
         // As most attributes will change only under circumstances where
         // the UnitType will change as well, this provides most attributes
         // so not many fields are needed.
-        private UnitType type { get; }
+        public UnitType type { get; private set; }
         // In addition to the maximum hitpoints provided by the type,
         // a unit must keep track of its current hitpoints.
-        private int hitpoints { get; }
+        public int hitpoints { get; private set; }
 
         // If this unit hasn't been commanded to move or attack, these will be
         // null,-1,-1 (respectively). If it has, however, it will attempt to move
@@ -34,8 +34,8 @@ namespace Devious_Retention
         Building buildingToConstruct;
 
         // The co-ordinates of the top-left corner of this unit
-        private double x { get; }
-        private double y { get; }
+        public double x { get; private set; }
+        public double y { get; private set; }
 
         /// <summary>
         /// A unit will get all of its attributes from

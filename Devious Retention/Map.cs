@@ -12,8 +12,8 @@ namespace Devious_Retention
     /// </summary>
     public class Map
     {
-        private int width { get; }
-        private int height { get; }
+        public int width { get; private set; }
+        public int height { get; private set; }
         private int[][] tiles;
         private List<Tile> possibleTiles;
 

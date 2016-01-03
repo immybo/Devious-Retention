@@ -11,37 +11,39 @@ namespace Devious_Retention
     public class UnitType
     {
         // The initial amount of hitpoints for units of this type.
-        public int hitpoints;
+        public int hitpoints { get; private set; }
         // The base amount of damage that this unit will do to other units per attack.
-        public int damage;
+        public int damage { get; private set; }
         // So that unit counters can effectively be made, there are multiple different types of damage.
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
-        public int damageType;
-        public int[] resistances;
+        public int damageType { get; private set; }
+        public int[] resistances { get; private set; }
         // Milliseconds (rounds to the nearest tick)
-        public int trainingTime;
+        public int trainingTime { get; private set; }
         // How many tiles units of this type can move per second
-        public double speed;
+        public double speed { get; private set; }
         // Every UnitType can only have up to one prerequisite technology
         // Before this technology is researched, no units of this type can be created
         // Not every UnitType has to have a prerequisite, however
-        public String prerequisite;
+        public String prerequisite { get; private set; }
 
         // Most units are unable to build.
         // When tasked on a building, these units will simply
         // walk to the click point. However, if a unit can, it will start
         // working on the building.
-        public bool canBuild;
+        public bool canBuild { get; private set; }
         // 1 is the baseline; a unit with 1 build speed will provide 1 "work second" per second
-        public double buildSpeed; // Only applicable if canBuild
+        public double buildSpeed{ get; private set; } // Only applicable if canBuild
 
         // An aggressive unit will attempt to attack nearby enemy units
-        public bool aggressive;
+        public bool aggressive { get; private set; }
+
+        public int[] resourceCosts { get; private set; }
 
         /// <summary>
         /// Creating a UnitType requires providing a string with all of the attributes formatted like:
         /// "hitpoints damage damageType resistance1 resistance2 .. resistanceX trainingTime speed
-        ///     prerequisiteName canBuild buildSpeed aggressive"
+        ///     prerequisiteName canBuild buildSpeed aggressive resourcecost1 resourcecost2 ... resourcecostx"
         /// This format will also be outputted by that UnitType's toString.
         /// </summary>
         public UnitType(String s)
@@ -60,6 +62,8 @@ namespace Devious_Retention
             canBuild = bool.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
             buildSpeed = double.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
             aggressive = bool.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
+            for(int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+                resourceCosts[i] = int.Parse(attributes[9 + GameInfo.DAMAGE_TYPES + i]);
         }
 
         /// <summary>
@@ -78,7 +82,9 @@ namespace Devious_Retention
             builder.Append(prerequisite + " ");
             builder.Append(canBuild + " ");
             builder.Append(buildSpeed + " ");
-            builder.Append(aggressive);
+            builder.Append(aggressive + " ");
+            for(int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+                builder.Append(resourceCosts[i] + " ");
 
             return builder.ToString();
         }

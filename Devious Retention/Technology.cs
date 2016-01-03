@@ -12,9 +12,9 @@ namespace Devious_Retention
     public class Technology
     {
         // The unique ID of this technology
-        private int id { get; }
+        public int id { get; private set; }
 
-        private String name { get; }
+        public String name { get; private set; }
 
         // A technology can have one or more prerequisite technologies
         // that must be researched before it can be.

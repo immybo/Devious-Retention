@@ -10,8 +10,10 @@ namespace Devious_Retention
     class GameInfo
     {
         // In milliseconds
-        public static int TICK_TIME { get; } = 100;
+        public const int TICK_TIME = 100;
         // Melee, ranged, bombard
-        public static int DAMAGE_TYPES { get; } = 3;
+        public const int DAMAGE_TYPES  = 3;
+        // Metal, oil, energy, science
+        public const int RESOURCE_TYPES = 4;
     }
 }

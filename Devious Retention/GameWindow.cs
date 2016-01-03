@@ -12,7 +12,11 @@ namespace Devious_Retention
 {
     public partial class GameWindow : Form
     {
-        GameClient client;
+        private GameClient client;
+
+        // Where the mouse started dragging, for selection purposes
+        private double startX;
+        private double startY;
 
         public GameWindow()
         {
@@ -43,7 +47,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Renders the game panel; i.e. the part of the window which contains
-        /// the entities, tiles, etc. Also renders the resource counts.
+        /// the entities, tiles, etc. Also renders the resource counts and minimap.
         /// Uses the client's perspective to do so.
         /// </summary>
         public void RenderGamePanel()

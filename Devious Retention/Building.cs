@@ -16,23 +16,23 @@ namespace Devious_Retention
     public class Building : Entity
     {
         // Each building belongs to a BuildingType, from which most of its attributes can be gotten
-        private BuildingType type { get; }
+        public BuildingType type { get; private set; }
 
         // The current amount of hitpoints must, however, be stored in each individual building
-        private int hitpoints { get; }
+        public int hitpoints { get; private set; }
 
         // Unbuilt buildings will have a different image, and will not be able to perform their functions until built fully
-        private bool built { get; }
+        public bool built { get; private set; }
 
         // A map of UnitTypes to be created, to time until they are created (ticks)
-        private Map<UnitType, int> trainingQueue { get; }
+        public Map<UnitType, int> trainingQueue { get; private set; }
 
         // The resource that this building is on, if any
         private Resource resource;
 
         // The co-ordinates of the top-left corner of this building
-        private double x { get; }
-        private double y { get; }
+        private double x { get; private set; }
+        private double y { get; private set; }
 
         /// <summary>
         /// A building will get most of its initial attributes from a BuildingType.
