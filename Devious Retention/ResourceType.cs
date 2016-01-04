@@ -52,6 +52,7 @@ namespace Devious_Retention
             builder.Append(resourceAmount + " ");
             builder.Append(imageFilename + " ");
             builder.Append(gatherSpeed);
+            return builder.ToString();
         }
     }
 }

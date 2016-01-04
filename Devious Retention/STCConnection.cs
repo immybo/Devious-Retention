@@ -29,7 +29,7 @@ namespace Devious_Retention
         /// </summary>
         public bool Connect()
         {
-
+            return false;
         }
 
         /// <summary>

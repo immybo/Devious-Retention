@@ -12,11 +12,11 @@ namespace Devious_Retention
 {
     public partial class GameWindow : Form
     {
-        private GameClient client;
+        public GameClient client;
 
         // Where the mouse started dragging, for selection purposes
-        private double startX;
-        private double startY;
+        private double startX = -1;
+        private double startY = -1;
 
         public GameWindow()
         {
@@ -31,7 +31,7 @@ namespace Devious_Retention
         /// <returns>The entity at the position, or void if there was none.</returns>
         public Entity GetEntityAt(double x, double y)
         {
-
+            return null;
         }
 
         /// <summary>
@@ -40,9 +40,9 @@ namespace Devious_Retention
         /// (x2,y2), from the client's perspective.
         /// </summary>
         /// <returns>The set of entities that were within the rectangle, or void if there were none.</returns>
-        public Set<Entity> GetEntitiesIn(double x1, double y1, double x2, double y2)
+        public HashSet<Entity> GetEntitiesIn(double x1, double y1, double x2, double y2)
         {
-
+            return null;
         }
 
         /// <summary>

@@ -78,7 +78,7 @@ namespace Devious_Retention
                             }
                             catch (IndexOutOfRangeException e)
                             {
-                                Console.WriteLine("Effect could not be applied from technology. Too few resource cost modifiers were specified.");
+                                Console.WriteLine("Effect could not be applied from technology. Too few resource cost modifiers were specified. " + e);
                             }
                             break;
                         case 6:
@@ -89,7 +89,7 @@ namespace Devious_Retention
                             }
                             catch (IndexOutOfRangeException e)
                             {
-                                Console.WriteLine("Effect could not be applied from technology. Too few resistance modifiers were specified.");
+                                Console.WriteLine("Effect could not be applied from technology. Too few resistance modifiers were specified. " + e);
                             }
                             break;
                     }
@@ -137,7 +137,7 @@ namespace Devious_Retention
                             }
                             catch (IndexOutOfRangeException e)
                             {
-                                Console.WriteLine("Effect could not be applied from technology. Too few resource cost modifiers were specified.");
+                                Console.WriteLine("Effect could not be applied from technology. Too few resource cost modifiers were specified. " + e);
                             }
                             break;
                         case 7:
@@ -148,7 +148,7 @@ namespace Devious_Retention
                             }
                             catch (IndexOutOfRangeException e)
                             {
-                                Console.WriteLine("Effect could not be applied from technology. Too few resistance modifiers were specified.");
+                                Console.WriteLine("Effect could not be applied from technology. Too few resistance modifiers were specified. " + e);
                             }
                             break;
 
@@ -165,7 +165,7 @@ namespace Devious_Retention
                     }
                     catch (IndexOutOfRangeException e)
                     {
-                        Console.WriteLine("Effect could not be applied from technology. Too few resource cost modifiers were specified.");
+                        Console.WriteLine("Effect could not be applied from technology. Too few resource cost modifiers were specified. " + e);
                     }
                 }
             }

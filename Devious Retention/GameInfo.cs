@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 
 namespace Devious_Retention
 {
@@ -11,6 +12,13 @@ namespace Devious_Retention
     /// </summary>
     public class GameInfo
     {
+        public static string BASE_DIRECTORY = AppDomain.CurrentDomain.BaseDirectory.Remove(AppDomain.CurrentDomain.BaseDirectory.Length - 10, 10);
+        public static string UNIT_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Units.txt"; 
+        public static string BUILDING_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Buildings.txt";
+        public static string RESOURCE_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Resources.txt";
+        public static string TECHNOLOGY_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Technologies.txt";
+        public static string FACTION_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Factions.txt";
+
         // In milliseconds
         public const int TICK_TIME = 100;
         // Melee, ranged, bombard
@@ -46,7 +54,7 @@ namespace Devious_Retention
             }
             catch(IOException e)
             {
-                Console.WriteLine("Couldn't properly read from unit file "+fname);
+                Console.WriteLine("Couldn't properly read from unit file "+fname + ". " + e);
             }
         }
 
@@ -64,7 +72,7 @@ namespace Devious_Retention
             }
             catch (IOException e)
             {
-                Console.WriteLine("Couldn't properly read from building file "+fname);
+                Console.WriteLine("Couldn't properly read from building file "+fname + ". " + e);
             }
         }
 
@@ -82,7 +90,7 @@ namespace Devious_Retention
             }
             catch (IOException e)
             {
-                Console.WriteLine("Couldn't properly read from unit file.");
+                Console.WriteLine("Couldn't properly read from unit file. " + e);
             }
         }
 
@@ -136,7 +144,7 @@ namespace Devious_Retention
             }
             catch (IOException e)
             {
-                Console.WriteLine("Couldn't properly read from technology file.");
+                Console.WriteLine("Couldn't properly read from technology file. " + e);
             }
         }
 
@@ -156,7 +164,6 @@ namespace Devious_Retention
                     {
                         factions.Add(new Faction(name, effects));
                         currentLine = -1;
-                        prerequisites = new HashSet<string>();
                         effects = new HashSet<String>();
                     }
                     else if (currentLine == 0) name = line;
@@ -168,7 +175,7 @@ namespace Devious_Retention
             }
             catch (IOException e)
             {
-                Console.WriteLine("Couldn't properly read from faction file.");
+                Console.WriteLine("Couldn't properly read from faction file. " + e);
             }
         }
     }

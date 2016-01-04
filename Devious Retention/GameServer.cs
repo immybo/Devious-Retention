@@ -19,7 +19,7 @@ namespace Devious_Retention
         // Contains only generic base lists; i.e. they are not edited by whatever technologies clients have researched
         private GameInfo info;
         // One map for every player, contains only technologies that they have researched
-        private List<Map<String, Technology>> researched;
+        private List<Dictionary<String, Technology>> researched;
 
         // This map is used to determine what can and can't happen; e.g. whether or not a building can be placed at the given location
         private Map map;
@@ -46,7 +46,7 @@ namespace Devious_Retention
         /// </summary>
         public bool CreateBuilding(int player, BuildingType building, double x, double y)
         {
-
+            return false;
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Devious_Retention
         /// </summary>
         public bool CreateUnit(Building sourceBuilding, UnitType unit)
         {
-
+            return false;
         }
 
         /// <summary>

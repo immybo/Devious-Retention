@@ -12,7 +12,7 @@ namespace Devious_Retention
     /// in a game. The client, in combination with the GameWindow, allows the
     /// player to control their side of the game.
     /// </summary>
-    class GameClient
+    public class GameClient
     {
         private CTSConnection connection;
         // The client's GameInfo is changed over time by technologies, etc
@@ -40,7 +40,7 @@ namespace Devious_Retention
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
         // metal, oil, energy, science
-        public int[] resources { get; private set; }
+        public int[] currentResources { get; private set; }
 
         // Whether the building panel or the technology panel is open
         public bool buildingPanelOpen { get; private set; }
@@ -63,7 +63,7 @@ namespace Devious_Retention
         /// </summary>
         public bool CanAfford(int[] resources)
         {
-
+            return false;
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Devious_Retention
         /// </summary>
         public bool CreateFoundation(BuildingType building, double x, double y)
         {
-
+            return false;
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Devious_Retention
         /// </summary>
         public bool CreateUnit(Building sourceBuilding, UnitType unit)
         {
-
+            return false;
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Devious_Retention
         /// </summary>
         public bool ResearchTechnology(Technology technology)
         {
-
+            return false;
         }
 
         /// <summary>

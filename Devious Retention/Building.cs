@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,14 +26,14 @@ namespace Devious_Retention
         public bool built { get; private set; }
 
         // A map of UnitTypes to be created, to time until they are created (ticks)
-        public Map<UnitType, int> trainingQueue { get; private set; }
+        public Dictionary<UnitType, int> trainingQueue { get; private set; }
 
         // The resource that this building is on, if any
         private Resource resource;
 
         // The co-ordinates of the top-left corner of this building
-        private double x { get; private set; }
-        private double y { get; private set; }
+        public double x { get; private set; }
+        public double y { get; private set; }
 
         /// <summary>
         /// A building will get most of its initial attributes from a BuildingType.
@@ -96,7 +97,7 @@ namespace Devious_Retention
         /// <returns></returns>
         public Image GetImage()
         {
-
+            return null;
         }
     }
 }

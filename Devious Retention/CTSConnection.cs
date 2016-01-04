@@ -12,7 +12,7 @@ namespace Devious_Retention
     /// the socket connection, and receives information from the server, passing
     /// that on to its client.
     /// </summary>
-    class CTSConnection
+    public class CTSConnection
     {
         private String ip;
         private Socket socket;
@@ -29,7 +29,7 @@ namespace Devious_Retention
         /// </summary>
         public bool Connect()
         {
-
+            return false;
         }
 
         /// <summary>
