@@ -10,7 +10,7 @@ namespace Devious_Retention
     /// <summary>
     /// A ResourceType defines attributes for a specific type of resource.
     /// </summary>
-    class ResourceType
+    public class ResourceType
     {
         public int id { get; private set; }
         // Which resource this ResourceType provides

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Devious_Retention
@@ -11,17 +12,17 @@ namespace Devious_Retention
     public class UnitType
     {
         // The initial amount of hitpoints for units of this type.
-        public int hitpoints { get; private set; }
+        public int hitpoints;
         // The base amount of damage that this unit will do to other units per attack.
-        public int damage { get; private set; }
+        public int damage;
         // So that unit counters can effectively be made, there are multiple different types of damage.
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
-        public int damageType { get; private set; }
-        public int[] resistances { get; private set; }
+        public int damageType;
+        public int[] resistances;
         // Milliseconds (rounds to the nearest tick)
-        public int trainingTime { get; private set; }
+        public int trainingTime;
         // How many tiles units of this type can move per second
-        public double speed { get; private set; }
+        public double speed;
         // Every UnitType can only have up to one prerequisite technology
         // Before this technology is researched, no units of this type can be created
         // Not every UnitType has to have a prerequisite, however
@@ -33,12 +34,14 @@ namespace Devious_Retention
         // working on the building.
         public bool canBuild { get; private set; }
         // 1 is the baseline; a unit with 1 build speed will provide 1 "work second" per second
-        public double buildSpeed{ get; private set; } // Only applicable if canBuild
+        public double buildSpeed; // Only applicable if canBuild
 
         // An aggressive unit will attempt to attack nearby enemy units
         public bool aggressive { get; private set; }
 
-        public int[] resourceCosts { get; private set; }
+        public int[] resourceCosts;
+
+        public List<Unit> units;
 
         /// <summary>
         /// Creating a UnitType requires providing a string with all of the attributes formatted like:

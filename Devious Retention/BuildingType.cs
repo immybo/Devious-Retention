@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Devious_Retention
@@ -11,16 +12,16 @@ namespace Devious_Retention
     public class BuildingType
     {
         // The initial amount of hitpoints for buildings of this type.
-        public int hitpoints { get; private set; }
+        public int hitpoints;
         // The base amount of damage that this building will do to other units per attack.
         // Note that some buildings don't attack; this will be 0 in that case.
-        public int damage { get; private set; }
+        public int damage;
         // So that unit counters can effectively be made, there are multiple different types of damage.
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
         public int damageType { get; private set; }
-        public int[] resistances { get; private set; }
+        public int[] resistances;
         // Milliseconds (rounds to the nearest tick)
-        public int buildTime { get; private set; }
+        public int buildTime;
         // Every BuildingType can only have up to one prerequisite technology
         // Before this technology is researched, no buildings of this type can be created
         // Not every BuildingType has to have a prerequisite, however
@@ -28,9 +29,9 @@ namespace Devious_Retention
 
         // Most buildings don't provide any resources.
         // Those that do, however, passively provide an infinite amount of that resource, usually at a slow rate.
-        public bool providesResource { get; private set; }
-        public int resourceType { get; private set; }
-        public double gatherSpeed { get; private set; }
+        public bool providesResource;
+        public int resourceType;
+        public double gatherSpeed;
 
         // Some buildings can be built on top of resource sites, and they will extract that resource.
         // If they do, the gather rate is set by that specific resource type.
@@ -42,7 +43,9 @@ namespace Devious_Retention
         // Buildings that are act the same as aggressive units (except can't move towards the enemy).
         public bool aggressive { get; private set; }
 
-        public int[] resourceCosts { get; private set; }
+        public int[] resourceCosts;
+
+        public List<Building> buildings;
 
         /// <summary>
         /// Creating a BuildingType requires providing a string with all of the attributes formatted like:
