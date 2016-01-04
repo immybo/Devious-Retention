@@ -20,12 +20,12 @@ namespace Devious_Retention
         // - an identifier for the statistic of that unit, building or technology that it affects
         // - a modifier for that statistic 
         // structure same as for technology
-        private List<String> effects;
+        private HashSet<String> effects;
 
         /// <summary>
         /// A faction must have its name and all its effects given to be created.
         /// </summary>
-        public Faction(String name, List<String> effects)
+        public Faction(String name, HashSet<String> effects)
         {
 
         }

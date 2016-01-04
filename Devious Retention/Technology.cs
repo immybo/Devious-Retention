@@ -11,16 +11,13 @@ namespace Devious_Retention
     /// </summary>
     public class Technology
     {
-        // The unique ID of this technology
-        public int id { get; private set; }
-
         public String name { get; private set; }
 
         public int[] resourceCosts { get; private set; }
 
         // A technology can have one or more prerequisite technologies
         // that must be researched before it can be.
-        private HashSet<Technology> prerequisites;
+        private HashSet<String> prerequisites;
 
         // Each string has a few components, seperated by spaces:
         // - an identifier for whether it affects a unit, a building or a technology
@@ -36,15 +33,14 @@ namespace Devious_Retention
         // 0 = max hitpoints, 1 = damage, 2 = building time, [note: the next two are SET modifiers, not FLAT modifiers] 3 = provides resource, 4 = resource type, 5 = gather speed, 6 = resource costs, 7 = resistances
         // Technology statistics:
         // 0 = resource costs
-        private List<String> effects;
+        private HashSet<String> effects;
 
         /// <summary>
         /// As no technology types exist, all of a technology's attributes must be given
         /// to create one.
         /// </summary>
-        public Technology(int id, String name, HashSet<Technology> prerequisites, List<String> effects, int[] resourceCosts)
+        public Technology(String name, HashSet<String> prerequisites, HashSet<String> effects, int[] resourceCosts)
         {
-            this.id = id;
             this.name = name;
             this.prerequisites = prerequisites;
             this.effects = effects;
