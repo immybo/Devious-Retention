@@ -16,7 +16,7 @@ namespace Devious_Retention
     {
         private CTSConnection connection;
         // The client's GameInfo is changed over time by technologies, etc
-        private GameInfo info;
+        public GameInfo info { get; private set; }
         // Entities are gotten from the server every tick
         public HashSet<Resource> resources { get; private set; }
         public HashSet<Unit> units { get; private set; }

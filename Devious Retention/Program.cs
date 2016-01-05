@@ -31,11 +31,11 @@ namespace Devious_Retention
             debugWindow.Show();
             info.SetDebug(debugWindow);
 
-            info.WriteDebug("Testing debug.");
-            info.WriteDebug("I'm GREEEEEEN", Color.Green);
+            debugWindow.SetDesktopLocation(2000, 100);
 
             gameWindow = new GameWindow();
             gameWindow.client = new GameClient(1, map, gameWindow, info, null, null);
+            info.WriteDebug("Game window opened.", Color.Blue);
 
             Application.Run(gameWindow);
 
