@@ -26,10 +26,9 @@ namespace Devious_Retention
 
             Console.WriteLine(GameInfo.BASE_DIRECTORY);
 
-            GameInfo info = new GameInfo(GameInfo.UNIT_FNAME, GameInfo.BUILDING_FNAME, GameInfo.RESOURCE_FNAME, GameInfo.TECHNOLOGY_FNAME, GameInfo.FACTION_FNAME);
             debugWindow = new DebugWindow();
             debugWindow.Show();
-            info.SetDebug(debugWindow);
+            GameInfo info = new GameInfo(true, debugWindow);
 
             debugWindow.SetDesktopLocation(2000, 100);
 

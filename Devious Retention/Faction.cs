@@ -42,7 +42,7 @@ namespace Devious_Retention
                 if (int.Parse(change[0]) == 1)
                 {
                     // identify the type of unit
-                    UnitType type = types.unitTypes[int.Parse(change[1])];
+                    UnitType type = types.unitTypes[change[1]];
                     double modifier = double.Parse(change[3]);
                     // figure out which statistic to change and change it
                     switch (int.Parse(change[2]))
@@ -98,7 +98,7 @@ namespace Devious_Retention
                 else if (int.Parse(change[0]) == 2)
                 {
                     // identify the type of building
-                    BuildingType type = types.buildingTypes[int.Parse(change[1])];
+                    BuildingType type = types.buildingTypes[change[1]];
                     double modifier = double.Parse(change[3]);
                     // figure out which statistic to change and change it
                     switch (int.Parse(change[2]))
@@ -157,7 +157,7 @@ namespace Devious_Retention
                 // change a technology
                 else if (int.Parse(change[0]) == 3)
                 {
-                    Technology tech = types.technologies[int.Parse(change[1])];
+                    Technology tech = types.technologies[change[1]];
                     try
                     {
                         for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)

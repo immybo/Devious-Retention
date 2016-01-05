@@ -26,19 +26,17 @@ namespace Devious_Retention
         private double gatherSpeed;
 
         /// <summary>
-        /// Constructing a ResourceType requires providing a string that is
-        /// equivalent to a ResourceType's ToString output.
+        /// Anything attempting to create a ResourceType from a file must first
+        /// parse the string into these attributes.
         /// </summary>
-        public ResourceType(String s)
+        public ResourceType(string name, int resourceType, int resourceAmount, string imageFilename, double gatherSpeed)
         {
-            String[] attributes = s.Split(new char[] { ' ' });
-            name = attributes[0];
-            resourceType = int.Parse(attributes[1]);
-            resourceAmount = int.Parse(attributes[2]);
-            imageFilename = attributes[3];
-            // TODO
-            //image = Image.FromFile(GameInfo.RESOURCE_FILENAME_BASE + imageFilename);
-            gatherSpeed = double.Parse(attributes[4]);
+            this.name = name;
+            this.resourceType = resourceType;
+            this.resourceAmount = resourceAmount;
+            this.imageFilename = imageFilename;
+            image = Image.FromFile(GameInfo.RESOURCE_IMAGE_BASE + imageFilename);
+            this.gatherSpeed = gatherSpeed;
         }
 
         /// <summary>

@@ -24,7 +24,10 @@ namespace Devious_Retention
         /// </summary>
         public Map(List<Tile> possibleTiles, int[][] tiles, int width, int height)
         {
-
+            this.possibleTiles = possibleTiles;
+            this.tiles = tiles;
+            this.width = width;
+            this.height = height;
         }
 
         /// <summary>
@@ -32,7 +35,7 @@ namespace Devious_Retention
         /// </summary>
         public Tile GetTile(int x, int y)
         {
-            return null;
+            return possibleTiles[tiles[x][y]];
         }
     }
 
@@ -42,18 +45,41 @@ namespace Devious_Retention
     /// </summary>
     public class Tile
     {
-        private Image image { get; }
+        // The filename of the image should be GameInfo.RESOURCE_IMAGE_BASE+imageName
+        private string imageName;
+        public Image image { get; private set; }
         // Whether building foundations can be put on this tile
-        private bool buildable { get; }
+        public bool buildable { get; private set; }
         // Whether the given unit type can move through this tile
-        private bool[] unitTypePassable { get; }
+        public bool[] unitTypePassable { get; private set; }
 
-        private String name { get; }
-        private int id { get; }
+        public String name { get; private set; }
 
-        public Tile(Image image, bool buildable, bool[] unitTypePassable, String name, int id)
+        /// <summary>
+        /// Anything attempting to create a Tile from a file must first
+        /// parse the string into these attributes.
+        /// </summary>
+        public Tile(string name, string imageName, bool buildable, bool[] unitTypePassable)
         {
+            this.name = name;
+            this.imageName = imageName;
+            image = Image.FromFile(GameInfo.TILE_IMAGE_BASE + imageName);
+            this.buildable = buildable;
+            this.unitTypePassable = unitTypePassable;
+        }
 
+        /// <summary>
+        /// Returns "[name] [image filename] [buildable] [unit type passable 1 .. unit type passable x]"
+        /// </summary>
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append(name + " ");
+            builder.Append(imageName + " ");
+            builder.Append(buildable + " ");
+            foreach (bool u in unitTypePassable)
+                builder.Append(u + " ");
+            return builder.ToString();
         }
     }
 }

@@ -45,35 +45,30 @@ namespace Devious_Retention
         public List<Unit> units;
 
         /// <summary>
-        /// Creating a UnitType requires providing a string with all of the attributes formatted like:
-        /// "name hitpoints damage damageType resistance1 resistance2 .. resistanceX trainingTime speed
-        ///     prerequisiteName canBuild buildSpeed aggressive resourcecost1 resourcecost2 ... resourcecostx"
-        /// This format will also be outputted by that UnitType's toString.
+        /// Anything attempting to create a UnitType from a file must first
+        /// parse the string into these attributes.
         /// </summary>
-        public UnitType(String s)
+        public UnitType(string name, int hitpoints, int damage, int damageType, int[] resistances, int trainingTime, double speed,
+                        string prerequisite, bool canBuild, double buildSpeed, bool aggressive, int[] resourceCosts)
         {
-            String[] attributes = s.Split(new char[] { ' ' });
-
-            name = attributes[0];
-            hitpoints = int.Parse(attributes[1]);
-            damage = int.Parse(attributes[2]);
-            damageType = int.Parse(attributes[3]);
-            resistances = new int[GameInfo.DAMAGE_TYPES];
-            for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
-                resistances[i] = int.Parse(attributes[4 + i]);
-            trainingTime = int.Parse(attributes[4 + GameInfo.DAMAGE_TYPES]);
-            speed = double.Parse(attributes[5 + GameInfo.DAMAGE_TYPES]);
-            prerequisite = attributes[6 + GameInfo.DAMAGE_TYPES];
-            canBuild = bool.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
-            buildSpeed = double.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
-            aggressive = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
-            resourceCosts = new int[GameInfo.RESOURCE_TYPES];
-            for(int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                resourceCosts[i] = int.Parse(attributes[10 + GameInfo.DAMAGE_TYPES + i]);
+            this.name = name;
+            this.hitpoints = hitpoints;
+            this.damage = damage;
+            this.damageType = damageType;
+            this.resistances = resistances;
+            this.trainingTime = trainingTime;
+            this.speed = speed;
+            this.prerequisite = prerequisite;
+            this.canBuild = canBuild;
+            this.buildSpeed = buildSpeed;
+            this.aggressive = aggressive;
+            this.resourceCosts = resourceCosts;
         }
 
         /// <summary>
-        /// See the constructor for information on the string returned.
+        /// Returns:
+        /// "name hitpoints damage damageType resistance1 resistance2 .. resistanceX trainingTime speed
+        ///     prerequisiteName canBuild buildSpeed aggressive resourcecost1 resourcecost2 ... resourcecostx"
         /// </summary>
         public override String ToString()
         {

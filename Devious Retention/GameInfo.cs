@@ -19,7 +19,10 @@ namespace Devious_Retention
         public static string RESOURCE_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Resources.txt";
         public static string TECHNOLOGY_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Technologies.txt";
         public static string FACTION_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Factions.txt";
-        public static string RESOURCE_FILENAME_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Resources\\";
+        public static string TILE_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Tiles.txt";
+
+        public static string RESOURCE_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Resources\\";
+        public static string TILE_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Tiles\\";
 
         // In milliseconds
         public const int TICK_TIME = 100;
@@ -27,25 +30,32 @@ namespace Devious_Retention
         public const int DAMAGE_TYPES  = 3;
         // Metal, oil, energy, science
         public const int RESOURCE_TYPES = 4;
+        // Infantry, armored (e.g. tanks), flying, ships
+        public const int UNIT_TYPES = 4;
 
-        public List<UnitType> unitTypes { get; internal set; }
-        public List<BuildingType> buildingTypes { get; internal set; }
-        public List<ResourceType> resourceTypes { get; internal set; }
-        public List<Technology> technologies { get; internal set; }
-        public List<Faction> factions { get; internal set; }
+        public SortedDictionary<string,UnitType> unitTypes { get; internal set; }
+        public SortedDictionary<string,BuildingType> buildingTypes { get; internal set; }
+        public SortedDictionary<string,ResourceType> resourceTypes { get; internal set; }
+        public SortedDictionary<string,Technology> technologies { get; internal set; }
+        public SortedDictionary<string,Faction> factions { get; internal set; }
+        public SortedDictionary<string,Tile> tiles { get; internal set; }
 
         // Whether or not debug messages will be sent
         private bool debug = false;
         // The debug window; only used if debug == true
         private DebugWindow debugWindow = null;
 
-        public GameInfo(string unitfname, string buildingfname, string resourcefname, string technologyfname, string factionfname)
+        public GameInfo(bool debug, DebugWindow debugWindow)
         {
-            readUnits(unitfname);
-            readBuildings(buildingfname);
-            readResources(resourcefname);
-            readTechnologies(technologyfname);
-            readFactions(factionfname);
+            this.debug = debug;
+            this.debugWindow = debugWindow;
+
+            ReadUnits(UNIT_FNAME);
+            ReadBuildings(BUILDING_FNAME);
+            ReadResources(RESOURCE_FNAME);
+            ReadTechnologies(TECHNOLOGY_FNAME);
+            ReadFactions(FACTION_FNAME);
+            ReadTiles(TILE_FNAME);
         }
 
         /// <summary>
@@ -56,20 +66,23 @@ namespace Devious_Retention
             if (!debug) return;
 
             WriteDebug("UNIT TYPES", Color.DarkGreen);
-            foreach (UnitType u in unitTypes)
+            foreach (UnitType u in unitTypes.Values)
                 WriteDebug(u.ToString(), Color.Green);
             WriteDebug("BUILDING TYPES", Color.DarkGreen);
-            foreach (BuildingType b in buildingTypes)
+            foreach (BuildingType b in buildingTypes.Values)
                 WriteDebug(b.ToString(), Color.Green);
             WriteDebug("RESOURCE TYPES", Color.DarkGreen);
-            foreach (ResourceType r in resourceTypes)
+            foreach (ResourceType r in resourceTypes.Values)
                 WriteDebug(r.ToString(), Color.Green);
             WriteDebug("TECHNOLOGIES", Color.DarkGreen);
-            foreach (Technology t in technologies)
+            foreach (Technology t in technologies.Values)
                 WriteDebug(t.ToString(), Color.Green);
             WriteDebug("FACTIONS", Color.DarkGreen);
-            foreach (Faction f in factions)
+            foreach (Faction f in factions.Values)
                 WriteDebug(f.ToString(), Color.Green);
+            WriteDebug("TILES", Color.DarkGreen);
+            foreach (Tile t in tiles.Values)
+                WriteDebug(t.ToString(), Color.Green);
         }
 
         public void SetDebug(DebugWindow d)
@@ -100,17 +113,40 @@ namespace Devious_Retention
                 debugWindow.WriteLine(s);
         }
 
-        private void readUnits(string fname)
+        private void ReadUnits(string fname)
         {
-            unitTypes = new List<UnitType>();
+            unitTypes = new SortedDictionary<string, UnitType>();
             try {
                 StreamReader r = new StreamReader(fname);
+                int j = 0;
                 string line;
                 while ((line = r.ReadLine()) != null)
                 {
-                    unitTypes.Add(new UnitType(line));
+                    String[] attributes = line.Split(new char[] { ' ' });
+
+                    string name = attributes[0];
+                    int hitpoints = int.Parse(attributes[1]);
+                    int damage = int.Parse(attributes[2]);
+                    int damageType = int.Parse(attributes[3]);
+                    int[] resistances = new int[GameInfo.DAMAGE_TYPES];
+                    for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
+                        resistances[i] = int.Parse(attributes[4 + i]);
+                    int trainingTime = int.Parse(attributes[4 + GameInfo.DAMAGE_TYPES]);
+                    double speed = double.Parse(attributes[5 + GameInfo.DAMAGE_TYPES]);
+                    string prerequisite = attributes[6 + GameInfo.DAMAGE_TYPES];
+                    bool canBuild = bool.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
+                    double buildSpeed = double.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
+                    bool aggressive = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
+                    int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
+                    for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+                        resourceCosts[i] = int.Parse(attributes[10 + GameInfo.DAMAGE_TYPES + i]);
+                    unitTypes.Add(name, new UnitType(name, hitpoints, damage, damageType, resistances, trainingTime, speed, prerequisite, canBuild, buildSpeed,
+                        aggressive, resourceCosts));
+
+                    j++;
                 }
                 r.Close();
+                WriteDebug("Read " + j + " unit definitions.", Color.Blue);
             }
             catch(IOException e)
             {
@@ -118,18 +154,42 @@ namespace Devious_Retention
             }
         }
 
-        private void readBuildings(string fname)
+        private void ReadBuildings(string fname)
         {
-            buildingTypes = new List<BuildingType>();
+            buildingTypes = new SortedDictionary<string,BuildingType>();
             try
             {
                 StreamReader r = new StreamReader(fname);
+                int j = 0;
                 string line;
                 while ((line = r.ReadLine()) != null)
                 {
-                    buildingTypes.Add(new BuildingType(line));
+                    String[] attributes = line.Split(new char[] { ' ' });
+
+                    string name = attributes[0];
+                    int hitpoints = int.Parse(attributes[1]);
+                    int damage = int.Parse(attributes[2]);
+                    int damageType = int.Parse(attributes[3]);
+                    int[] resistances = new int[GameInfo.DAMAGE_TYPES];
+                    for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
+                        resistances[i] = int.Parse(attributes[4 + i]);
+                    int buildTime = int.Parse(attributes[4 + GameInfo.DAMAGE_TYPES]);
+                    string prerequisite = attributes[5 + GameInfo.DAMAGE_TYPES];
+                    bool providesResource = bool.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
+                    int resourceType = int.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
+                    double gatherSpeed = double.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
+                    bool builtOnResource = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
+                    int builtOnResourceType = int.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
+                    bool aggressive = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
+                    int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
+                    for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+                        resourceCosts[i] = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES + i]);
+                    buildingTypes.Add(name, new BuildingType(name, hitpoints, damage, damageType, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
+                        builtOnResource, builtOnResourceType, aggressive, resourceCosts));
+                    j++;
                 }
                 r.Close();
+                WriteDebug("Read " + j + " building definitions.", Color.Blue);
             }
             catch (IOException e)
             {
@@ -137,28 +197,37 @@ namespace Devious_Retention
             }
         }
 
-        private void readResources(string fname)
+        private void ReadResources(string fname)
         {
-            resourceTypes = new List<ResourceType>();
+            resourceTypes = new SortedDictionary<string,ResourceType>();
             try
             {
                 StreamReader r = new StreamReader(fname);
+                int i = 0;
                 string line;
                 while ((line = r.ReadLine()) != null)
                 {
-                    resourceTypes.Add(new ResourceType(line));
+                    String[] attributes = line.Split(new char[] { ' ' });
+                    string name = attributes[0];
+                    int resourceType = int.Parse(attributes[1]);
+                    int resourceAmount = int.Parse(attributes[2]);
+                    string imageFilename = attributes[3];
+                    double gatherSpeed = double.Parse(attributes[4]);
+                    resourceTypes.Add(name, new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed));
+                    i++;
                 }
                 r.Close();
+                WriteDebug("Read " + i + " resource definitions.", Color.Blue);
             }
             catch (IOException e)
             {
-                Console.WriteLine("Couldn't properly read from unit file. " + e);
+                Console.WriteLine("Couldn't properly read from resource file. " + e);
             }
         }
 
-        private void readTechnologies(string fname)
+        private void ReadTechnologies(string fname)
         {
-            technologies = new List<Technology>();
+            technologies = new SortedDictionary<string,Technology>();
             // Each technology is in a set of lines, ended with a line that has only a ~ in it
             // A technology is formatted:
             // name
@@ -170,6 +239,7 @@ namespace Devious_Retention
             try
             {
                 StreamReader r = new StreamReader(fname);
+                int j = 0;
                 string line;
                 string name = "";
                 HashSet<string> prerequisites = new HashSet<string>();
@@ -180,19 +250,19 @@ namespace Devious_Retention
                 {
                     if (line.Equals("~"))
                     {
-                        technologies.Add(new Technology(name, prerequisites, effects, resourceCosts));
+                        technologies.Add(name, new Technology(name, prerequisites, effects, resourceCosts));
                         currentLine = -1;
                         prerequisites = new HashSet<string>();
                         effects = new HashSet<String>();
                     }
-                    else if (currentLine == 0) name = line;
+                    else if (currentLine == 0) { name = line; j++; }
                     else if (currentLine == 1)
                     {
                         string[] split = line.Split(new char[] { ' ' });
                         for (int i = 0; i < split.Length; i++)
                             prerequisites.Add(split[i]);
                     }
-                    else if(currentLine == 2)
+                    else if (currentLine == 2)
                     {
                         string[] split = line.Split(new char[] { ' ' });
                         for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
@@ -204,6 +274,7 @@ namespace Devious_Retention
                     currentLine++;
                 }
                 r.Close();
+                WriteDebug("Read " + j + " technology definitions.", Color.Blue);
             }
             catch (IOException e)
             {
@@ -211,13 +282,14 @@ namespace Devious_Retention
             }
         }
 
-        private void readFactions(string fname)
+        private void ReadFactions(string fname)
         {
-            factions = new List<Faction>();
+            factions = new SortedDictionary<string,Faction>();
             // Again, different factions are seperated by a sole "~" on a line
             try
             {
                 StreamReader r = new StreamReader(fname);
+                int i = 0;
                 string line;
                 string name = "";
                 HashSet<String> effects = new HashSet<string>();
@@ -226,16 +298,47 @@ namespace Devious_Retention
                 {
                     if (line.Equals("~"))
                     {
-                        factions.Add(new Faction(name, effects));
+                        factions.Add(name,new Faction(name, effects));
                         currentLine = -1;
                         effects = new HashSet<String>();
                     }
-                    else if (currentLine == 0) name = line;
+                    else if (currentLine == 0) { name = line; i++; }
                     else effects.Add(line);
 
                     currentLine++;
                 }
                 r.Close();
+                WriteDebug("Read " + i + " faction definitions.", Color.Blue);
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine("Couldn't properly read from faction file. " + e);
+            }
+        }
+
+        private void ReadTiles(string fname)
+        {
+            tiles = new SortedDictionary<string,Tile>();
+            try
+            {
+                StreamReader r = new StreamReader(fname);
+                int i = 0;
+                string line;
+                while ((line = r.ReadLine()) != null)
+                {
+                    string[] split = line.Split(new char[] { ' ' });
+                    string name = split[0];
+                    string imageName = split[1];
+                    bool buildable = bool.Parse(split[2]);
+                    bool[] unitTypePassable = new bool[GameInfo.UNIT_TYPES];
+                    for (int j = 0; j < GameInfo.UNIT_TYPES; j++)
+                        unitTypePassable[j] = bool.Parse(split[3 + j]);
+
+                    tiles.Add(name, new Tile(name, imageName, buildable, unitTypePassable));
+                    i++;
+                }
+                r.Close();
+                WriteDebug("Read " + i + " tile definitions.", Color.Blue);
             }
             catch (IOException e)
             {

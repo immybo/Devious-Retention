@@ -49,37 +49,31 @@ namespace Devious_Retention
         public List<Building> buildings;
 
         /// <summary>
-        /// Creating a BuildingType requires providing a string with all of the attributes formatted like:
-        /// "name hitpoints damage damageType resistance1 resistance2 .. resistanceX buildTime
-        ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive resourcecost1 resourcecost2 .. resourcecostx"
-        /// This format will also be outputted by that BuildingType's toString.
+        /// Anything attempting to create a BuildingType from a file must first
+        /// parse the string into these attributes.
         /// </summary>
-        public BuildingType(String s)
+        public BuildingType(string name, int hitpoints, int damage, int damageType, int[] resistances, int buildTime, string prerequisite, bool providesResource, int resourceType,
+            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, int[] resourceCosts)
         {
-            String[] attributes = s.Split(new char[] { ' ' });
-
-            name = attributes[0];
-            hitpoints = int.Parse(attributes[1]);
-            damage = int.Parse(attributes[2]);
-            damageType = int.Parse(attributes[3]);
-            resistances = new int[GameInfo.DAMAGE_TYPES];
-            for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
-                resistances[i] = int.Parse(attributes[4 + i]);
-            buildTime = int.Parse(attributes[4 + GameInfo.DAMAGE_TYPES]);
-            prerequisite = attributes[5 + GameInfo.DAMAGE_TYPES];
-            providesResource = bool.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
-            resourceType = int.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
-            gatherSpeed = double.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
-            builtOnResource = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
-            builtOnResourceType = int.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
-            aggressive = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
-            resourceCosts = new int[GameInfo.RESOURCE_TYPES];
-            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                resourceCosts[i] = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES + i]);
+            this.name = name;
+            this.hitpoints = hitpoints;
+            this.damageType = damageType;
+            this.resistances = resistances;
+            this.buildTime = buildTime;
+            this.prerequisite = prerequisite;
+            this.providesResource = providesResource;
+            this.resourceType = resourceType;
+            this.gatherSpeed = gatherSpeed;
+            this.builtOnResource = builtOnResource;
+            this.builtOnResourceType = builtOnResourceType;
+            this.aggressive = aggressive;
+            this.resourceCosts = resourceCosts;
         }
 
         /// <summary>
-        /// See the constructor for information on the string returned.
+        /// Returns:
+        /// "name hitpoints damage damageType resistance1 resistance2 .. resistanceX buildTime
+        ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive resourcecost1 resourcecost2 .. resourcecostx"
         /// </summary>
         public override String ToString()
         {
