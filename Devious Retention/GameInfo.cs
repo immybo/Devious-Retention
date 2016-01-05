@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -32,6 +33,11 @@ namespace Devious_Retention
         public List<Technology> technologies { get; internal set; }
         public List<Faction> factions { get; internal set; }
 
+        // Whether or not debug messages will be sent
+        private bool debug = false;
+        // The debug window; only used if debug == true
+        private DebugWindow debugWindow = null;
+
         public GameInfo(string unitfname, string buildingfname, string resourcefname, string technologyfname, string factionfname)
         {
             readUnits(unitfname);
@@ -39,6 +45,34 @@ namespace Devious_Retention
             readResources(resourcefname);
             readTechnologies(technologyfname);
             readFactions(factionfname);
+        }
+
+        public void SetDebug(DebugWindow d)
+        {
+            debug = true;
+            debugWindow = d;
+        }
+        public void TurnOffDebug()
+        {
+            debug = false;
+        }
+        /// <summary>
+        /// Sends a debug message in the specified color.
+        /// Does nothing if debug == false.
+        /// </summary>
+        public void WriteDebug(String s, Color c)
+        {
+            if (debug)
+                debugWindow.WriteLine(s, c);
+        }
+        /// <summary>
+        /// Sends a debug message in the default color.
+        /// Does nothing if debug == false.
+        /// </summary>
+        public void WriteDebug(String s)
+        {
+            if (debug)
+                debugWindow.WriteLine(s);
         }
 
         private void readUnits(string fname)
