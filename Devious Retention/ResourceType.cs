@@ -12,7 +12,7 @@ namespace Devious_Retention
     /// </summary>
     public class ResourceType
     {
-        public int id { get; private set; }
+        public String name { get; private set; }
         // Which resource this ResourceType provides
         public int resourceType { get; private set; }
         // How much of the resource this ResourceType initially contains
@@ -32,22 +32,23 @@ namespace Devious_Retention
         public ResourceType(String s)
         {
             String[] attributes = s.Split(new char[] { ' ' });
-            id = int.Parse(attributes[0]);
+            name = attributes[0];
             resourceType = int.Parse(attributes[1]);
             resourceAmount = int.Parse(attributes[2]);
             imageFilename = attributes[3];
-            image = Image.FromFile(imageFilename);
+            // TODO
+            //image = Image.FromFile(GameInfo.RESOURCE_FILENAME_BASE + imageFilename);
             gatherSpeed = double.Parse(attributes[4]);
         }
 
         /// <summary>
         /// Returns:
-        /// "[id] [resourceType] [resourceAmount] [imageFilename] [gatherSpeed]"
+        /// "[name] [resourceType] [resourceAmount] [imageFilename] [gatherSpeed]"
         /// </summary>
         public override String ToString()
         {
             StringBuilder builder = new StringBuilder();
-            builder.Append(id + " ");
+            builder.Append(name + " ");
             builder.Append(resourceType + " ");
             builder.Append(resourceAmount + " ");
             builder.Append(imageFilename + " ");

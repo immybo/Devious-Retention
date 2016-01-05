@@ -11,6 +11,7 @@ namespace Devious_Retention
     /// </summary>
     public class BuildingType
     {
+        public String name { get; private set; }
         // The initial amount of hitpoints for buildings of this type.
         public int hitpoints;
         // The base amount of damage that this building will do to other units per attack.
@@ -49,7 +50,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Creating a BuildingType requires providing a string with all of the attributes formatted like:
-        /// "hitpoints damage damageType resistance1 resistance2 .. resistanceX buildTime
+        /// "name hitpoints damage damageType resistance1 resistance2 .. resistanceX buildTime
         ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive resourcecost1 resourcecost2 .. resourcecostx"
         /// This format will also be outputted by that BuildingType's toString.
         /// </summary>
@@ -57,22 +58,24 @@ namespace Devious_Retention
         {
             String[] attributes = s.Split(new char[] { ' ' });
 
-            hitpoints = int.Parse(attributes[0]);
-            damage = int.Parse(attributes[1]);
-            damageType = int.Parse(attributes[2]);
+            name = attributes[0];
+            hitpoints = int.Parse(attributes[1]);
+            damage = int.Parse(attributes[2]);
+            damageType = int.Parse(attributes[3]);
             resistances = new int[GameInfo.DAMAGE_TYPES];
             for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
-                resistances[i] = int.Parse(attributes[3 + i]);
-            buildTime = int.Parse(attributes[3 + GameInfo.DAMAGE_TYPES]);
-            prerequisite = attributes[4 + GameInfo.DAMAGE_TYPES];
-            providesResource = bool.Parse(attributes[5 + GameInfo.DAMAGE_TYPES]);
-            resourceType = int.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
-            gatherSpeed = double.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
-            builtOnResource = bool.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
-            builtOnResourceType = int.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
-            aggressive = bool.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
+                resistances[i] = int.Parse(attributes[4 + i]);
+            buildTime = int.Parse(attributes[4 + GameInfo.DAMAGE_TYPES]);
+            prerequisite = attributes[5 + GameInfo.DAMAGE_TYPES];
+            providesResource = bool.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
+            resourceType = int.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
+            gatherSpeed = double.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
+            builtOnResource = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
+            builtOnResourceType = int.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
+            aggressive = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
+            resourceCosts = new int[GameInfo.RESOURCE_TYPES];
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                resourceCosts[i] = int.Parse(attributes[11 + GameInfo.DAMAGE_TYPES + i]);
+                resourceCosts[i] = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES + i]);
         }
 
         /// <summary>
@@ -81,6 +84,7 @@ namespace Devious_Retention
         public override String ToString()
         {
             StringBuilder builder = new StringBuilder();
+            builder.Append(name + " ");
             builder.Append(hitpoints + " ");
             builder.Append(damage + " ");
             builder.Append(damageType + " ");

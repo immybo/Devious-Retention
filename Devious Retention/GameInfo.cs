@@ -19,6 +19,7 @@ namespace Devious_Retention
         public static string RESOURCE_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Resources.txt";
         public static string TECHNOLOGY_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Technologies.txt";
         public static string FACTION_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Factions.txt";
+        public static string RESOURCE_FILENAME_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Resources\\";
 
         // In milliseconds
         public const int TICK_TIME = 100;
@@ -45,6 +46,30 @@ namespace Devious_Retention
             readResources(resourcefname);
             readTechnologies(technologyfname);
             readFactions(factionfname);
+        }
+
+        /// <summary>
+        /// Writes all currently known definitions to the debug window (if the debug window is active).
+        /// </summary>
+        public void WriteDefinitionsToDebug()
+        {
+            if (!debug) return;
+
+            WriteDebug("UNIT TYPES", Color.DarkGreen);
+            foreach (UnitType u in unitTypes)
+                WriteDebug(u.ToString(), Color.Green);
+            WriteDebug("BUILDING TYPES", Color.DarkGreen);
+            foreach (BuildingType b in buildingTypes)
+                WriteDebug(b.ToString(), Color.Green);
+            WriteDebug("RESOURCE TYPES", Color.DarkGreen);
+            foreach (ResourceType r in resourceTypes)
+                WriteDebug(r.ToString(), Color.Green);
+            WriteDebug("TECHNOLOGIES", Color.DarkGreen);
+            foreach (Technology t in technologies)
+                WriteDebug(t.ToString(), Color.Green);
+            WriteDebug("FACTIONS", Color.DarkGreen);
+            foreach (Faction f in factions)
+                WriteDebug(f.ToString(), Color.Green);
         }
 
         public void SetDebug(DebugWindow d)
@@ -77,6 +102,7 @@ namespace Devious_Retention
 
         private void readUnits(string fname)
         {
+            unitTypes = new List<UnitType>();
             try {
                 StreamReader r = new StreamReader(fname);
                 string line;
@@ -94,6 +120,7 @@ namespace Devious_Retention
 
         private void readBuildings(string fname)
         {
+            buildingTypes = new List<BuildingType>();
             try
             {
                 StreamReader r = new StreamReader(fname);
@@ -112,6 +139,7 @@ namespace Devious_Retention
 
         private void readResources(string fname)
         {
+            resourceTypes = new List<ResourceType>();
             try
             {
                 StreamReader r = new StreamReader(fname);
@@ -130,6 +158,7 @@ namespace Devious_Retention
 
         private void readTechnologies(string fname)
         {
+            technologies = new List<Technology>();
             // Each technology is in a set of lines, ended with a line that has only a ~ in it
             // A technology is formatted:
             // name
@@ -184,6 +213,7 @@ namespace Devious_Retention
 
         private void readFactions(string fname)
         {
+            factions = new List<Faction>();
             // Again, different factions are seperated by a sole "~" on a line
             try
             {

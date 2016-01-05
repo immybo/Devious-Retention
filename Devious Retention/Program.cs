@@ -37,6 +37,8 @@ namespace Devious_Retention
             gameWindow.client = new GameClient(1, map, gameWindow, info, null, null);
             info.WriteDebug("Game window opened.", Color.Blue);
 
+            info.WriteDefinitionsToDebug();
+
             Application.Run(gameWindow);
 
         }
