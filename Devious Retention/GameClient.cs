@@ -54,7 +54,7 @@ namespace Devious_Retention
         /// </summary>
         public GameClient(int playerNumber, Map map, GameWindow window, GameInfo info, CTSConnection connection, Faction faction)
         {
-
+            this.map = map;
         }
 
         /// <summary>

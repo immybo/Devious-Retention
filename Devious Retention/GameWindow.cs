@@ -93,11 +93,11 @@ namespace Devious_Retention
 
             // Draw the tiles
             int tileWidth = (int) (panelWidth / HORIZONTAL_TILES);
-            int tileHeight = (int) (panelHeight / tileWidth);
+            int tileHeight = tileWidth;
 
-            for(int i = 0; i < tileWidth; i++)
+            for(int i = 0; i + client.screenX < client.map.width; i++)
             {
-                for(int j = 0; j < tileHeight; j++)
+                for(int j = 0; j + client.screenY < client.map.height; j++)
                 {
                     g.DrawImage(client.map.GetTile(i, j).image, new Rectangle(i*tileWidth,j*tileHeight,tileWidth, tileHeight));
                 }

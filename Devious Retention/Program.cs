@@ -20,9 +20,6 @@ namespace Devious_Retention
 
             GameWindow gameWindow;
             DebugWindow debugWindow;
-            int[][] tiles = new int[][] { new int[0] };
-            List<Tile> tileTypes = new List<Tile>();
-            Map map = new Map(tileTypes, tiles, tiles[0].Length, tiles.Length);
 
             Console.WriteLine(GameInfo.BASE_DIRECTORY);
 
@@ -33,6 +30,12 @@ namespace Devious_Retention
             debugWindow.SetDesktopLocation(2000, 100);
 
             gameWindow = new GameWindow();
+
+            int[][] tiles = new int[][] { new int[5] { 1, 1, 1, 1, 1 }, new int[5] { 0, 1, 0, 1, 1 }, new int[5] { 1, 1, 1, 1, 1 }, new int[5] { 1, 1, 1, 1, 1 }, new int[5] { 1, 1, 1, 1, 1 } };
+            List<Tile> tileTypes = new List<Tile>();
+            foreach (Tile t in info.tiles.Values)
+                tileTypes.Add(t);
+            Map map = new Map(tileTypes, tiles, tiles[0].Length, tiles.Length);
             gameWindow.client = new GameClient(1, map, gameWindow, info, null, null);
             info.WriteDebug("Game window opened.", Color.Blue);
 
