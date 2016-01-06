@@ -18,6 +18,8 @@ namespace Devious_Retention
         private const double MINIMAP_WIDTH = 0.15;
         private const double TOP_RIGHT_HEIGHT = 0.5;
 
+        private const int HORIZONTAL_TILES = 10;
+
         public GameClient client;
 
         // Where the mouse started dragging, for selection purposes
@@ -88,6 +90,18 @@ namespace Devious_Retention
             format.Alignment = StringAlignment.Center;
             format.LineAlignment = StringAlignment.Center;
             g.DrawString("Game area center", font, Brushes.Black, new PointF(panelWidth / 2, panelHeight / 2), format);
+
+            // Draw the tiles
+            int tileWidth = (int) (panelWidth / HORIZONTAL_TILES);
+            int tileHeight = (int) (panelHeight / tileWidth);
+
+            for(int i = 0; i < tileWidth; i++)
+            {
+                for(int j = 0; j < tileHeight; j++)
+                {
+                    g.DrawImage(client.map.GetTile(i, j).image, new Rectangle(i*tileWidth,j*tileHeight,tileWidth, tileHeight));
+                }
+            }
         }
 
         /// <summary>

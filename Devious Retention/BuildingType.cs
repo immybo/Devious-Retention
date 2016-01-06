@@ -20,6 +20,10 @@ namespace Devious_Retention
         // So that unit counters can effectively be made, there are multiple different types of damage.
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
         public int damageType { get; private set; }
+        // How many tiles this building can "see"
+        public int lineOfSight;
+        // How many tiles this building takes up along each axis
+        public int size { get; private set; }
         public int[] resistances;
         // Milliseconds (rounds to the nearest tick)
         public int buildTime;
@@ -52,12 +56,14 @@ namespace Devious_Retention
         /// Anything attempting to create a BuildingType from a file must first
         /// parse the string into these attributes.
         /// </summary>
-        public BuildingType(string name, int hitpoints, int damage, int damageType, int[] resistances, int buildTime, string prerequisite, bool providesResource, int resourceType,
+        public BuildingType(string name, int hitpoints, int damage, int damageType, int lineOfSight, int size, int[] resistances, int buildTime, string prerequisite, bool providesResource, int resourceType,
             double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, int[] resourceCosts)
         {
             this.name = name;
             this.hitpoints = hitpoints;
             this.damageType = damageType;
+            this.lineOfSight = lineOfSight;
+            this.size = size;
             this.resistances = resistances;
             this.buildTime = buildTime;
             this.prerequisite = prerequisite;
@@ -72,7 +78,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns:
-        /// "name hitpoints damage damageType resistance1 resistance2 .. resistanceX buildTime
+        /// "name hitpoints damage damageType lineOfSight size resistance1 resistance2 .. resistanceX buildTime
         ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive resourcecost1 resourcecost2 .. resourcecostx"
         /// </summary>
         public override String ToString()
@@ -82,6 +88,8 @@ namespace Devious_Retention
             builder.Append(hitpoints + " ");
             builder.Append(damage + " ");
             builder.Append(damageType + " ");
+            builder.Append(lineOfSight + " ");
+            builder.Append(size + " ");
             for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
                 builder.Append(resistances[i] + " ");
             builder.Append(buildTime + " ");

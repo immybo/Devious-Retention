@@ -128,20 +128,23 @@ namespace Devious_Retention
                     int hitpoints = int.Parse(attributes[1]);
                     int damage = int.Parse(attributes[2]);
                     int damageType = int.Parse(attributes[3]);
+                    int lineOfSight = int.Parse(attributes[4]);
+                    double size = double.Parse(attributes[5]);
                     int[] resistances = new int[GameInfo.DAMAGE_TYPES];
                     for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
-                        resistances[i] = int.Parse(attributes[4 + i]);
-                    int trainingTime = int.Parse(attributes[4 + GameInfo.DAMAGE_TYPES]);
-                    double speed = double.Parse(attributes[5 + GameInfo.DAMAGE_TYPES]);
-                    string prerequisite = attributes[6 + GameInfo.DAMAGE_TYPES];
-                    bool canBuild = bool.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
-                    double buildSpeed = double.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
-                    bool aggressive = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
+                        resistances[i] = int.Parse(attributes[6 + i]);
+                    int trainingTime = int.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
+                    double speed = double.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
+                    string prerequisite = attributes[8 + GameInfo.DAMAGE_TYPES];
+                    bool canBuild = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
+                    double buildSpeed = double.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
+                    bool aggressive = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
+                    int type = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES]);
                     int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                     for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                        resourceCosts[i] = int.Parse(attributes[10 + GameInfo.DAMAGE_TYPES + i]);
-                    unitTypes.Add(name, new UnitType(name, hitpoints, damage, damageType, resistances, trainingTime, speed, prerequisite, canBuild, buildSpeed,
-                        aggressive, resourceCosts));
+                        resourceCosts[i] = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES + i]);
+                    unitTypes.Add(name, new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTime, speed, prerequisite, canBuild, buildSpeed,
+                        aggressive, type, resourceCosts));
 
                     j++;
                 }
@@ -170,21 +173,23 @@ namespace Devious_Retention
                     int hitpoints = int.Parse(attributes[1]);
                     int damage = int.Parse(attributes[2]);
                     int damageType = int.Parse(attributes[3]);
+                    int lineOfSight = int.Parse(attributes[4]);
+                    int size = int.Parse(attributes[5]);
                     int[] resistances = new int[GameInfo.DAMAGE_TYPES];
                     for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
-                        resistances[i] = int.Parse(attributes[4 + i]);
-                    int buildTime = int.Parse(attributes[4 + GameInfo.DAMAGE_TYPES]);
-                    string prerequisite = attributes[5 + GameInfo.DAMAGE_TYPES];
-                    bool providesResource = bool.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
-                    int resourceType = int.Parse(attributes[7 + GameInfo.DAMAGE_TYPES]);
-                    double gatherSpeed = double.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
-                    bool builtOnResource = bool.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
-                    int builtOnResourceType = int.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
-                    bool aggressive = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
+                        resistances[i] = int.Parse(attributes[6 + i]);
+                    int buildTime = int.Parse(attributes[6 + GameInfo.DAMAGE_TYPES]);
+                    string prerequisite = attributes[7 + GameInfo.DAMAGE_TYPES];
+                    bool providesResource = bool.Parse(attributes[8 + GameInfo.DAMAGE_TYPES]);
+                    int resourceType = int.Parse(attributes[9 + GameInfo.DAMAGE_TYPES]);
+                    double gatherSpeed = double.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
+                    bool builtOnResource = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
+                    int builtOnResourceType = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES]);
+                    bool aggressive = bool.Parse(attributes[13 + GameInfo.DAMAGE_TYPES]);
                     int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                     for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                        resourceCosts[i] = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES + i]);
-                    buildingTypes.Add(name, new BuildingType(name, hitpoints, damage, damageType, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
+                        resourceCosts[i] = int.Parse(attributes[14 + GameInfo.DAMAGE_TYPES + i]);
+                    buildingTypes.Add(name, new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
                         builtOnResource, builtOnResourceType, aggressive, resourceCosts));
                     j++;
                 }

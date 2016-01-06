@@ -1,0 +1,2 @@
+GrassTest grass.png true true true true true
+WallTest wall.png false false false true false
