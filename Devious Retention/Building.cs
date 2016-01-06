@@ -41,7 +41,10 @@ namespace Devious_Retention
         /// </summary>
         public Building(BuildingType type, double x, double y)
         {
-
+            this.type = type;
+            this.x = x;
+            this.y = y;
+            built = false;
         }
 
         /// <summary>
@@ -97,7 +100,24 @@ namespace Devious_Retention
         /// <returns></returns>
         public Image GetImage()
         {
-            return null;
+            return type.image;
+        }
+
+        /// <summary>
+        /// Returns the size of this building's type
+        /// </summary>
+        public Double GetSize()
+        {
+            return type.size;
+        }
+
+        public Double GetX()
+        {
+            return x;
+        }
+        public Double GetY()
+        {
+            return y;
         }
     }
 }

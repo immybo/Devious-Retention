@@ -44,7 +44,13 @@ namespace Devious_Retention
         /// </summary>
         public Unit(UnitType type, double x, double y)
         {
-
+            this.type = type;
+            this.x = x;
+            this.y = y;
+            direction = 0;
+            xToMove = -1;
+            yToMove = -1;
+            hitpoints = type.hitpoints;
         }
 
         /// <summary>
@@ -115,7 +121,24 @@ namespace Devious_Retention
         /// </summary>
         public Image GetImage()
         {
-            return null;
+            return type.image;
+        }
+
+        /// <summary>
+        /// Returns the size of this unit's type.
+        /// </summary>
+        public double GetSize()
+        {
+            return type.size;
+        }
+
+        public double GetX()
+        {
+            return x;
+        }
+        public double GetY()
+        {
+            return y;
         }
     }
 }

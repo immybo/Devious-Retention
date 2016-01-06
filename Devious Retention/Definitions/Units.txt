@@ -1,1 +1,1 @@
-TestUnit 100 10 1 10 0.8 50 50 50 10 5 TestTechnology true 1 false 1 50 50 50 50
+TestUnit 100 10 1 10 0.8 50 50 50 10 5 TestTechnology true 1 false 1 TestUnit.png 50 50 50 50

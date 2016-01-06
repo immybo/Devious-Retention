@@ -19,5 +19,12 @@ namespace Devious_Retention
         /// direction, etc.
         /// </summary>
         Image GetImage();
+        /// <summary>
+        /// Every entity has a size, and for the purposes of rendering it may as well be a double.
+        /// </summary>
+        Double GetSize();
+
+        Double GetX();
+        Double GetY();
     }
 }

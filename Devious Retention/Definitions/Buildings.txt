@@ -1,1 +1,1 @@
-TestBuilding 100 0 1 10 3 50 50 50 10 TestTechnology true 1 10 false 1 false 50 50 50 50
+TestBuilding 100 0 1 10 3 50 50 50 10 TestTechnology true 1 10 false 1 false TestBuilding.png 50 50 50 50

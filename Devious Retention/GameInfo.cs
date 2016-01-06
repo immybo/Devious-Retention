@@ -22,6 +22,8 @@ namespace Devious_Retention
         public static string TILE_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Tiles.txt";
 
         public static string RESOURCE_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Resources\\";
+        public static string BUILDING_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Buildings\\";
+        public static string UNIT_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Units\\";
         public static string TILE_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Tiles\\";
 
         // In milliseconds
@@ -140,11 +142,12 @@ namespace Devious_Retention
                     double buildSpeed = double.Parse(attributes[10 + GameInfo.DAMAGE_TYPES]);
                     bool aggressive = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
                     int type = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES]);
+                    string imageName = attributes[13 + GameInfo.DAMAGE_TYPES];
                     int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                     for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                        resourceCosts[i] = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES + i]);
+                        resourceCosts[i] = int.Parse(attributes[14 + GameInfo.DAMAGE_TYPES + i]);
                     unitTypes.Add(name, new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTime, speed, prerequisite, canBuild, buildSpeed,
-                        aggressive, type, resourceCosts));
+                        aggressive, type, imageName, resourceCosts));
 
                     j++;
                 }
@@ -186,11 +189,12 @@ namespace Devious_Retention
                     bool builtOnResource = bool.Parse(attributes[11 + GameInfo.DAMAGE_TYPES]);
                     int builtOnResourceType = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES]);
                     bool aggressive = bool.Parse(attributes[13 + GameInfo.DAMAGE_TYPES]);
+                    string imageName = attributes[14 + GameInfo.DAMAGE_TYPES];
                     int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                     for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                        resourceCosts[i] = int.Parse(attributes[14 + GameInfo.DAMAGE_TYPES + i]);
+                        resourceCosts[i] = int.Parse(attributes[15 + GameInfo.DAMAGE_TYPES + i]);
                     buildingTypes.Add(name, new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
-                        builtOnResource, builtOnResourceType, aggressive, resourceCosts));
+                        builtOnResource, builtOnResourceType, aggressive, imageName, resourceCosts));
                     j++;
                 }
                 r.Close();
@@ -218,7 +222,8 @@ namespace Devious_Retention
                     int resourceAmount = int.Parse(attributes[2]);
                     string imageFilename = attributes[3];
                     double gatherSpeed = double.Parse(attributes[4]);
-                    resourceTypes.Add(name, new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed));
+                    double size = double.Parse(attributes[5]);
+                    resourceTypes.Add(name, new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size));
                     i++;
                 }
                 r.Close();

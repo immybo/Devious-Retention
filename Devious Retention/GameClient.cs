@@ -55,6 +55,10 @@ namespace Devious_Retention
         public GameClient(int playerNumber, Map map, GameWindow window, GameInfo info, CTSConnection connection, Faction faction)
         {
             this.map = map;
+
+            resources = new HashSet<Resource>();
+            buildings = new HashSet<Building>();
+            units = new HashSet<Unit>();
         }
 
         /// <summary>

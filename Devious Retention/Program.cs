@@ -36,10 +36,14 @@ namespace Devious_Retention
             foreach (Tile t in info.tiles.Values)
                 tileTypes.Add(t);
             Map map = new Map(tileTypes, tiles, tiles[0].Length, tiles.Length);
-            gameWindow.client = new GameClient(1, map, gameWindow, info, null, null);
+            GameClient client = new GameClient(1, map, gameWindow, info, null, null);
+            gameWindow.client = client;
             info.WriteDebug("Game window opened.", Color.Blue);
 
             info.WriteDefinitionsToDebug();
+
+            client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1));
+            client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1));
 
             Application.Run(gameWindow);
 

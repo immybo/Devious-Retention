@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace Devious_Retention
@@ -48,6 +49,9 @@ namespace Devious_Retention
 
         public int[] resourceCosts;
 
+        private string imageName;
+        public Image image { get; private set; }
+
         public List<Unit> units;
 
         /// <summary>
@@ -55,12 +59,13 @@ namespace Devious_Retention
         /// parse the string into these attributes.
         /// </summary>
         public UnitType(string name, int hitpoints, int damage, int damageType, double size, int lineOfSight, int[] resistances, int trainingTime, double speed,
-                        string prerequisite, bool canBuild, double buildSpeed, bool aggressive, int type, int[] resourceCosts)
+                        string prerequisite, bool canBuild, double buildSpeed, bool aggressive, int type, string imageName, int[] resourceCosts)
         {
             this.name = name;
             this.hitpoints = hitpoints;
             this.damage = damage;
             this.damageType = damageType;
+            this.size = size;
             this.lineOfSight = lineOfSight;
             this.resistances = resistances;
             this.trainingTime = trainingTime;
@@ -70,13 +75,15 @@ namespace Devious_Retention
             this.buildSpeed = buildSpeed;
             this.aggressive = aggressive;
             this.type = type;
+            this.imageName = imageName;
+            image = Image.FromFile(GameInfo.UNIT_IMAGE_BASE + imageName);
             this.resourceCosts = resourceCosts;
         }
 
         /// <summary>
         /// Returns:
-        /// "name hitpoints damage damageType lineOfSight resistance1 resistance2 .. resistanceX trainingTime speed
-        ///     prerequisiteName canBuild buildSpeed aggressive type resourcecost1 resourcecost2 ... resourcecostx"
+        /// "name hitpoints damage damageType size lineOfSight resistance1 resistance2 .. resistanceX trainingTime speed
+        ///     prerequisiteName canBuild buildSpeed aggressive type imageName resourcecost1 resourcecost2 ... resourcecostx"
         /// </summary>
         public override String ToString()
         {
@@ -85,6 +92,7 @@ namespace Devious_Retention
             builder.Append(hitpoints + " ");
             builder.Append(damage + " ");
             builder.Append(damageType + " ");
+            builder.Append(size + " ");
             builder.Append(lineOfSight + " ");
             for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
                 builder.Append(resistances[i] + " ");
@@ -95,6 +103,7 @@ namespace Devious_Retention
             builder.Append(buildSpeed + " ");
             builder.Append(aggressive + " ");
             builder.Append(type + " ");
+            builder.Append(imageName + " ");
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 builder.Append(resourceCosts[i] + " ");
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace Devious_Retention
@@ -50,6 +51,9 @@ namespace Devious_Retention
 
         public int[] resourceCosts;
 
+        private string imageName;
+        public Image image { get; private set; }
+
         public List<Building> buildings;
 
         /// <summary>
@@ -57,7 +61,7 @@ namespace Devious_Retention
         /// parse the string into these attributes.
         /// </summary>
         public BuildingType(string name, int hitpoints, int damage, int damageType, int lineOfSight, int size, int[] resistances, int buildTime, string prerequisite, bool providesResource, int resourceType,
-            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, int[] resourceCosts)
+            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, string imageName, int[] resourceCosts)
         {
             this.name = name;
             this.hitpoints = hitpoints;
@@ -73,6 +77,8 @@ namespace Devious_Retention
             this.builtOnResource = builtOnResource;
             this.builtOnResourceType = builtOnResourceType;
             this.aggressive = aggressive;
+            this.imageName = imageName;
+            image = Image.FromFile(GameInfo.BUILDING_IMAGE_BASE + imageName);
             this.resourceCosts = resourceCosts;
         }
 
@@ -100,6 +106,7 @@ namespace Devious_Retention
             builder.Append(builtOnResource + " ");
             builder.Append(builtOnResourceType + " ");
             builder.Append(aggressive + " ");
+            builder.Append(imageName + " ");
             for(int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 builder.Append(resourceCosts[i] + " ");
 

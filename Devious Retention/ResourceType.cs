@@ -25,11 +25,13 @@ namespace Devious_Retention
         // 1 is default, higher is faster
         private double gatherSpeed;
 
+        public double size{ get; private set; }
+
         /// <summary>
         /// Anything attempting to create a ResourceType from a file must first
         /// parse the string into these attributes.
         /// </summary>
-        public ResourceType(string name, int resourceType, int resourceAmount, string imageFilename, double gatherSpeed)
+        public ResourceType(string name, int resourceType, int resourceAmount, string imageFilename, double gatherSpeed, double size)
         {
             this.name = name;
             this.resourceType = resourceType;
@@ -41,7 +43,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns:
-        /// "[name] [resourceType] [resourceAmount] [imageFilename] [gatherSpeed]"
+        /// "[name] [resourceType] [resourceAmount] [imageFilename] [gatherSpeed] [size]"
         /// </summary>
         public override String ToString()
         {
@@ -50,7 +52,8 @@ namespace Devious_Retention
             builder.Append(resourceType + " ");
             builder.Append(resourceAmount + " ");
             builder.Append(imageFilename + " ");
-            builder.Append(gatherSpeed);
+            builder.Append(gatherSpeed + " ");
+            builder.Append(size);
             return builder.ToString();
         }
     }
