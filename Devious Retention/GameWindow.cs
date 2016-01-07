@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,15 @@ namespace Devious_Retention
 
         private const int HORIZONTAL_TILES = 10;
 
+        // How much the screen moves every tick of holding the button down
+        private const int SCREEN_X_CHANGE = 1;
+        private const int SCREEN_Y_CHANGE = 1;
+
         public GameClient client;
+
+        // Where the top-left of the screen is, in map co-ordinates.
+        public double screenY { get; private set; } = 0;
+        public double screenX { get; private set; } = 0;
 
         // Where the mouse started dragging, for selection purposes
         private double startX = -1;
@@ -31,6 +40,7 @@ namespace Devious_Retention
             InitializeComponent();
 
             Paint += Render;
+            KeyDown += new KeyEventHandler(KeyEvent);
         }
 
         /// <summary>
@@ -115,19 +125,19 @@ namespace Devious_Retention
             int tileHeight = tileWidth;
 
             // How much of a tile we have to draw above the screen
-            int topTileYOffset = (int)((client.screenY - (int)client.screenY) * tileHeight);
+            int topTileYOffset = (int)((screenY - (int)screenY) * tileHeight);
             // How much of a tile we have to draw to the left of the screen
-            int topTileXOffset = (int)((client.screenX - (int)client.screenX) * tileWidth);
+            int topTileXOffset = (int)((screenX - (int)screenX) * tileWidth);
 
-            for (int i = 0; i + client.screenX < client.map.width; i++)
+            for (int i = 0; i + screenX < client.map.width; i++)
             {
                 // If we're already off the edge of the screen, top drawing
                 if (i * tileWidth >= panelWidth) break;
-                for(int j = 0; j + client.screenY < client.map.height; j++)
+                for(int j = 0; j + screenY < client.map.height; j++)
                 {
                     // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
                     // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i+(int)client.screenX, j+(int)client.screenY).image, new Rectangle(i*tileWidth - topTileXOffset,j*tileHeight - topTileYOffset,tileWidth, tileHeight));
+                    g.DrawImage(client.map.GetTile(i+(int)screenX, j+(int)screenY).image, new Rectangle(i*tileWidth - topTileXOffset,j*tileHeight - topTileYOffset,tileWidth, tileHeight));
                 }
             }
         }*/
@@ -137,28 +147,40 @@ namespace Devious_Retention
         /// </summary>
         private void RenderTiles(Graphics g, Rectangle bounds)
         {
+            // Clip the output to a specific region; the game area minus the minimap
+            Rectangle clipRect1 = new Rectangle(0,0,(int)((GAME_AREA_WIDTH-MINIMAP_WIDTH)*Width), (int)(GAME_AREA_HEIGHT* Height));
+            Rectangle clipRect2 = new Rectangle(0, 0, (int)(GAME_AREA_WIDTH * Width), (int)(GAME_AREA_HEIGHT * Height - MINIMAP_WIDTH * Width));
+            g.SetClip(clipRect1);
+            g.SetClip(clipRect2, CombineMode.Union);
+
             // Figure out how large tiles are; they must always be square
             int tileWidth = (int)(bounds.Width / HORIZONTAL_TILES);
             int tileHeight = tileWidth;
 
             // Figure out how much of the top and left tiles must be cut off the screen, due
             // to the camera position being potentially not an integer value
-            int topTileYOffset = (int)((client.screenY - (int)client.screenY) * tileHeight);
-            int topTileXOffset = (int)((client.screenX - (int)client.screenX) * tileWidth);
+            int topTileYOffset = (int)((screenY - (int)screenY) * tileHeight);
+            int topTileXOffset = (int)((screenX - (int)screenX) * tileWidth);
 
             // Figure out how many tiles we can draw on the screen
             int maxXTiles = HORIZONTAL_TILES;
             int maxYTiles = (int)(Math.Ceiling((double)bounds.Height / tileHeight)); // better too many than too few since we draw over the edges anyway
 
-            for (int i = 0; i + client.screenX < client.map.width && i < maxXTiles; i++)
+            for (int i = 0; i + screenX < client.map.width && i < maxXTiles; i++)
             {
-                for (int j = 0; j + client.screenY < client.map.height && j < maxYTiles; j++)
+                for (int j = 0; j + screenY < client.map.height && j < maxYTiles; j++)
                 {
-                    // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
-                    // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i + (int)client.screenX, j + (int)client.screenY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
+                    // Make sure we're not drawing a tile that's out of bounds
+                    int tileX = i + (int)screenX;
+                    int tileY = j + (int)screenY;
+                    if (tileX < 0 || tileY < 0) continue;
+                    if (tileX > client.map.width || tileY > client.map.height) continue;
+
+                    g.DrawImage(client.map.GetTile(tileX, tileY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                 }
             }
+
+            g.SetClip(new Rectangle(0, 0, Width, Height));
         }
 
         /// <summary>
@@ -167,6 +189,12 @@ namespace Devious_Retention
         /// </summary>
         private void RenderEntities(Graphics g, Rectangle bounds)
         {
+            // Clip the output to a specific region; the game area minus the minimap
+            Rectangle clipRect1 = new Rectangle(0, 0, (int)((GAME_AREA_WIDTH - MINIMAP_WIDTH) * Width), (int)(GAME_AREA_HEIGHT * Height));
+            Rectangle clipRect2 = new Rectangle(0, 0, (int)(GAME_AREA_WIDTH * Width), (int)(GAME_AREA_HEIGHT * Height - MINIMAP_WIDTH * Width));
+            g.SetClip(clipRect1);
+            g.SetClip(clipRect2, CombineMode.Union);
+
             // Figure out how large tiles are; they must always be square
             int tileWidth = (int)(bounds.Width / HORIZONTAL_TILES);
             int tileHeight = tileWidth;
@@ -188,19 +216,21 @@ namespace Devious_Retention
             foreach(Entity e in entities)
             {
                 // First check if they're even on the screen
-                if (e.GetX() + e.GetSize() < client.screenX || e.GetX() > client.screenX + maxXTiles) continue;
-                if (e.GetY() + e.GetSize() < client.screenY || e.GetY() > client.screenY + maxYTiles) continue;
+                if (e.GetX() + e.GetSize() < screenX || e.GetX() > screenX + maxXTiles) continue;
+                if (e.GetY() + e.GetSize() < screenY || e.GetY() > screenY + maxYTiles) continue;
 
                 // Since they are on the screen, figure out their bounds
                 Rectangle entityBounds = new Rectangle();
-                entityBounds.X = (int)((e.GetX() - client.screenX) * tileWidth); // their distance from the left/top of the screen
-                entityBounds.Y = (int)((e.GetY() - client.screenY) * tileHeight);
+                entityBounds.X = (int)((e.GetX() - screenX) * tileWidth); // their distance from the left/top of the screen
+                entityBounds.Y = (int)((e.GetY() - screenY) * tileHeight);
                 entityBounds.Width = (int)(e.GetSize() * tileWidth);
                 entityBounds.Height = (int)(e.GetSize() * tileHeight);
 
                 // And finally, draw them
                 g.DrawImage(e.GetImage(), entityBounds);
             }
+
+            g.SetClip(new Rectangle(0, 0, Width, Height));
         }
 
         /// <summary>
@@ -266,9 +296,20 @@ namespace Devious_Retention
         /// Processes any key events on the game window. If they are recognised as
         /// utilised keys, performs the appropriate action on the client.
         /// </summary>
-        public void KeyEvent(KeyEventArgs e)
+        public void KeyEvent(object sender, KeyEventArgs e)
         {
+            Keys key = e.KeyCode;
 
+            if (key == Keys.Up)
+                this.screenY -= SCREEN_Y_CHANGE;
+            else if (key == Keys.Down)
+                this.screenY += SCREEN_Y_CHANGE;
+            else if (key == Keys.Right)
+                this.screenX += SCREEN_X_CHANGE;
+            else if (key == Keys.Left)
+                this.screenX -= SCREEN_X_CHANGE;
+
+            Refresh();
         }
 
         /// <summary>

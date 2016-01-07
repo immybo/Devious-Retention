@@ -33,10 +33,6 @@ namespace Devious_Retention
         // This should be unique within a given game
         private int playerNumber;
 
-        // Where the top-left of the screen is, in map co-ordinates.
-        public double screenY { get; private set; }
-        public double screenX { get; private set; }
-
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
         // metal, oil, energy, science
