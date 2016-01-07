@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,9 +12,14 @@ namespace Devious_Retention
     /// </summary>
     public class Technology
     {
+        public bool researched = false;
+
         public String name { get; private set; }
 
         public int[] resourceCosts { get; private set; }
+
+        private string iconName;
+        public Image icon { get; private set; }
 
         // A technology can have one or more prerequisite technologies
         // that must be researched before it can be.
@@ -39,12 +45,35 @@ namespace Devious_Retention
         /// As no technology types exist, all of a technology's attributes must be given
         /// to create one.
         /// </summary>
-        public Technology(String name, HashSet<String> prerequisites, HashSet<String> effects, int[] resourceCosts)
+        public Technology(String name, HashSet<String> prerequisites, HashSet<String> effects, int[] resourceCosts, string iconName)
         {
             this.name = name;
             this.prerequisites = prerequisites;
             this.effects = effects;
             this.resourceCosts = resourceCosts;
+            this.iconName = iconName;
+            icon = Image.FromFile(GameInfo.TECHNOLOGY_IMAGE_BASE + iconName);
+        }
+
+        /// <summary>
+        /// Returns a string representing this technology.
+        /// "[name] [prerequisites] ~ [effects] ~ [resourceCosts] [iconName]"
+        /// </summary>
+        /// <returns></returns>
+        public string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append(name + " ");
+            foreach (string p in prerequisites)
+                builder.Append(p + " ");
+            builder.Append("~ ");
+            foreach (string e in effects)
+                builder.Append(e + " ");
+            builder.Append("~ ");
+            foreach (int i in resourceCosts)
+                builder.Append(i + " ");
+            builder.Append(iconName);
+            return builder.ToString();
         }
 
         /// <summary>

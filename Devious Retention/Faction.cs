@@ -27,7 +27,22 @@ namespace Devious_Retention
         /// </summary>
         public Faction(String name, HashSet<String> effects)
         {
+            this.name = name;
+            this.effects = effects;
+        }
 
+        /// <summary>
+        /// Returns a string representing this technology.
+        /// "[name] [effects]"
+        /// </summary>
+        /// <returns></returns>
+        public string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append(name + " ");
+            foreach (string e in effects)
+                builder.Append(e + " ");
+            return builder.ToString();
         }
 
         /// <summary>

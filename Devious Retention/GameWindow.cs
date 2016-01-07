@@ -25,6 +25,10 @@ namespace Devious_Retention
         private const int SCREEN_X_CHANGE = 1;
         private const int SCREEN_Y_CHANGE = 1;
 
+        // How large the building/technology icons are, and the gaps between them (pixels)
+        private const int ICON_SIZE = 50;
+        private const int ICON_GAP = 20;
+
         public GameClient client;
 
         // Where the top-left of the screen is, in map co-ordinates.
@@ -34,6 +38,9 @@ namespace Devious_Retention
         // Where the mouse started dragging, for selection purposes
         private double startX = -1;
         private double startY = -1;
+
+        // Whether the building panel or the technology panel is open
+        private bool buildingPanelOpen = true;
 
         public GameWindow()
         {
@@ -99,48 +106,6 @@ namespace Devious_Retention
             Width = Screen.PrimaryScreen.WorkingArea.Width;
             Height = Screen.PrimaryScreen.WorkingArea.Height;
         }
-
-        /// <summary>
-        /// Renders the game panel; i.e. the part of the window which contains
-        /// the entities, tiles, etc. Also renders the resource counts and minimap.
-        /// Uses the client's perspective to do so.
-        /// </summary>
-        /*private void RenderGamePanel(Graphics g)
-        {
-            int panelWidth = (int)(GAME_AREA_WIDTH * Width);
-            int panelHeight = (int)(GAME_AREA_HEIGHT * Height);
-            int panelX = 0;
-            int panelY = 0;
-            
-            g.DrawRectangle(new Pen(new SolidBrush(Color.Black)), new Rectangle(panelX, panelY, panelWidth, panelHeight));
-
-            Font font = new Font("Arial", 50, FontStyle.Regular);
-            StringFormat format = new StringFormat();
-            format.Alignment = StringAlignment.Center;
-            format.LineAlignment = StringAlignment.Center;
-            g.DrawString("Game area center", font, Brushes.Black, new PointF(panelWidth / 2, panelHeight / 2), format);
-
-            // DRAW THE TILES //
-            int tileWidth = (int) (panelWidth / HORIZONTAL_TILES);
-            int tileHeight = tileWidth;
-
-            // How much of a tile we have to draw above the screen
-            int topTileYOffset = (int)((screenY - (int)screenY) * tileHeight);
-            // How much of a tile we have to draw to the left of the screen
-            int topTileXOffset = (int)((screenX - (int)screenX) * tileWidth);
-
-            for (int i = 0; i + screenX < client.map.width; i++)
-            {
-                // If we're already off the edge of the screen, top drawing
-                if (i * tileWidth >= panelWidth) break;
-                for(int j = 0; j + screenY < client.map.height; j++)
-                {
-                    // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
-                    // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i+(int)screenX, j+(int)screenY).image, new Rectangle(i*tileWidth - topTileXOffset,j*tileHeight - topTileYOffset,tileWidth, tileHeight));
-                }
-            }
-        }*/
 
         /// <summary>
         /// Renders all tiles on the map
@@ -290,6 +255,37 @@ namespace Devious_Retention
             format.Alignment = StringAlignment.Center;
             format.LineAlignment = StringAlignment.Center;
             g.DrawString("Top right panel", font, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Height / 2), format);
+
+            // If the building panel is open, draw that
+            if (buildingPanelOpen)
+            {
+                // Find out how many icons we can fit
+                int iconWidth = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
+
+                int i = 0;
+                foreach(BuildingType b in client.info.buildingTypes.Values)
+                {
+                    // If the building can't be built yet, it will be greyed out
+                    bool grayed = !(client.info.technologies.ContainsKey(b.prerequisite) && client.info.technologies[b.prerequisite].researched);
+
+                    Image image = grayed ? b.greyedImage : b.image;
+                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (i % iconWidth),
+                        bounds.Y + ICON_GAP + (int)(i / iconWidth) * (ICON_SIZE + ICON_GAP),
+                        ICON_SIZE, ICON_SIZE);
+
+                    g.DrawImage(image, iconBounds);
+
+                    i++;
+                }
+                // Also draw a tooltip if the mouse is over a building
+            }
+
+            // Otherwise draw the technology panel
+            else
+            {
+
+                // Also draw a tooltip if the mouse is over a technology
+            }
         }
 
         /// <summary>

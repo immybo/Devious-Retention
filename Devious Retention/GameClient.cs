@@ -38,9 +38,6 @@ namespace Devious_Retention
         // metal, oil, energy, science
         public int[] currentResources { get; private set; }
 
-        // Whether the building panel or the technology panel is open
-        public bool buildingPanelOpen { get; private set; }
-
         // The faction this player belongs to
         private Faction faction;
         
@@ -51,6 +48,11 @@ namespace Devious_Retention
         public GameClient(int playerNumber, Map map, GameWindow window, GameInfo info, CTSConnection connection, Faction faction)
         {
             this.map = map;
+            this.info = info;
+            this.window = window;
+            this.connection = connection;
+            this.faction = faction;
+            // faction.ApplyEffects();
 
             resources = new HashSet<Resource>();
             buildings = new HashSet<Building>();

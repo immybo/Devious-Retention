@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Text;
 
 namespace Devious_Retention
@@ -53,6 +55,7 @@ namespace Devious_Retention
 
         private string imageName;
         public Image image { get; private set; }
+        public Image greyedImage { get; private set; }
 
         public List<Building> buildings;
 
@@ -79,7 +82,30 @@ namespace Devious_Retention
             this.aggressive = aggressive;
             this.imageName = imageName;
             image = Image.FromFile(GameInfo.BUILDING_IMAGE_BASE + imageName);
+            GenerateGreyedImage();
             this.resourceCosts = resourceCosts;
+        }
+
+        /// <summary>
+        /// Takes the regular image and converts it to greyscale,
+        /// setting greyedImage to it.
+        /// </summary>
+        private void GenerateGreyedImage()
+        {
+            Bitmap b = new Bitmap(image);
+            for (int i = 0; i < b.Width; i++)
+            {
+                for (int j = 0; j < b.Height; j++)
+                {
+                    Color originalColor = b.GetPixel(i, j);
+                    int grayScale = (int)((originalColor.R * 0.3) + (originalColor.G * 0.59) + (originalColor.B * 0.11));
+                    Color newColor = Color.FromArgb(originalColor.A, grayScale, grayScale, grayScale);
+                    b.SetPixel(i, j, newColor);
+                }
+            }
+            Stream imageStream = new MemoryStream();
+            b.Save(imageStream, ImageFormat.Png);
+            greyedImage = Image.FromStream(imageStream);
         }
 
         /// <summary>
