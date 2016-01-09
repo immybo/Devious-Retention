@@ -42,8 +42,9 @@ namespace Devious_Retention
 
             info.WriteDefinitionsToDebug();
 
-            client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1));
-            client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1));
+            // RE-ADD LATER WHEN IMAGES PUSHED
+            //client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1));
+            //client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1));
 
             Application.Run(gameWindow);
 

@@ -59,6 +59,8 @@ namespace Devious_Retention
             resources = new HashSet<Resource>();
             buildings = new HashSet<Building>();
             units = new HashSet<Unit>();
+
+            currentResources = new int[GameInfo.RESOURCE_TYPES];
         }
 
         /// <summary>

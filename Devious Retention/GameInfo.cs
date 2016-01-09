@@ -26,6 +26,16 @@ namespace Devious_Retention
         public static string UNIT_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Units\\";
         public static string TILE_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Tiles\\";
 
+        public static string RESOURCE_ICON_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\ResourceIcons\\";
+        public static string[] RESOURCE_ICON_NAMES { get; internal set; } = new string[RESOURCE_TYPES]
+        {
+            "metal.png", "oil.png", "energy.png", "science.png"
+        };
+
+        // For background images in the GUI
+        public static string BACKGROUND_IMAGE_BASE { get; private set; } = BASE_DIRECTORY + "Images\\Backgrounds\\";
+        public static string BACKGROUND_IMAGE_RESOURCE_DISPLAY_AREA { get; private set; } = "resourcedisplayarea.png";
+
         // In milliseconds
         public const int TICK_TIME = 100;
         // Melee, ranged, bombard
@@ -49,6 +59,7 @@ namespace Devious_Retention
 
         public GameInfo(bool debug, DebugWindow debugWindow)
         {
+            Console.WriteLine(BASE_DIRECTORY);
             this.debug = debug;
             this.debugWindow = debugWindow;
 

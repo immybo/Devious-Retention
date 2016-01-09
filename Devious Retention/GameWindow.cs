@@ -20,15 +20,26 @@ namespace Devious_Retention
 
         private const int HORIZONTAL_TILES = 10;
 
+        private const double RESOURCE_WIDTH = 0.2;
+
         public GameClient client;
 
         // Where the mouse started dragging, for selection purposes
         private double startX = -1;
         private double startY = -1;
 
+        // Images for the resource display area and tooltips
+        private Image[] resourceImages;
+        private Image resourceDisplayAreaBackgroundImage;
+
         public GameWindow()
         {
             InitializeComponent();
+
+            resourceImages = new Image[GameInfo.RESOURCE_TYPES];
+            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+                resourceImages[i] = Image.FromFile(GameInfo.RESOURCE_ICON_IMAGE_BASE + GameInfo.RESOURCE_ICON_NAMES[i]);
+            resourceDisplayAreaBackgroundImage = Image.FromFile(GameInfo.BACKGROUND_IMAGE_BASE + GameInfo.BACKGROUND_IMAGE_RESOURCE_DISPLAY_AREA);
 
             Paint += Render;
         }
@@ -208,13 +219,27 @@ namespace Devious_Retention
         /// </summary>
         private void RenderResourceDisplayArea(Graphics g, Rectangle bounds)
         {
-            g.DrawRectangle(new Pen(new SolidBrush(Color.Black)), bounds);
+            g.DrawImage(resourceDisplayAreaBackgroundImage, bounds);
 
-            Font font = new Font("Arial", 30, FontStyle.Regular);
-            StringFormat format = new StringFormat();
-            format.Alignment = StringAlignment.Center;
-            format.LineAlignment = StringAlignment.Center;
-            g.DrawString("Resource display area", font, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2), format);
+            Font font = new Font("Arial", (int)(bounds.Height/1.5), FontStyle.Regular);
+
+            int resourcePadding = 5;
+            int resourceIconWidth = bounds.Height - resourcePadding * 2;
+            int resourceTextWidth = (int)(RESOURCE_WIDTH*bounds.Width - resourceIconWidth);
+            int resourceGapWidth = (int)((1 - GameInfo.RESOURCE_TYPES * RESOURCE_WIDTH) / (GameInfo.RESOURCE_TYPES+1) * bounds.Width);
+
+            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++) {
+                Rectangle imageBounds = new Rectangle();
+                imageBounds.X = (int)(resourceGapWidth * (i + 1) + (resourceIconWidth+ resourceTextWidth) * i + bounds.X);
+                imageBounds.Y = bounds.Y + resourcePadding;
+                imageBounds.Width = resourceIconWidth;
+                imageBounds.Height = resourceIconWidth;
+
+                PointF textPoint = new PointF(imageBounds.X + resourceIconWidth + resourcePadding, bounds.Y);
+
+                g.DrawImage(resourceImages[i], imageBounds);
+                g.DrawString(client.currentResources[i] + "", font, Brushes.Black, textPoint);
+            }
         }
 
         /// <summary>
