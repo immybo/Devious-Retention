@@ -23,8 +23,6 @@ namespace Devious_Retention
         public HashSet<Building> buildings { get; private set; }
 
         public List<Entity> selected { get; private set; }
-        // The type of building that has been selected from the create buildings panel
-        public BuildingType selectedBuilding { get; private set; }
 
         public Map map { get; private set; }
 
@@ -54,13 +52,23 @@ namespace Devious_Retention
         /// </summary>
         public GameClient(int playerNumber, Map map, GameWindow window, GameInfo info, CTSConnection connection, Faction faction)
         {
+            this.info = info;
             this.map = map;
+            // this.faction = faction;
+            // this.connection = connection;
 
             resources = new HashSet<Resource>();
             buildings = new HashSet<Building>();
             units = new HashSet<Unit>();
 
+            selected = new List<Entity>();
+
             currentResources = new int[GameInfo.RESOURCE_TYPES];
+
+            screenX = 0;
+            screenY = 0;
+
+            buildingPanelOpen = true;
         }
 
         /// <summary>

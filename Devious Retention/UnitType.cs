@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Text;
 
 namespace Devious_Retention
@@ -21,7 +22,7 @@ namespace Devious_Retention
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
         public int damageType;
         public int[] resistances;
-        // Milliseconds (rounds to the nearest tick)
+        // Ticks
         public int trainingTime;
         // How many tiles units of this type can move per second
         public double speed;
@@ -51,6 +52,8 @@ namespace Devious_Retention
 
         private string imageName;
         public Image image { get; private set; }
+        private string iconName;
+        public Image icon { get; private set; }
 
         public List<Unit> units;
 
@@ -58,8 +61,8 @@ namespace Devious_Retention
         /// Anything attempting to create a UnitType from a file must first
         /// parse the string into these attributes.
         /// </summary>
-        public UnitType(string name, int hitpoints, int damage, int damageType, double size, int lineOfSight, int[] resistances, int trainingTime, double speed,
-                        string prerequisite, bool canBuild, double buildSpeed, bool aggressive, int type, string imageName, int[] resourceCosts)
+        public UnitType(string name, int hitpoints, int damage, int damageType, double size, int lineOfSight, int[] resistances, int trainingTimeMillis, double speed,
+                        string prerequisite, bool canBuild, double buildSpeed, bool aggressive, int type, string imageName, string iconName, int[] resourceCosts)
         {
             this.name = name;
             this.hitpoints = hitpoints;
@@ -68,7 +71,7 @@ namespace Devious_Retention
             this.size = size;
             this.lineOfSight = lineOfSight;
             this.resistances = resistances;
-            this.trainingTime = trainingTime;
+            this.trainingTime = (int)(trainingTimeMillis / GameInfo.TICK_TIME);
             this.speed = speed;
             this.prerequisite = prerequisite;
             this.canBuild = canBuild;
@@ -76,14 +79,24 @@ namespace Devious_Retention
             this.aggressive = aggressive;
             this.type = type;
             this.imageName = imageName;
-            image = Image.FromFile(GameInfo.UNIT_IMAGE_BASE + imageName);
             this.resourceCosts = resourceCosts;
+
+            try
+            {
+                image = Image.FromFile(GameInfo.UNIT_IMAGE_BASE + imageName);
+                icon = Image.FromFile(GameInfo.UNIT_ICON_BASE + iconName);
+            }
+            catch(IOException e)
+            {
+                image = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
+                icon = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
+            }
         }
 
         /// <summary>
         /// Returns:
         /// "name hitpoints damage damageType size lineOfSight resistance1 resistance2 .. resistanceX trainingTime speed
-        ///     prerequisiteName canBuild buildSpeed aggressive type imageName resourcecost1 resourcecost2 ... resourcecostx"
+        ///     prerequisiteName canBuild buildSpeed aggressive type imageName iconName resourcecost1 resourcecost2 ... resourcecostx"
         /// </summary>
         public override String ToString()
         {
@@ -104,6 +117,7 @@ namespace Devious_Retention
             builder.Append(aggressive + " ");
             builder.Append(type + " ");
             builder.Append(imageName + " ");
+            builder.Append(iconName + " ");
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 builder.Append(resourceCosts[i] + " ");
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,8 +38,17 @@ namespace Devious_Retention
             this.resourceType = resourceType;
             this.resourceAmount = resourceAmount;
             this.imageFilename = imageFilename;
-            image = Image.FromFile(GameInfo.RESOURCE_IMAGE_BASE + imageFilename);
             this.gatherSpeed = gatherSpeed;
+
+            try
+            {
+                image = Image.FromFile(GameInfo.RESOURCE_IMAGE_BASE + imageFilename);
+            }
+            // If the image can't be loaded, load a default one instead (which hopefully can!)
+            catch (IOException e)
+            {
+                image = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
+            }
         }
 
         /// <summary>

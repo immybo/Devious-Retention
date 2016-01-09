@@ -25,8 +25,10 @@ namespace Devious_Retention
         // Unbuilt buildings will have a different image, and will not be able to perform their functions until built fully
         public bool built { get; private set; }
 
-        // A map of UnitTypes to be created, to time until they are created (ticks)
-        public Dictionary<UnitType, int> trainingQueue { get; private set; }
+        // A queue of UnitTypes to be created
+        public Queue<UnitType> trainingQueue { get; private set; }
+        // How long until the next UnitType on the queue is created (ticks) - only matters if trainingQueue isn't empty
+        public int trainingQueueTime { get; private set; }
 
         // The resource that this building is on, if any
         private Resource resource;
@@ -44,6 +46,8 @@ namespace Devious_Retention
             this.type = type;
             this.x = x;
             this.y = y;
+            trainingQueue = new Queue<UnitType>();
+            trainingQueueTime = 0;
             built = false;
         }
 
@@ -53,6 +57,9 @@ namespace Devious_Retention
         /// </summary>
         public void QueueUnit(UnitType unit)
         {
+            // UNFINISHED DOES NOT CHECK IF THE UNIT TYPE CAN BE MADE YET
+            trainingQueue.Enqueue(unit);
+            if (trainingQueue.Count == 1) trainingQueueTime = unit.trainingTime;
         }
 
         /// <summary>

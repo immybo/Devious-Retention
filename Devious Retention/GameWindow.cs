@@ -22,6 +22,10 @@ namespace Devious_Retention
 
         private const double RESOURCE_WIDTH = 0.2;
 
+        // relative to the width of the selection panel
+        private const double DAMAGE_ICON_SIZE = 0.06;
+        private const double TRAINING_QUEUE_ICON_SIZE = 0.19;
+
         public GameClient client;
 
         // Where the mouse started dragging, for selection purposes
@@ -30,16 +34,26 @@ namespace Devious_Retention
 
         // Images for the resource display area and tooltips
         private Image[] resourceImages;
+        // Images for different damage types in the selected entity area
+        private Image[] damageTypeIcons;
+
         private Image resourceDisplayAreaBackgroundImage;
+        private Image selectedEntityAreaBackgroundImage;
 
         public GameWindow()
         {
             InitializeComponent();
 
+            // Load all the images
             resourceImages = new Image[GameInfo.RESOURCE_TYPES];
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 resourceImages[i] = Image.FromFile(GameInfo.RESOURCE_ICON_IMAGE_BASE + GameInfo.RESOURCE_ICON_NAMES[i]);
+            damageTypeIcons = new Image[GameInfo.DAMAGE_TYPES];
+            for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
+                damageTypeIcons[i] = Image.FromFile(GameInfo.DAMAGE_TYPE_ICON_IMAGE_BASE + GameInfo.DAMAGE_TYPE_ICON_NAMES[i]);
+
             resourceDisplayAreaBackgroundImage = Image.FromFile(GameInfo.BACKGROUND_IMAGE_BASE + GameInfo.BACKGROUND_IMAGE_RESOURCE_DISPLAY_AREA);
+            selectedEntityAreaBackgroundImage = Image.FromFile(GameInfo.BACKGROUND_IMAGE_BASE + GameInfo.BACKGROUND_IMAGE_SELECTED_ENTITY_AREA);
 
             Paint += Render;
         }
@@ -262,13 +276,158 @@ namespace Devious_Retention
         /// </summary>
         private void RenderSelectedEntityPanel(Graphics g, Rectangle bounds)
         {
-            g.DrawRectangle(new Pen(new SolidBrush(Color.Black)), bounds);
+            int fontSize = bounds.Width / 25;
+            Font titleFont = new Font("Arial", (int)(fontSize*1.5), FontStyle.Regular);
+            Font font = new Font("Arial", fontSize, FontStyle.Regular);
 
-            Font font = new Font("Arial", 30, FontStyle.Regular);
             StringFormat format = new StringFormat();
             format.Alignment = StringAlignment.Center;
-            format.LineAlignment = StringAlignment.Center;
-            g.DrawString("Selected entity panel", font, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2), format);
+            // Draw background image
+            g.DrawImage(selectedEntityAreaBackgroundImage, bounds);
+
+            // Find out if we've got a unit, building or resource (or nothing)
+            if (client.selected.Count == 0) return; // draw nothing if nothing is selected
+            
+            Entity entity = client.selected[0];
+            // We draw the panel based off the first entity out of the list of selected entities;
+            // generally the player should only be selecting one entity if they intend to view its attributes
+            // or create units out of it
+            
+            if (entity is Building)
+            {
+                Building building = (Building)entity;
+                // Middle x, top y
+                Point drawPoint = new Point(bounds.X + bounds.Width / 2, bounds.Y + 10);
+                // Draw the title in the middle
+                g.DrawString(building.type.name, titleFont, Brushes.Black, drawPoint, format);
+
+                // Now draw everything else on a left alignment
+                drawPoint.X = bounds.X + 10;
+                drawPoint.Y += (int)(fontSize*1.5) + 20;
+                format.Alignment = StringAlignment.Near;
+
+                // HITPOINTS
+                g.DrawString("HP: " + building.hitpoints + "/" + building.type.hitpoints, font, Brushes.Black, drawPoint, format);
+                drawPoint.Y += fontSize + 10;
+
+                // DAMAGE
+                // Only draw the damage if this building can attack
+                if (building.type.aggressive)
+                {
+                    g.DrawString("Damage:", font, Brushes.Black, drawPoint, format);
+                    // icon for the damage type
+                    g.DrawImage(damageTypeIcons[building.type.damageType],
+                        new Rectangle(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 10,
+                                      drawPoint.Y, (int)(DAMAGE_ICON_SIZE*bounds.Width),(int)(DAMAGE_ICON_SIZE*bounds.Width)));
+                    g.DrawString(building.type.damage + "", font, Brushes.Black,
+                        new Point(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 20 + (int)(DAMAGE_ICON_SIZE * bounds.Width),drawPoint.Y));
+                }
+                drawPoint.Y += fontSize + 10;
+
+                // RESISTANCES
+                g.DrawString("Resist:", font, Brushes.Black, drawPoint);
+                drawPoint.X += (int)(g.MeasureString("Resist:", font).Width) + 10;
+                for(int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
+                {
+                    g.DrawImage(damageTypeIcons[i],
+                        new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE*bounds.Width), (int)(DAMAGE_ICON_SIZE*bounds.Width)));
+                    drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 10;
+                    g.DrawString(building.type.resistances[i] + "%", font, Brushes.Black, drawPoint);
+                    drawPoint.X += (int)(g.MeasureString(building.type.resistances[i] + "%", font).Width) + 10;
+                }
+
+                // TRAINING QUEUE
+                drawPoint.X = bounds.X + 10;
+                drawPoint.Y += fontSize + 20;
+
+                g.DrawString("Training Queue", font, Brushes.Black, drawPoint);
+                drawPoint.Y += fontSize + 10;
+
+                // max visible unit types
+                int maxUnits = (int)(1 / TRAINING_QUEUE_ICON_SIZE);
+
+                List<UnitType> queueUnits = new List<UnitType>();
+                List<int> queueUnitCounts = new List<int>();
+                foreach(UnitType u in building.trainingQueue)
+                {
+                    if (queueUnits.Count >= maxUnits) break; // only display a certain amount of unittypes
+
+                    // If this is the first unit, we can draw the progress towards finishing it
+                    bool drawProgress = false;
+                    if (queueUnits.Count == 0)
+                        drawProgress = true;
+
+                    // If it was already in queueUnits, add a number to it
+                    if (queueUnits.Count != 0 && queueUnits[queueUnits.Count-1].Equals(u))
+                        queueUnitCounts[queueUnits.Count-1]++;
+                    // Otherwise actually draw the icon
+                    else
+                    {
+                        queueUnits.Add(u);
+                        queueUnitCounts.Add(1);
+
+                        g.DrawImage(u.icon,
+                            new Rectangle(drawPoint.X, drawPoint.Y, (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width), (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width)));
+
+                        if (drawProgress)
+                        {
+                            int progress;
+                            if (u.trainingTime == 0) progress = 100; // doesn't really matter but to avoid /0
+                            else progress = (int)((u.trainingTime - building.trainingQueueTime) / u.trainingTime);
+                            g.DrawString(progress + "%", font, Brushes.Black, drawPoint);
+                        }
+
+                        drawPoint.X += (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width) + 10;
+                    }
+                }
+                // Draw the number to train
+                drawPoint.X = bounds.X + 10 + (int)(TRAINING_QUEUE_ICON_SIZE*bounds.Width);
+                drawPoint.Y += (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width);
+                format.Alignment = StringAlignment.Far; // come from bottom right of icon
+                format.LineAlignment = StringAlignment.Far;
+                for(int i = 0; i < queueUnits.Count; i++)
+                {
+                    g.DrawString("x"+queueUnitCounts[i], font, Brushes.Black, drawPoint, format);
+                    drawPoint.X += (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width) + 10;
+                }
+
+                // TRAINABLE UNITS
+                drawPoint.X = bounds.X + 10;
+                drawPoint.Y += 20;
+
+                g.DrawString("Trainable Units", font, Brushes.Black, drawPoint);
+                drawPoint.Y += fontSize + 10;
+
+                int currentOnLine = 0; // how many icons are on the current line
+                foreach(string s in building.type.trainableUnits)
+                {
+                    if (client.info.unitTypes.ContainsKey(s))
+                    {
+                        UnitType u = client.info.unitTypes[s];
+                        g.DrawImage(u.icon,
+                            new Rectangle(drawPoint.X, drawPoint.Y, (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width), (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width)));
+
+                        drawPoint.X += (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width) + 10;
+                        currentOnLine++;
+                        if (currentOnLine >= maxUnits)
+                        { // Go down to next line
+                            drawPoint.Y += (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width) + 10;
+                            drawPoint.X = bounds.X + 10;
+                        }
+                    }
+                    // Do nothing if the unit type doesn't exist or can't be found
+                }
+            }
+            else if (entity is Unit)
+            {
+                Unit unit = (Unit)entity;
+                g.DrawString(unit.type.name, titleFont, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+            }
+            else if (entity is Resource)
+            {
+                Resource resource = (Resource)entity;
+                g.DrawString(resource.type.name, titleFont, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+            }
         }
 
         /// <summary>

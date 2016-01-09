@@ -41,10 +41,15 @@ namespace Devious_Retention
             info.WriteDebug("Game window opened.", Color.Blue);
 
             info.WriteDefinitionsToDebug();
+            
+            client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1));
+            client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1));
+            client.selected.Add(client.buildings.ElementAt(0));
 
-            // RE-ADD LATER WHEN IMAGES PUSHED
-            //client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1));
-            //client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1));
+            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
+            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
+            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit2"]);
+            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
 
             Application.Run(gameWindow);
 
