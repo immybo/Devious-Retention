@@ -304,17 +304,16 @@ namespace Devious_Retention
                 // Now draw everything else on a left alignment
                 drawPoint.X = bounds.X + 10;
                 drawPoint.Y += (int)(fontSize*1.5) + 20;
-                format.Alignment = StringAlignment.Near;
 
                 // HITPOINTS
-                g.DrawString("HP: " + building.hitpoints + "/" + building.type.hitpoints, font, Brushes.Black, drawPoint, format);
+                g.DrawString("HP: " + building.hitpoints + "/" + building.type.hitpoints, font, Brushes.Black, drawPoint);
                 drawPoint.Y += fontSize + 10;
 
                 // DAMAGE
                 // Only draw the damage if this building can attack
                 if (building.type.aggressive)
                 {
-                    g.DrawString("Damage:", font, Brushes.Black, drawPoint, format);
+                    g.DrawString("Damage:", font, Brushes.Black, drawPoint);
                     // icon for the damage type
                     g.DrawImage(damageTypeIcons[building.type.damageType],
                         new Rectangle(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 10,
@@ -334,6 +333,25 @@ namespace Devious_Retention
                     drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 10;
                     g.DrawString(building.type.resistances[i] + "%", font, Brushes.Black, drawPoint);
                     drawPoint.X += (int)(g.MeasureString(building.type.resistances[i] + "%", font).Width) + 10;
+                }
+
+                // RESOURCE GATHER RATE
+                // Only draw the resource gather rate if this building is built on a resource it can gather, or passively grants resources
+                if (building.type.providesResource || (building.type.canBeBuiltOnResource && building.resource != null))
+                {
+                    double gatherRate;
+                    if (building.type.providesResource) // passively provides resource
+                        gatherRate = building.type.gatherSpeed;
+                    else // actively provides resource
+                        gatherRate = building.resource.type.gatherSpeed;
+
+                    drawPoint.X = bounds.X + 10;
+                    drawPoint.Y += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 20;
+                    g.DrawString("Gathering " + gatherRate, font, Brushes.Black, drawPoint);
+                    drawPoint.X += (int)(g.MeasureString("Gathering " + gatherRate, font).Width) + 4;
+                    g.DrawImage(resourceImages[building.type.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                    drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 2;
+                    g.DrawString("/s", font, Brushes.Black, drawPoint);
                 }
 
                 // TRAINING QUEUE
@@ -421,12 +439,61 @@ namespace Devious_Retention
             else if (entity is Unit)
             {
                 Unit unit = (Unit)entity;
-                g.DrawString(unit.type.name, titleFont, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+                Point drawPoint = new Point(bounds.X + 10, bounds.Y + 20 + (int)(fontSize * 1.5));
+                g.DrawString(unit.type.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+                
+                // HITPOINTS
+                g.DrawString("HP: " + unit.hitpoints + "/" + unit.type.hitpoints, font, Brushes.Black, drawPoint);
+                drawPoint.Y += fontSize + 10;
+
+                // DAMAGE
+                g.DrawString("Damage:", font, Brushes.Black, drawPoint);
+                // icon for the damage type
+                g.DrawImage(damageTypeIcons[unit.type.damageType],
+                    new Rectangle(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 10,
+                        drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                    g.DrawString(unit.type.damage + "", font, Brushes.Black,
+                        new Point(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 20 + (int)(DAMAGE_ICON_SIZE * bounds.Width), drawPoint.Y));
+                drawPoint.Y += fontSize + 10;
+
+                // RESISTANCES
+                g.DrawString("Resist:", font, Brushes.Black, drawPoint);
+                drawPoint.X += (int)(g.MeasureString("Resist:", font).Width) + 10;
+                for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
+                {
+                    g.DrawImage(damageTypeIcons[i],
+                        new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                    drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 10;
+                    g.DrawString(unit.type.resistances[i] + "%", font, Brushes.Black, drawPoint);
+                    drawPoint.X += (int)(g.MeasureString(unit.type.resistances[i] + "%", font).Width) + 10;
+                }
+
+                // SPEED
+                drawPoint.X = bounds.X + 10;
+                drawPoint.Y += fontSize + 10;
+                g.DrawString("Speed: " + unit.type.speed, font, Brushes.Black, drawPoint);
             }
             else if (entity is Resource)
             {
                 Resource resource = (Resource)entity;
-                g.DrawString(resource.type.name, titleFont, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+                Point drawPoint = new Point(bounds.X + 10, bounds.Y + 20 + (int)(fontSize * 1.5));
+                g.DrawString(resource.type.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+
+                // REMAINING RESOURCE
+                g.DrawString(resource.amount+"/"+resource.type.resourceAmount, font, Brushes.Black, drawPoint);
+                drawPoint.X += (int)(g.MeasureString(resource.amount+"/"+resource.type.resourceAmount, font).Width) + 4;
+                g.DrawImage(resourceImages[resource.type.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 4;
+                g.DrawString("remaining.", font, Brushes.Black, drawPoint);
+
+                // GATHER RATE
+                drawPoint.X = bounds.X + 10;
+                drawPoint.Y += fontSize + 10;
+                g.DrawString("Gather rate: " + resource.type.gatherSpeed, font, Brushes.Black, drawPoint);
+                drawPoint.X += (int)(g.MeasureString("Gather rate: " + resource.type.gatherSpeed, font).Width) + 2;
+                g.DrawImage(resourceImages[resource.type.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 2;
+                g.DrawString("/s", font, Brushes.Black, drawPoint);
             }
         }
 

@@ -42,7 +42,7 @@ namespace Devious_Retention
 
         // Some buildings can be built on top of resource sites, and they will extract that resource.
         // If they do, the gather rate is set by that specific resource type.
-        public bool builtOnResource { get; private set; }
+        public bool canBeBuiltOnResource { get; private set; }
         public int builtOnResourceType { get; private set; }
 
         // This is different from units:
@@ -80,7 +80,7 @@ namespace Devious_Retention
             this.providesResource = providesResource;
             this.resourceType = resourceType;
             this.gatherSpeed = gatherSpeed;
-            this.builtOnResource = builtOnResource;
+            this.canBeBuiltOnResource = builtOnResource;
             this.builtOnResourceType = builtOnResourceType;
             this.aggressive = aggressive;
             this.imageName = imageName;
@@ -121,7 +121,7 @@ namespace Devious_Retention
             builder.Append(providesResource + " ");
             builder.Append(resourceType + " ");
             builder.Append(gatherSpeed + " ");
-            builder.Append(builtOnResource + " ");
+            builder.Append(canBeBuiltOnResource + " ");
             builder.Append(builtOnResourceType + " ");
             builder.Append(aggressive + " ");
             builder.Append(imageName + " ");

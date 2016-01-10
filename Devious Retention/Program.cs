@@ -44,12 +44,19 @@ namespace Devious_Retention
             
             client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1));
             client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1));
-            client.selected.Add(client.buildings.ElementAt(0));
+            client.resources.Add(new Resource(info.resourceTypes["TestResource"], 2, 2));
 
+            /* SELECTED BUILDING
+            client.selected.Add(client.buildings.ElementAt(0));
             client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
             client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
             client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit2"]);
             client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
+            */
+            /*
+            client.selected.Add(client.units.ElementAt(0));
+            */
+            client.selected.Add(client.resources.ElementAt(0));
 
             Application.Run(gameWindow);
 

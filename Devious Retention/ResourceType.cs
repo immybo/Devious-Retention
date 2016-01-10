@@ -24,7 +24,7 @@ namespace Devious_Retention
 
         // How fast the resource is gathered from resources of this type -
         // 1 is default, higher is faster
-        private double gatherSpeed;
+        public double gatherSpeed { get; private set; }
 
         public double size{ get; private set; }
 
