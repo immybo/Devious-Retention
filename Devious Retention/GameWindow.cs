@@ -87,10 +87,6 @@ namespace Devious_Retention
         {
             Graphics g = e.Graphics;
 
-            int panelWidth = (int)((1 - GAME_AREA_WIDTH) * Width);
-            int panelHeight = (int)(TOP_RIGHT_HEIGHT * Height);
-            int panelX = (int)(GAME_AREA_WIDTH * Width);
-            int panelY = 0;
             ResizeToFit();
             RenderTiles(g,
                 new Rectangle(0,0,(int)(Width*GAME_AREA_WIDTH),(int)(Height* GAME_AREA_HEIGHT)));
@@ -249,7 +245,7 @@ namespace Devious_Retention
                 imageBounds.Width = resourceIconWidth;
                 imageBounds.Height = resourceIconWidth;
 
-                PointF textPoint = new PointF(imageBounds.X + resourceIconWidth + resourcePadding, bounds.Y);
+                Point textPoint = new Point(imageBounds.X + resourceIconWidth + resourcePadding, bounds.Y);
 
                 g.DrawImage(resourceImages[i], imageBounds);
                 g.DrawString(client.currentResources[i] + "", font, Brushes.Black, textPoint);
@@ -320,8 +316,12 @@ namespace Devious_Retention
                                       drawPoint.Y, (int)(DAMAGE_ICON_SIZE*bounds.Width),(int)(DAMAGE_ICON_SIZE*bounds.Width)));
                     g.DrawString(building.type.damage + "", font, Brushes.Black,
                         new Point(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 20 + (int)(DAMAGE_ICON_SIZE * bounds.Width),drawPoint.Y));
+                    drawPoint.Y += fontSize + 10;
+
+                    // RANGE
+                    g.DrawString("Range: " + building.type.range, font, Brushes.Black, drawPoint);
+                    drawPoint.Y += fontSize + 10;
                 }
-                drawPoint.Y += fontSize + 10;
 
                 // RESISTANCES
                 g.DrawString("Resist:", font, Brushes.Black, drawPoint);
@@ -468,8 +468,12 @@ namespace Devious_Retention
                     drawPoint.X += (int)(g.MeasureString(unit.type.resistances[i] + "%", font).Width) + 10;
                 }
 
-                // SPEED
+                // RANGE
                 drawPoint.X = bounds.X + 10;
+                drawPoint.Y += fontSize + 10;
+                g.DrawString("Range: " + unit.type.range, font, Brushes.Black, drawPoint);
+
+                // SPEED
                 drawPoint.Y += fontSize + 10;
                 g.DrawString("Speed: " + unit.type.speed, font, Brushes.Black, drawPoint);
             }

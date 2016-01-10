@@ -57,6 +57,10 @@ namespace Devious_Retention
         public const int RESOURCE_TYPES = 4;
         // Infantry, armored (e.g. tanks), flying, ships
         public const int UNIT_TYPES = 4;
+        // How many ticks between each attack of units and buildings
+        public const int ATTACK_SPEED = 10;
+        // How far apart, in tiles, entities need to be from each other to be considered adjacent
+        public const double ADJACENT_DISTANCE = 1;
 
         public SortedDictionary<string,UnitType> unitTypes { get; internal set; }
         public SortedDictionary<string,BuildingType> buildingTypes { get; internal set; }
@@ -168,11 +172,13 @@ namespace Devious_Retention
                 int type = int.Parse(attributes[12 + GameInfo.DAMAGE_TYPES]);
                 string imageName = attributes[13 + GameInfo.DAMAGE_TYPES];
                 string iconName = attributes[14 + GameInfo.DAMAGE_TYPES];
+                int range = int.Parse(attributes[15 + GameInfo.DAMAGE_TYPES]);
+                int attackSpeedMilliseconds = int.Parse(attributes[16 + GameInfo.DAMAGE_TYPES]);
                 int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                 for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                    resourceCosts[i] = int.Parse(attributes[15 + GameInfo.DAMAGE_TYPES + i]);
+                    resourceCosts[i] = int.Parse(attributes[17 + GameInfo.DAMAGE_TYPES + i]);
                 unitTypes.Add(name, new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTime, speed, prerequisite, canBuild, buildSpeed,
-                    aggressive, type, imageName, iconName, resourceCosts));
+                    aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts));
 
                 j++;
             }
@@ -210,15 +216,17 @@ namespace Devious_Retention
                 bool aggressive = bool.Parse(attributes[13 + GameInfo.DAMAGE_TYPES]);
                 string imageName = attributes[14 + GameInfo.DAMAGE_TYPES];
                 string iconName = attributes[15 + GameInfo.DAMAGE_TYPES];
+                int range = int.Parse(attributes[16 + GameInfo.DAMAGE_TYPES]);
+                int attackSpeedMilliseconds = int.Parse(attributes[17 + GameInfo.DAMAGE_TYPES]);
                 int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                 for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
-                    resourceCosts[i] = int.Parse(attributes[16 + GameInfo.DAMAGE_TYPES + i]);
-                string[] trainableUnits = new string[attributes.Length - 16 - DAMAGE_TYPES - RESOURCE_TYPES];
+                    resourceCosts[i] = int.Parse(attributes[18 + GameInfo.DAMAGE_TYPES + i]);
+                string[] trainableUnits = new string[attributes.Length - 18 - DAMAGE_TYPES - RESOURCE_TYPES];
                 for (int i = 0; i < trainableUnits.Length; i++)
-                    trainableUnits[i] = attributes[16 + DAMAGE_TYPES + RESOURCE_TYPES + i];
+                    trainableUnits[i] = attributes[18 + DAMAGE_TYPES + RESOURCE_TYPES + i];
 
                 buildingTypes.Add(name, new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
-                    builtOnResource, builtOnResourceType, aggressive, imageName, iconName, resourceCosts, trainableUnits));
+                    builtOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits));
                 j++;
             }
             r.Close();

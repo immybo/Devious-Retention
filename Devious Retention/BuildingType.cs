@@ -60,6 +60,12 @@ namespace Devious_Retention
         private string iconName;
         public Image icon { get; private set; }
 
+        // How many tiles away this building can attack from (only relevant if aggressive)
+        public int range { get; private set; }
+        // How many ticks it takes this building to attack (only relevant if aggressive)
+        public int attackTicks { get; private set; }
+        private int attackSpeedMilliseconds;
+
         public List<Building> buildings;
 
         /// <summary>
@@ -67,7 +73,7 @@ namespace Devious_Retention
         /// parse the string into these attributes.
         /// </summary>
         public BuildingType(string name, int hitpoints, int damage, int damageType, int lineOfSight, int size, int[] resistances, int buildTimeMillis, string prerequisite, bool providesResource, int resourceType,
-            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, string imageName, string iconName, int[] resourceCosts, string[] trainableUnits)
+            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts, string[] trainableUnits)
         {
             this.name = name;
             this.hitpoints = hitpoints;
@@ -84,6 +90,10 @@ namespace Devious_Retention
             this.builtOnResourceType = builtOnResourceType;
             this.aggressive = aggressive;
             this.imageName = imageName;
+            this.range = range;
+            this.attackSpeedMilliseconds = attackSpeedMilliseconds;
+            this.attackTicks = (int)(attackSpeedMilliseconds / GameInfo.TICK_TIME);
+            if (attackTicks <= 0) attackTicks = 1;
             this.resourceCosts = resourceCosts;
             this.trainableUnits = trainableUnits;
 
@@ -103,7 +113,7 @@ namespace Devious_Retention
         /// <summary>
         /// Returns:
         /// "name hitpoints damage damageType lineOfSight size resistance1 resistance2 .. resistanceX buildTime
-        ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive imageName iconName resourcecost1 resourcecost2 .. resourcecostx trainableUnits"
+        ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive imageName iconName range attackSpeedMilliseconds resourcecost1 resourcecost2 .. resourcecostx trainableUnits"
         /// </summary>
         public override String ToString()
         {
@@ -126,6 +136,8 @@ namespace Devious_Retention
             builder.Append(aggressive + " ");
             builder.Append(imageName + " ");
             builder.Append(iconName + " ");
+            builder.Append(range + " ");
+            builder.Append(attackSpeedMilliseconds + " ");
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 builder.Append(resourceCosts[i] + " ");
             foreach(string s in trainableUnits)

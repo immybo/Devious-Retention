@@ -26,7 +26,7 @@ namespace Devious_Retention
         // null,-1,-1 (respectively). If it has, however, it will attempt to move
         // towards the spot or the unit, or attack the unit if it's within range.
         // Attacking will take priority (although they should never both be active).
-        private Unit unitToAttack;
+        private Entity entityToAttack;
         private double xToMove;
         private double yToMove;
         private int direction;
@@ -37,6 +37,9 @@ namespace Devious_Retention
         // The co-ordinates of the top-left corner of this unit
         public double x { get; private set; }
         public double y { get; private set; }
+
+        // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will attack
+        private int attackTick = 0;
 
         /// <summary>
         /// A unit will get all of its attributes from
@@ -58,9 +61,22 @@ namespace Devious_Retention
         /// iff thisunit can construct buildings. If this unit can't,
         /// it will instead merely move to the building location.
         /// </summary>
-        public void Build(BuildingType building)
+        public void Build(Building building)
         {
-
+            buildingToConstruct = building;
+            entityToAttack = null;
+            // Figure out where to move to in order to be able to construct the building
+            
+            // If we're to the left of the building, go to its left side
+            if (this.x < building.x) xToMove = building.x;
+            // If we're on the right of the building, go to its right side
+            else if (this.x > building.x + building.type.size) xToMove = building.x + building.type.size;
+            // Otherwise we must just be able to retain the same x ordinate
+            else xToMove = this.x;
+            
+            if (this.y < building.y) yToMove = building.y;
+            else if (this.y > building.y + building.type.size) yToMove = building.y + building.type.size;
+            else yToMove = this.y;
         }
         
         /// <summary>
@@ -71,7 +87,8 @@ namespace Devious_Retention
         /// </summary>
         public void Move(double x, double y)
         {
-
+            xToMove = x;
+            yToMove = y;
         }
 
         /// <summary>
@@ -82,7 +99,8 @@ namespace Devious_Retention
         /// <param name="damageType">The type of damage being dealt.</param>
         public void TakeDamage(int damage, int damageType)
         {
-
+            int realDamage = (int)(damage * (100 - type.resistances[damageType]) / 100);
+            hitpoints -= realDamage;
         }
 
         /// <summary>
@@ -92,7 +110,26 @@ namespace Devious_Retention
         /// </summary>
         public void Attack(Entity entity)
         {
+            if (entity is Resource) return;
 
+            // the distance to the target
+            double distance = Math.Sqrt(Math.Pow(x - entity.GetX(), 2) + Math.Pow(y - entity.GetY(), 2));
+            entityToAttack = entity;
+            buildingToConstruct = null;
+
+            // If it's out of range, move towards it
+            if(distance > type.range)
+            {
+                // Figure out what angle (radians) we are from the unit (-y=0, +y=pi)
+                double adjacentLength = entity.GetY() - y; // positive if the entity is higher than this
+                double oppositeLength = entity.GetX() - x; // positive if the entity is to the right of this
+
+                double angle = Math.Atan2(oppositeLength,adjacentLength);
+
+                // Figure out the target position, which is [range] distance from the entity on that angle
+                xToMove = entity.GetX() + Math.Cos(angle) * type.range;
+                yToMove = entity.GetY() + Math.Sin(angle) * type.range;
+            }
         }
 
         /// <summary>
@@ -103,7 +140,8 @@ namespace Devious_Retention
         /// </summary>
         public void ChangeMaxHP(int newMaxHP)
         {
-
+            double newHPMultiplier = (double)newMaxHP / type.hitpoints;
+            hitpoints = (int)(hitpoints * newHPMultiplier);
         }
 
         /// <summary>
@@ -112,7 +150,50 @@ namespace Devious_Retention
         /// </summary>
         public void Tick()
         {
+            // Only performs one action every tick (e.g. can't move AND attack)
+            
+            if (AttackTick()) return;
+            if (ConstructTick()) return;
+            MoveTick();
+        }
 
+        /// <summary>
+        /// Finds the closest path to and then travels one tick towards this unit's target
+        /// location (does nothing if this unit has no target location).
+        /// </summary>
+        private void MoveTick()
+        {
+
+        }
+
+        /// <summary>
+        /// Produces one tick of work towards constructing the building that this
+        /// unit is assigned to construct. Does nothing if this unit is not adjacent to
+        /// that building, or if the building's construction has been completed.
+        /// Returns whether or not it completed a tick of construction.
+        /// </summary>
+        private bool ConstructTick()
+        {
+            // Not building anything
+            if (buildingToConstruct == null) return false;
+
+            // Too far apart
+            double distance = Math.Sqrt(Math.Pow(x - buildingToConstruct.x, 2) + Math.Pow(y - buildingToConstruct.y, 2));
+            if (distance > GameInfo.ADJACENT_DISTANCE)
+                return false;
+
+            // TODO
+        }
+
+        /// <summary>
+        /// Produces one tick of work towards this unit's next attack.
+        /// Does nothing if this unit has no target to attack, or if this unit is not
+        /// within range of its target.
+        /// Returns whether or not it completed a tick of attacking.
+        /// </summary>
+        private bool AttackTick()
+        {
+            return false;
         }
 
         /// <summary>
