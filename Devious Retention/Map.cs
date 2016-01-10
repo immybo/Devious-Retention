@@ -48,6 +48,9 @@ namespace Devious_Retention
         // The filename of the image should be GameInfo.RESOURCE_IMAGE_BASE+imageName
         private string imageName;
         public Image image { get; private set; }
+        // The color of this tile as displayed on the minimap
+        private int[] colorRGB;
+        public Color color { get; private set; }
         // Whether building foundations can be put on this tile
         public bool buildable { get; private set; }
         // Whether the given unit type can move through this tile
@@ -59,13 +62,15 @@ namespace Devious_Retention
         /// Anything attempting to create a Tile from a file must first
         /// parse the string into these attributes.
         /// </summary>
-        public Tile(string name, string imageName, bool buildable, bool[] unitTypePassable)
+        public Tile(string name, string imageName, bool buildable, bool[] unitTypePassable, int[] colorRGB)
         {
             this.name = name;
             this.imageName = imageName;
             image = Image.FromFile(GameInfo.TILE_IMAGE_BASE + imageName);
             this.buildable = buildable;
             this.unitTypePassable = unitTypePassable;
+            this.colorRGB = colorRGB;
+            color = Color.FromArgb(colorRGB[0], colorRGB[1], colorRGB[2]);
         }
 
         /// <summary>

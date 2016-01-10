@@ -45,6 +45,14 @@ namespace Devious_Retention
         public static string BACKGROUND_IMAGE_BASE { get; private set; } = BASE_DIRECTORY + "Images\\Backgrounds\\";
         public static string BACKGROUND_IMAGE_RESOURCE_DISPLAY_AREA { get; private set; } = "resourcedisplayarea.png";
         public static string BACKGROUND_IMAGE_SELECTED_ENTITY_AREA { get; private set; } = "selectedentityarea.png";
+        public static string BACKGROUND_IMAGE_MINIMAP { get; private set; } = "minimap.png";
+
+        // For borders of areas in the GUI
+        public static string BORDER_IMAGE_BASE { get; private set; } = BASE_DIRECTORY + "Images\\Borders\\";
+        public static string BORDER_MINIMAP_LEFT { get; private set; } = BORDER_IMAGE_BASE + "minimapleft.png";
+        public static string BORDER_MINIMAP_TOP { get; private set; } = BORDER_IMAGE_BASE + "minimaptop.png";
+        public static string BORDER_RESOURCE_AREA_TOP { get; private set; } = BORDER_IMAGE_BASE + "resourceareatop.png";
+        public static string BORDER_RIGHT_AREA_LEFT { get; private set; } = BORDER_IMAGE_BASE + "rightarealeft.png";
 
         // Used in the place of an entity image or technology icon if the right one can't be loaded
         public static string DEFAULT_IMAGE_NAME { get; private set; } = BASE_DIRECTORY + "Images\\defaultimage.png";
@@ -349,8 +357,11 @@ namespace Devious_Retention
                 bool[] unitTypePassable = new bool[GameInfo.UNIT_TYPES];
                 for (int j = 0; j < GameInfo.UNIT_TYPES; j++)
                     unitTypePassable[j] = bool.Parse(split[3 + j]);
+                int[] colorRGB = new int[3];
+                for (int j = 0; j < 3; j++)
+                    colorRGB[j] = int.Parse(split[3 + GameInfo.UNIT_TYPES + j]);
 
-                tiles.Add(name, new Tile(name, imageName, buildable, unitTypePassable));
+                tiles.Add(name, new Tile(name, imageName, buildable, unitTypePassable, colorRGB));
                 i++;
             }
             r.Close();

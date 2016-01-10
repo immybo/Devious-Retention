@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +16,7 @@ namespace Devious_Retention
     {
         // 1 = entire width/height, 0 = nothing
         private const double GAME_AREA_WIDTH = 0.75;
-        private const double GAME_AREA_HEIGHT = 0.95;
+        private const double GAME_AREA_HEIGHT = 0.90;
         private const double MINIMAP_WIDTH = 0.15;
         private const double TOP_RIGHT_HEIGHT = 0.5;
 
@@ -25,6 +27,10 @@ namespace Devious_Retention
         // relative to the width of the selection panel
         private const double DAMAGE_ICON_SIZE = 0.06;
         private const double TRAINING_QUEUE_ICON_SIZE = 0.19;
+        // pixels
+        private const int MINIMAP_BORDER_SIZE = 20;
+        private const int RIGHT_AREA_BORDER_WIDTH = 20;
+        private const int RESOURCE_AREA_BORDER_WIDTH = 20;
 
         public GameClient client;
 
@@ -39,6 +45,12 @@ namespace Devious_Retention
 
         private Image resourceDisplayAreaBackgroundImage;
         private Image selectedEntityAreaBackgroundImage;
+        private Image minimapBackgroundImage;
+
+        private Image minimapBorderLeft;
+        private Image minimapBorderTop;
+        private Image resourceAreaBorderTop;
+        private Image rightAreaBorderLeft;
 
         public GameWindow()
         {
@@ -54,6 +66,12 @@ namespace Devious_Retention
 
             resourceDisplayAreaBackgroundImage = Image.FromFile(GameInfo.BACKGROUND_IMAGE_BASE + GameInfo.BACKGROUND_IMAGE_RESOURCE_DISPLAY_AREA);
             selectedEntityAreaBackgroundImage = Image.FromFile(GameInfo.BACKGROUND_IMAGE_BASE + GameInfo.BACKGROUND_IMAGE_SELECTED_ENTITY_AREA);
+            minimapBackgroundImage = Image.FromFile(GameInfo.BACKGROUND_IMAGE_BASE + GameInfo.BACKGROUND_IMAGE_MINIMAP);
+
+            minimapBorderLeft = Image.FromFile(Path.Combine(GameInfo.BORDER_IMAGE_BASE,GameInfo.BORDER_MINIMAP_LEFT));
+            minimapBorderTop = Image.FromFile(Path.Combine(GameInfo.BORDER_IMAGE_BASE,GameInfo.BORDER_MINIMAP_TOP));
+            resourceAreaBorderTop = Image.FromFile(Path.Combine(GameInfo.BORDER_IMAGE_BASE, GameInfo.BORDER_RESOURCE_AREA_TOP));
+            rightAreaBorderLeft = Image.FromFile(Path.Combine(GameInfo.BORDER_IMAGE_BASE, GameInfo.BORDER_RIGHT_AREA_LEFT));
 
             Paint += Render;
         }
@@ -94,10 +112,10 @@ namespace Devious_Retention
                 new Rectangle(0, 0, (int)(Width * GAME_AREA_WIDTH), (int)(Height * GAME_AREA_HEIGHT)));
             RenderResourceDisplayArea(g,
                 new Rectangle(0, (int)(Height * GAME_AREA_HEIGHT), (int)(GAME_AREA_WIDTH * Width), (int)((1 - GAME_AREA_HEIGHT) * Height)));
-            RenderTopRightPanel(g,
-                new Rectangle((int)(GAME_AREA_WIDTH * Width), 0, (int)((1 - GAME_AREA_WIDTH) * Width), (int)(TOP_RIGHT_HEIGHT * Height)));
             RenderSelectedEntityPanel(g,
                 new Rectangle((int)(GAME_AREA_WIDTH*Width),(int)(TOP_RIGHT_HEIGHT* Height),(int)((1-GAME_AREA_WIDTH) * Width), (int)((1-TOP_RIGHT_HEIGHT)* Height)));
+            RenderTopRightPanel(g,
+                new Rectangle((int)(GAME_AREA_WIDTH * Width), 0, (int)((1 - GAME_AREA_WIDTH) * Width), (int)(TOP_RIGHT_HEIGHT * Height)));
             RenderMinimap(g,
                 new Rectangle((int)((GAME_AREA_WIDTH-MINIMAP_WIDTH) * Width), (int)(GAME_AREA_HEIGHT* Height - MINIMAP_WIDTH* Width), (int)(MINIMAP_WIDTH* Width), (int)(MINIMAP_WIDTH* Width)));
         }
@@ -229,6 +247,10 @@ namespace Devious_Retention
         /// </summary>
         private void RenderResourceDisplayArea(Graphics g, Rectangle bounds)
         {
+            // Account for the border
+            bounds.Y += RESOURCE_AREA_BORDER_WIDTH;
+            bounds.Height -= RESOURCE_AREA_BORDER_WIDTH;
+
             g.DrawImage(resourceDisplayAreaBackgroundImage, bounds);
 
             Font font = new Font("Arial", (int)(bounds.Height/1.5), FontStyle.Regular);
@@ -250,6 +272,9 @@ namespace Devious_Retention
                 g.DrawImage(resourceImages[i], imageBounds);
                 g.DrawString(client.currentResources[i] + "", font, Brushes.Black, textPoint);
             }
+
+            // Draw the border
+            g.DrawImage(resourceAreaBorderTop, new Rectangle(bounds.X, bounds.Y - RESOURCE_AREA_BORDER_WIDTH, bounds.Width, RESOURCE_AREA_BORDER_WIDTH));
         }
 
         /// <summary>
@@ -257,13 +282,31 @@ namespace Devious_Retention
         /// </summary>
         private void RenderMinimap(Graphics g, Rectangle bounds)
         {
-            g.DrawRectangle(new Pen(new SolidBrush(Color.Black)), bounds);
+            // Figure out how many pixels each square should occupy 
+            // (not an integer for accuracy of figuring out coordinates)
+            double pixelsPerSquareX = (double)bounds.Width / client.map.width;
+            double pixelsPerSquareY = (double)bounds.Height / client.map.height;
 
-            Font font = new Font("Arial", 30, FontStyle.Regular);
-            StringFormat format = new StringFormat();
-            format.Alignment = StringAlignment.Center;
-            format.LineAlignment = StringAlignment.Center;
-            g.DrawString("Minimap", font, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2), format);
+            // Draw the tiles first
+            Bitmap tileImage = new Bitmap(client.map.width, client.map.height);
+
+            // Set the appropriate colours for tiles
+            for (int i = 0; i < client.map.width; i++)
+                for (int j = 0; j < client.map.height; j++)
+                    tileImage.SetPixel(i, j, client.map.GetTile(i, j).color);
+
+            g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp
+            g.PixelOffsetMode = PixelOffsetMode.Half; // So that we don't cut off half of the top and left images
+
+            g.DrawImage(tileImage,
+                new Rectangle(bounds.X + MINIMAP_BORDER_SIZE, bounds.Y + MINIMAP_BORDER_SIZE,
+                              bounds.Width - MINIMAP_BORDER_SIZE, bounds.Height - MINIMAP_BORDER_SIZE));
+
+            g.DrawImage(minimapBorderLeft, new Rectangle(bounds.X, bounds.Y, MINIMAP_BORDER_SIZE, bounds.Height));
+            g.DrawImage(minimapBorderTop, new Rectangle(bounds.X, bounds.Y, bounds.Width, MINIMAP_BORDER_SIZE));
+
+            g.InterpolationMode = InterpolationMode.Default;
+            g.PixelOffsetMode = PixelOffsetMode.Default;
         }
 
         /// <summary>
@@ -272,6 +315,10 @@ namespace Devious_Retention
         /// </summary>
         private void RenderSelectedEntityPanel(Graphics g, Rectangle bounds)
         {
+            // Account for the border
+            bounds.X += RIGHT_AREA_BORDER_WIDTH;
+            bounds.Width -= RIGHT_AREA_BORDER_WIDTH;
+
             int fontSize = bounds.Width / 25;
             Font titleFont = new Font("Arial", (int)(fontSize*1.5), FontStyle.Regular);
             Font font = new Font("Arial", fontSize, FontStyle.Regular);
@@ -499,6 +546,9 @@ namespace Devious_Retention
                 drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 2;
                 g.DrawString("/s", font, Brushes.Black, drawPoint);
             }
+
+            // Border
+            g.DrawImage(rightAreaBorderLeft, new Rectangle(bounds.X-RIGHT_AREA_BORDER_WIDTH, 0, RIGHT_AREA_BORDER_WIDTH, Height));
         }
 
         /// <summary>
@@ -508,6 +558,10 @@ namespace Devious_Retention
         /// </summary>
         private void RenderTopRightPanel(Graphics g, Rectangle bounds)
         {
+            // Account for the border size
+            bounds.X += RIGHT_AREA_BORDER_WIDTH;
+            bounds.Width -= RIGHT_AREA_BORDER_WIDTH;
+
             g.DrawRectangle(new Pen(new SolidBrush(Color.Black)), bounds);
 
             Font font = new Font("Arial", 50, FontStyle.Regular);
