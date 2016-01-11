@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace Devious_Retention
 
         // This should be unique within a given game
         private int playerNumber;
+        public Color playerColor { get; private set; }
 
         // Where the top-left of the screen is, in map co-ordinates.
         public double screenY { get; private set; }
@@ -56,6 +58,7 @@ namespace Devious_Retention
             this.map = map;
             // this.faction = faction;
             // this.connection = connection;
+            this.playerColor = Color.Blue;
 
             resources = new HashSet<Resource>();
             buildings = new HashSet<Building>();

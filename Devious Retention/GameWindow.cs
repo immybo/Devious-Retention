@@ -295,6 +295,18 @@ namespace Devious_Retention
                 for (int j = 0; j < client.map.height; j++)
                     tileImage.SetPixel(i, j, client.map.GetTile(i, j).color);
 
+            // Draw the entities next
+            List<Entity> entities = new List<Entity>();
+            foreach (Unit u in client.units)
+                entities.Add(u);
+            foreach (Building b in client.buildings)
+                entities.Add(b);
+
+            // Draw on top of the tile image
+            foreach (Entity e in entities)
+                // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
+                tileImage.SetPixel((int)(e.GetX()+e.GetSize()/2), (int)(e.GetY()+e.GetSize()/2), client.playerColor);
+
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp
             g.PixelOffsetMode = PixelOffsetMode.Half; // So that we don't cut off half of the top and left images
 
