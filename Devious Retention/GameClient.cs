@@ -30,7 +30,7 @@ namespace Devious_Retention
         private GameWindow window;
 
         // This should be unique within a given game
-        private int playerNumber;
+        public int playerNumber { get; private set; }
         public Color playerColor { get; private set; }
 
         // Where the top-left of the screen is, in map co-ordinates.
@@ -58,7 +58,8 @@ namespace Devious_Retention
             this.map = map;
             // this.faction = faction;
             // this.connection = connection;
-            this.playerColor = Color.Blue;
+            this.playerNumber = playerNumber;
+            this.playerColor = GameInfo.PLAYER_COLORS[playerNumber];
 
             resources = new HashSet<Resource>();
             buildings = new HashSet<Building>();

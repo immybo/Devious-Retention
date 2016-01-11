@@ -31,7 +31,23 @@ namespace Devious_Retention
 
             gameWindow = new GameWindow();
 
-            int[][] tiles = new int[][] { new int[5] { 1, 1, 1, 1, 1 }, new int[5] { 0, 1, 0, 1, 1 }, new int[5] { 1, 1, 1, 1, 1 }, new int[5] { 1, 1, 1, 1, 1 }, new int[5] { 1, 1, 1, 1, 1 } };
+            int[][] tiles = new int[][] {
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+            };
             List<Tile> tileTypes = new List<Tile>();
             foreach (Tile t in info.tiles.Values)
                 tileTypes.Add(t);
@@ -42,8 +58,10 @@ namespace Devious_Retention
 
             info.WriteDefinitionsToDebug();
             
-            client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1));
-            client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1));
+            client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1, 1));
+            client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1, 1));
+            // other player's unit
+            client.units.Add(new Unit(info.unitTypes["TestUnit"], 13, 13, 2));
             client.resources.Add(new Resource(info.resourceTypes["TestResource"], 2, 2));
 
             /* SELECTED BUILDING

@@ -14,6 +14,7 @@ namespace Devious_Retention
     /// </summary>
     public class Unit : Entity
     {
+        public int player { get; private set; }
         // As most attributes will change only under circumstances where
         // the UnitType will change as well, this provides most attributes
         // so not many fields are needed.
@@ -45,11 +46,12 @@ namespace Devious_Retention
         /// A unit will get all of its attributes from
         /// a UnitType. Its position must also be given.
         /// </summary>
-        public Unit(UnitType type, double x, double y)
+        public Unit(UnitType type, double x, double y, int player)
         {
             this.type = type;
             this.x = x;
             this.y = y;
+            this.player = player;
             direction = 0;
             xToMove = -1;
             yToMove = -1;
@@ -221,6 +223,14 @@ namespace Devious_Retention
         public double GetY()
         {
             return y;
+        }
+        public int GetLOS()
+        {
+            return type.lineOfSight;
+        }
+        public int GetPlayerNumber()
+        {
+            return player;
         }
     }
 }

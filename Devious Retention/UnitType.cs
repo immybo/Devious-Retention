@@ -105,7 +105,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns:
-        /// "name hitpoints damage damageType size lineOfSight resistance1 resistance2 .. resistanceX trainingTime speed
+        /// "name hitpoints damage damageType lineOfSight size resistance1 resistance2 .. resistanceX trainingTime speed
         ///     prerequisiteName canBuild buildSpeed aggressive type imageName iconName range attackMilliseconds resourcecost1 resourcecost2 ... resourcecostx"
         /// </summary>
         public override String ToString()
@@ -115,8 +115,8 @@ namespace Devious_Retention
             builder.Append(hitpoints + " ");
             builder.Append(damage + " ");
             builder.Append(damageType + " ");
-            builder.Append(size + " ");
             builder.Append(lineOfSight + " ");
+            builder.Append(size + " ");
             for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
                 builder.Append(resistances[i] + " ");
             builder.Append(trainingTime + " ");

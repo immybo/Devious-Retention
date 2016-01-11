@@ -1,1 +1,1 @@
-TestBuilding 100 0 1 10 3 50 50 50 10 TestTechnology true 1 10 false 1 true TestBuilding.png TestBuildingIcon.png 5 500 50 50 50 50 TestUnit TestUnit2
+TestBuilding 100 0 1 5 3 50 50 50 10 TestTechnology true 1 10 false 1 true TestBuilding.png TestBuildingIcon.png 5 500 50 50 50 50 TestUnit TestUnit2

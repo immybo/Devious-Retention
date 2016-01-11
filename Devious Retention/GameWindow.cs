@@ -24,6 +24,9 @@ namespace Devious_Retention
 
         private const double RESOURCE_WIDTH = 0.2;
 
+        // How opaque the overlay to tiles which we don't have LOS to is
+        private const int OVERLAY_ALPHA = 100;
+
         // relative to the width of the selection panel
         private const double DAMAGE_ICON_SIZE = 0.06;
         private const double TRAINING_QUEUE_ICON_SIZE = 0.19;
@@ -37,6 +40,9 @@ namespace Devious_Retention
         // Where the mouse started dragging, for selection purposes
         private double startX = -1;
         private double startY = -1;
+
+        // What tiles are within the player's line of sight
+        private bool[,] LOS;
 
         // Images for the resource display area and tooltips
         private Image[] resourceImages;
@@ -106,6 +112,7 @@ namespace Devious_Retention
             Graphics g = e.Graphics;
 
             ResizeToFit();
+            LoadLOS();
             RenderTiles(g,
                 new Rectangle(0,0,(int)(Width*GAME_AREA_WIDTH),(int)(Height* GAME_AREA_HEIGHT)));
             RenderEntities(g,
@@ -127,6 +134,50 @@ namespace Devious_Retention
         {
             Width = Screen.PrimaryScreen.WorkingArea.Width;
             Height = Screen.PrimaryScreen.WorkingArea.Height;
+        }
+
+        /// <summary>
+        /// Attempts to figure out the player's line of sight, and stores it in "LOS"
+        /// </summary>
+        private void LoadLOS()
+        {
+            // Clear the current LOS
+            LOS = new bool[client.map.width, client.map.height];
+
+            List<Entity> entities = new List<Entity>();
+            foreach (Unit u in client.units)
+                if (u.player == client.playerNumber)
+                    entities.Add(u);
+            foreach (Building b in client.buildings)
+                if (b.player == client.playerNumber)
+                    entities.Add(b);
+
+            foreach(Entity e in entities)
+            {
+                int entityLOS = e.GetLOS();
+                // Just round it down for simplicity
+                int entityX = (int)(e.GetX()+e.GetSize()/2);
+                int entityY = (int)(e.GetY()+e.GetSize()/2);
+
+                // Simple way of figuring out a circle
+                for(int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
+                {
+                    for(int y = entityY - entityLOS; y <= entityY + entityLOS; y++)
+                    {
+                        // Are we even on the map?
+                        if (x < 0 || y < 0) continue;
+                        if (x >= client.map.width || y >= client.map.height) continue;
+
+                        // Find the distance from the entity (pythagoras)
+                        int distance = (int)(Math.Sqrt(Math.Pow(entityX-x,2) + Math.Pow(entityY-y,2)));
+                        // Do nothing if it's too far away
+                        if (distance > entityLOS) continue;
+                        
+                        // Otherwise add this square to LOS
+                        LOS[x,y] = true;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -196,6 +247,9 @@ namespace Devious_Retention
                     // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
                     // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
                     g.DrawImage(client.map.GetTile(i + (int)client.screenX, j + (int)client.screenY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
+                    // If this tile is out of line of sight, draw a light grey overlay (grey it out)
+                    if (!LOS[i + (int)client.screenX, j + (int)client.screenY])
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                 }
             }
         }
@@ -229,6 +283,8 @@ namespace Devious_Retention
                 // First check if they're even on the screen
                 if (e.GetX() + e.GetSize() < client.screenX || e.GetX() > client.screenX + maxXTiles) continue;
                 if (e.GetY() + e.GetSize() < client.screenY || e.GetY() > client.screenY + maxYTiles) continue;
+                // And check if we have line of sight to them
+                if (!LOS[(int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2)]) continue;
 
                 // Since they are on the screen, figure out their bounds
                 Rectangle entityBounds = new Rectangle();
@@ -304,8 +360,12 @@ namespace Devious_Retention
 
             // Draw on top of the tile image
             foreach (Entity e in entities)
+            {
+                // Do nothing if we don't have line of sight there
+                if (!LOS[(int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2)]) continue;
                 // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
-                tileImage.SetPixel((int)(e.GetX()+e.GetSize()/2), (int)(e.GetY()+e.GetSize()/2), client.playerColor);
+                tileImage.SetPixel((int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2), GameInfo.PLAYER_COLORS[e.GetPlayerNumber()]);
+            }
 
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp
             g.PixelOffsetMode = PixelOffsetMode.Half; // So that we don't cut off half of the top and left images

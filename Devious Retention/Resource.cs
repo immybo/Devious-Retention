@@ -69,5 +69,22 @@ namespace Devious_Retention
         {
             return y;
         }
+
+        /// <summary>
+        /// Returns 0! Should never be called, but if it is,
+        /// returning 0 should cause nothing special to happen.
+        /// </summary>
+        public int GetLOS()
+        {
+            return 0;
+        }
+        /// <summary>
+        /// Returns 0! Should never be called, but if it is,
+        /// returning 0 should cause nothing special to happen.
+        /// </summary>
+        public int GetPlayerNumber()
+        {
+            return 0;
+        }
     }
 }

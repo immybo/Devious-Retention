@@ -16,6 +16,8 @@ namespace Devious_Retention
     /// </summary>
     public class Building : Entity
     {
+        public int player { get; private set; }
+
         // Each building belongs to a BuildingType, from which most of its attributes can be gotten
         public BuildingType type { get; private set; }
 
@@ -45,11 +47,12 @@ namespace Devious_Retention
         /// A building will get most of its initial attributes from a BuildingType.
         /// Its position must also be given.
         /// </summary>
-        public Building(BuildingType type, double x, double y)
+        public Building(BuildingType type, double x, double y, int player)
         {
             this.type = type;
             this.x = x;
             this.y = y;
+            this.player = player;
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
             built = false;
@@ -136,6 +139,16 @@ namespace Devious_Retention
         public Double GetY()
         {
             return y;
+        }
+
+        public int GetLOS()
+        {
+            return type.lineOfSight;
+        }
+
+        public int GetPlayerNumber()
+        {
+            return player;
         }
     }
 }

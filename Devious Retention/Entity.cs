@@ -26,5 +26,8 @@ namespace Devious_Retention
 
         Double GetX();
         Double GetY();
+
+        int GetLOS();
+        int GetPlayerNumber();
     }
 }

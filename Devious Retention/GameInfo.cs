@@ -69,6 +69,8 @@ namespace Devious_Retention
         public const int ATTACK_SPEED = 10;
         // How far apart, in tiles, entities need to be from each other to be considered adjacent
         public const double ADJACENT_DISTANCE = 1;
+        // What colours each player has
+        public static Color[] PLAYER_COLORS { get; private set; } = new Color[3] { Color.White, Color.Blue, Color.Red };
 
         public SortedDictionary<string,UnitType> unitTypes { get; internal set; }
         public SortedDictionary<string,BuildingType> buildingTypes { get; internal set; }
