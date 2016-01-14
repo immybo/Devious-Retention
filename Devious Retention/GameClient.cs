@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,20 +24,26 @@ namespace Devious_Retention
         public HashSet<Building> buildings { get; private set; }
 
         public List<Entity> selected { get; private set; }
-        // The type of building that has been selected from the create buildings panel
-        public BuildingType selectedBuilding { get; private set; }
 
         public Map map { get; private set; }
 
         private GameWindow window;
 
         // This should be unique within a given game
-        private int playerNumber;
+        public int playerNumber { get; private set; }
+        public Color playerColor { get; private set; }
+
+        // Where the top-left of the screen is, in map co-ordinates.
+        public double screenY { get; private set; }
+        public double screenX { get; private set; }
 
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
         // metal, oil, energy, science
         public int[] currentResources { get; private set; }
+
+        // Whether the building panel or the technology panel is open
+        public bool buildingPanelOpen { get; private set; }
 
         // The faction this player belongs to
         private Faction faction;
@@ -47,16 +54,25 @@ namespace Devious_Retention
         /// </summary>
         public GameClient(int playerNumber, Map map, GameWindow window, GameInfo info, CTSConnection connection, Faction faction)
         {
-            this.map = map;
             this.info = info;
-            this.window = window;
-            this.connection = connection;
-            this.faction = faction;
-            // faction.ApplyEffects();
+            this.map = map;
+            // this.faction = faction;
+            // this.connection = connection;
+            this.playerNumber = playerNumber;
+            this.playerColor = GameInfo.PLAYER_COLORS[playerNumber];
 
             resources = new HashSet<Resource>();
             buildings = new HashSet<Building>();
             units = new HashSet<Unit>();
+
+            selected = new List<Entity>();
+
+            currentResources = new int[GameInfo.RESOURCE_TYPES];
+
+            screenX = 0;
+            screenY = 0;
+
+            buildingPanelOpen = true;
         }
 
         /// <summary>

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 
@@ -28,7 +27,7 @@ namespace Devious_Retention
         // How many tiles this building takes up along each axis
         public int size { get; private set; }
         public int[] resistances;
-        // Milliseconds (rounds to the nearest tick)
+        // Ticks
         public int buildTime;
         // Every BuildingType can only have up to one prerequisite technology
         // Before this technology is researched, no buildings of this type can be created
@@ -43,7 +42,7 @@ namespace Devious_Retention
 
         // Some buildings can be built on top of resource sites, and they will extract that resource.
         // If they do, the gather rate is set by that specific resource type.
-        public bool builtOnResource { get; private set; }
+        public bool canBeBuiltOnResource { get; private set; }
         public int builtOnResourceType { get; private set; }
 
         // This is different from units:
@@ -53,9 +52,19 @@ namespace Devious_Retention
 
         public int[] resourceCosts;
 
+        // What types of unit can be trained from this type of building
+        public string[] trainableUnits { get; private set; }
+
         private string imageName;
         public Image image { get; private set; }
-        public Image greyedImage { get; private set; }
+        private string iconName;
+        public Image icon { get; private set; }
+
+        // How many tiles away this building can attack from (only relevant if aggressive)
+        public int range { get; private set; }
+        // How many ticks it takes this building to attack (only relevant if aggressive)
+        public int attackTicks { get; private set; }
+        private int attackSpeedMilliseconds;
 
         public List<Building> buildings;
 
@@ -63,8 +72,8 @@ namespace Devious_Retention
         /// Anything attempting to create a BuildingType from a file must first
         /// parse the string into these attributes.
         /// </summary>
-        public BuildingType(string name, int hitpoints, int damage, int damageType, int lineOfSight, int size, int[] resistances, int buildTime, string prerequisite, bool providesResource, int resourceType,
-            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, string imageName, int[] resourceCosts)
+        public BuildingType(string name, int hitpoints, int damage, int damageType, int lineOfSight, int size, int[] resistances, int buildTimeMillis, string prerequisite, bool providesResource, int resourceType,
+            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts, string[] trainableUnits)
         {
             this.name = name;
             this.hitpoints = hitpoints;
@@ -72,46 +81,39 @@ namespace Devious_Retention
             this.lineOfSight = lineOfSight;
             this.size = size;
             this.resistances = resistances;
-            this.buildTime = buildTime;
+            this.buildTime = (int)(buildTimeMillis / GameInfo.TICK_TIME);
             this.prerequisite = prerequisite;
             this.providesResource = providesResource;
             this.resourceType = resourceType;
             this.gatherSpeed = gatherSpeed;
-            this.builtOnResource = builtOnResource;
+            this.canBeBuiltOnResource = builtOnResource;
             this.builtOnResourceType = builtOnResourceType;
             this.aggressive = aggressive;
             this.imageName = imageName;
-            image = Image.FromFile(GameInfo.BUILDING_IMAGE_BASE + imageName);
-            GenerateGreyedImage();
+            this.range = range;
+            this.attackSpeedMilliseconds = attackSpeedMilliseconds;
+            this.attackTicks = (int)(attackSpeedMilliseconds / GameInfo.TICK_TIME);
+            if (attackTicks <= 0) attackTicks = 1;
             this.resourceCosts = resourceCosts;
-        }
+            this.trainableUnits = trainableUnits;
 
-        /// <summary>
-        /// Takes the regular image and converts it to greyscale,
-        /// setting greyedImage to it.
-        /// </summary>
-        private void GenerateGreyedImage()
-        {
-            Bitmap b = new Bitmap(image);
-            for (int i = 0; i < b.Width; i++)
-            {
-                for (int j = 0; j < b.Height; j++)
-                {
-                    Color originalColor = b.GetPixel(i, j);
-                    int grayScale = (int)((originalColor.R * 0.3) + (originalColor.G * 0.59) + (originalColor.B * 0.11));
-                    Color newColor = Color.FromArgb(originalColor.A, grayScale, grayScale, grayScale);
-                    b.SetPixel(i, j, newColor);
-                }
+            try
+            { 
+                image = Image.FromFile(GameInfo.BUILDING_IMAGE_BASE + imageName);
+                icon = Image.FromFile(GameInfo.BUILDING_ICON_BASE + iconName);
             }
-            Stream imageStream = new MemoryStream();
-            b.Save(imageStream, ImageFormat.Png);
-            greyedImage = Image.FromStream(imageStream);
+            // If the image can't be loaded, load a default one instead (which hopefully can!)
+            catch(IOException e)
+            {
+                image = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
+                icon = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
+            }
         }
 
         /// <summary>
         /// Returns:
         /// "name hitpoints damage damageType lineOfSight size resistance1 resistance2 .. resistanceX buildTime
-        ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive resourcecost1 resourcecost2 .. resourcecostx"
+        ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive imageName iconName range attackSpeedMilliseconds resourcecost1 resourcecost2 .. resourcecostx trainableUnits"
         /// </summary>
         public override String ToString()
         {
@@ -129,12 +131,17 @@ namespace Devious_Retention
             builder.Append(providesResource + " ");
             builder.Append(resourceType + " ");
             builder.Append(gatherSpeed + " ");
-            builder.Append(builtOnResource + " ");
+            builder.Append(canBeBuiltOnResource + " ");
             builder.Append(builtOnResourceType + " ");
             builder.Append(aggressive + " ");
             builder.Append(imageName + " ");
-            for(int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+            builder.Append(iconName + " ");
+            builder.Append(range + " ");
+            builder.Append(attackSpeedMilliseconds + " ");
+            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 builder.Append(resourceCosts[i] + " ");
+            foreach(string s in trainableUnits)
+                builder.Append(s + " ");
 
             return builder.ToString();
         }

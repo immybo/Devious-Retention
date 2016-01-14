@@ -16,6 +16,8 @@ namespace Devious_Retention
     /// </summary>
     public class Building : Entity
     {
+        public int player { get; private set; }
+
         // Each building belongs to a BuildingType, from which most of its attributes can be gotten
         public BuildingType type { get; private set; }
 
@@ -25,25 +27,34 @@ namespace Devious_Retention
         // Unbuilt buildings will have a different image, and will not be able to perform their functions until built fully
         public bool built { get; private set; }
 
-        // A map of UnitTypes to be created, to time until they are created (ticks)
-        public Dictionary<UnitType, int> trainingQueue { get; private set; }
+        // A queue of UnitTypes to be created
+        public Queue<UnitType> trainingQueue { get; private set; }
+        // How long until the next UnitType on the queue is created (ticks) - only matters if trainingQueue isn't empty
+        public int trainingQueueTime { get; private set; }
 
         // The resource that this building is on, if any
-        private Resource resource;
+        public Resource resource { get; private set; }
 
         // The co-ordinates of the top-left corner of this building
         public double x { get; private set; }
         public double y { get; private set; }
 
+        private Entity entityToAttack;
+
+        private int attackTick = 0;
+
         /// <summary>
         /// A building will get most of its initial attributes from a BuildingType.
         /// Its position must also be given.
         /// </summary>
-        public Building(BuildingType type, double x, double y)
+        public Building(BuildingType type, double x, double y, int player)
         {
             this.type = type;
             this.x = x;
             this.y = y;
+            this.player = player;
+            trainingQueue = new Queue<UnitType>();
+            trainingQueueTime = 0;
             built = false;
         }
 
@@ -53,6 +64,12 @@ namespace Devious_Retention
         /// </summary>
         public void QueueUnit(UnitType unit)
         {
+            // Check if that UnitType can actually be trained
+            if (!type.trainableUnits.Contains(unit.name))
+                return;
+
+            trainingQueue.Enqueue(unit);
+            if (trainingQueue.Count == 1) trainingQueueTime = unit.trainingTime;
         }
 
         /// <summary>
@@ -61,6 +78,8 @@ namespace Devious_Retention
         /// </summary>
         public void TakeDamage(int damage, int damageType)
         {
+            int realDamage = (int)(damage * (100 - type.resistances[damageType]) / 100);
+            hitpoints -= realDamage;
         }
 
         /// <summary>
@@ -71,7 +90,8 @@ namespace Devious_Retention
         /// <param name="entity"></param>
         public void Attack(Entity entity)
         {
-
+            if (entity is Resource) return;
+            entityToAttack = entity;
         }
 
         /// <summary>
@@ -82,7 +102,8 @@ namespace Devious_Retention
         /// </summary>
         public void ChangeMaxHP(int newMaxHP)
         {
-
+            double newHPMultiplier = (double)newMaxHP / type.hitpoints;
+            hitpoints = (int)(hitpoints * newHPMultiplier);
         }
 
         /// <summary>
@@ -118,6 +139,16 @@ namespace Devious_Retention
         public Double GetY()
         {
             return y;
+        }
+
+        public int GetLOS()
+        {
+            return type.lineOfSight;
+        }
+
+        public int GetPlayerNumber()
+        {
+            return player;
         }
     }
 }
