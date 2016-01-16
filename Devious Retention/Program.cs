@@ -53,12 +53,11 @@ namespace Devious_Retention
                 tileTypes.Add(t);
             Map map = new Map(tileTypes, tiles, tiles[0].Length, tiles.Length);
             GameClient client = new GameClient(1, map, gameWindow, info, null, null);
-            gameWindow.client = client;
             info.WriteDebug("Game window opened.", Color.Blue);
 
             info.WriteDefinitionsToDebug();
             
-            client.units.Add(new Unit(info.unitTypes["TestUnit"], 4.1, 4.1, 1));
+            client.units.Add(new Unit(info.unitTypes["TestUnit"], 0,0, 1));
             client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1, 1));
             // other player's unit
             client.units.Add(new Unit(info.unitTypes["TestUnit"], 13, 13, 2));
@@ -75,6 +74,15 @@ namespace Devious_Retention
             client.selected.Add(client.units.ElementAt(0));
             */
             client.selected.Add(client.resources.ElementAt(0));
+            
+            foreach(Unit u in client.units)
+            {
+                gameWindow.UpdateLOSAdd(u);
+            }
+            foreach(Building b in client.buildings)
+            {
+                gameWindow.UpdateLOSAdd(b);
+            }
 
             Application.Run(gameWindow);
 

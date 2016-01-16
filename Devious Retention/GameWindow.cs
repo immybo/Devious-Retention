@@ -22,6 +22,14 @@ namespace Devious_Retention
 
         private const int HORIZONTAL_TILES = 10;
 
+        // How much the screen moves every tick of holding the button down
+        private const int SCREEN_X_CHANGE = 1;
+        private const int SCREEN_Y_CHANGE = 1;
+
+        // How large the building/technology icons are, and the gaps between them (pixels)
+        private const int ICON_SIZE = 50;
+        private const int ICON_GAP = 20;
+
         private const double RESOURCE_WIDTH = 0.2;
 
         // How opaque the overlay to tiles which we don't have LOS to is
@@ -34,14 +42,6 @@ namespace Devious_Retention
         private const int MINIMAP_BORDER_SIZE = 20;
         private const int RIGHT_AREA_BORDER_WIDTH = 20;
         private const int RESOURCE_AREA_BORDER_WIDTH = 20;
-
-        // How much the screen moves every tick of holding the button down
-        private const int SCREEN_X_CHANGE = 1;
-        private const int SCREEN_Y_CHANGE = 1;
-
-        // How large the building/technology icons are, and the gaps between them (pixels)
-        private const int ICON_SIZE = 50;
-        private const int ICON_GAP = 20;
 
         public GameClient client;
 
@@ -128,7 +128,7 @@ namespace Devious_Retention
             Graphics g = e.Graphics;
 
             ResizeToFit();
-            LoadLOS();
+            //LoadLOS();
             RenderTiles(g,
                 new Rectangle(0,0,(int)(Width*GAME_AREA_WIDTH),(int)(Height* GAME_AREA_HEIGHT)));
             RenderEntities(g,
@@ -150,6 +150,178 @@ namespace Devious_Retention
         {
             Width = Screen.PrimaryScreen.WorkingArea.Width;
             Height = Screen.PrimaryScreen.WorkingArea.Height;
+        }
+
+        /// <summary>
+        /// Assuming that the client has been set, initialises the line of sight.
+        /// </summary>
+        public void InitLOS()
+        {
+            LOS = new bool[client.map.width, client.map.height];
+        }
+
+        /// <summary>
+        /// Updates the player's line of sight given that the
+        /// given entity was just created.
+        /// Assumes that this entity belongs to the player.
+        /// Does nothing if this entity is a resource.
+        /// </summary>
+        public void UpdateLOSAdd(Entity e)
+        {
+            // Resources don't have LOS
+            if (e is Resource) return;
+
+            int entityLOS = e.GetLOS();
+            // Just round it down for simplicity
+            int entityX = (int)(e.GetX() + e.GetSize() / 2);
+            int entityY = (int)(e.GetY() + e.GetSize() / 2);
+
+            // Simple way of figuring out a circle
+            for (int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
+            {
+                for (int y = entityY - entityLOS; y <= entityY + entityLOS; y++)
+                {
+                    // Are we even on the map?
+                    if (x < 0 || y < 0) continue;
+                    if (x >= client.map.width || y >= client.map.height) continue;
+
+                    // Find the distance from the entity (pythagoras)
+                    int distance = (int)(Math.Sqrt(Math.Pow(entityX - x, 2) + Math.Pow(entityY - y, 2)));
+                    // Do nothing if it's too far away
+                    if (distance > entityLOS) continue;
+
+                    // Otherwise add this square to LOS
+                    LOS[x, y] = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the player's line of sight given that the
+        /// given unit has just moved by (dX,dY).
+        /// Assumes that the unit belongs to the player.
+        /// </summary>
+        public void UpdateLOSMove(Unit unit, double dX, double dY)
+        {
+            // The new LOS of the unit
+            List<Coordinate> newTiles = new List<Coordinate>();
+            // The old LOS of the unit
+            List<Coordinate> oldTiles = new List<Coordinate>();
+
+            // Figure out the old circle
+            int oldUnitX = (int)(unit.GetX() + unit.GetSize() / 2 - dX);
+            int oldUnitY = (int)(unit.GetY() + unit.GetSize() / 2 - dY);
+            for (int x = oldUnitX - unit.GetLOS(); x <= oldUnitX + unit.GetLOS(); x++)
+            {
+                for (int y = oldUnitY - unit.GetLOS(); y <= oldUnitY + unit.GetLOS(); y++)
+                {
+                    if (x < 0 || y < 0) continue;
+                    if (x >= client.map.width || y >= client.map.height) continue;
+                    int distance = (int)(Math.Sqrt(Math.Pow(oldUnitX - x, 2) + Math.Pow(oldUnitY - y, 2)));
+                    if (distance > unit.GetLOS()) continue;
+
+                    // This is one of the tiles that the unit used to be able to see
+                    oldTiles.Add(new Coordinate(x, y));
+                }
+            }
+
+            // Figure out the new circle
+            int newUnitX = (int)(unit.GetX() + unit.GetSize() / 2);
+            int newUnitY = (int)(unit.GetY() + unit.GetSize() / 2);
+            for (int x = newUnitX - unit.GetLOS(); x <= newUnitX + unit.GetLOS(); x++)
+            {
+                for (int y = newUnitY - unit.GetLOS(); y <= newUnitY + unit.GetLOS(); y++)
+                {
+                    if (x < 0 || y < 0) continue;
+                    if (x >= client.map.width || y >= client.map.height) continue;
+                    int distance = (int)(Math.Sqrt(Math.Pow(newUnitX - x, 2) + Math.Pow(newUnitY - y, 2)));
+                    if (distance > unit.GetLOS()) continue;
+
+                    // This is one of the tiles that the unit can now see
+                    newTiles.Add(new Coordinate(x, y));
+                }
+            }
+
+            // The tiles that it can't see any more
+            List<Coordinate> nowInvisibleTiles = new List<Coordinate>();
+            // The tiles that it couldn't see before but can now
+            List<Coordinate> nowVisibleTiles = new List<Coordinate>();
+            
+            // Add tiles to the list of tiles that we can't see any more... only if we can't see them any more
+            foreach (Coordinate oldTile in oldTiles)
+                if (!newTiles.Contains(oldTile))
+                    nowInvisibleTiles.Add(oldTile);
+            // Add tiles to the list of tiles that we can see now, only if we couldn't see them before
+            foreach (Coordinate newTile in newTiles)
+                if (!oldTiles.Contains(newTile))
+                    nowVisibleTiles.Add(newTile);
+            
+            // Set all the newly visible tiles to be within LOS
+            foreach(Coordinate c in nowVisibleTiles)
+            {
+                if (c.x >= client.map.width || c.y >= client.map.height) continue;
+                if (c.x < 0 || c.y < 0) continue;
+                LOS[c.x, c.y] = true;
+            }
+
+            // And check if we can still see the old tiles
+            foreach(Coordinate c in nowInvisibleTiles)
+                LOS[c.x,c.y] = HasLOSTo(c);
+        }
+
+        /// <summary>
+        /// Updates the player's line of sight given that the
+        /// given entity was just deleted.
+        /// Assumes that the entity belonged to the player.
+        /// </summary>
+        public void UpdateLOSDelete(Entity entity)
+        {
+            if (entity is Resource) return;
+
+            int entityLOS = entity.GetLOS();
+            int entityX = (int)(entity.GetX() + entity.GetSize() / 2);
+            int entityY = (int)(entity.GetY() + entity.GetSize() / 2);
+            // Go through all the tiles the entity could see and recheck if we can still see them
+            for (int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
+            {
+                for (int y = entityY - entityLOS; y <= entityY + entityLOS; y++)
+                {
+                    if (x < 0 || y < 0) continue;
+                    if (x >= client.map.width || y >= client.map.height) continue;
+                    int distance = (int)(Math.Sqrt(Math.Pow(entityX - x, 2) + Math.Pow(entityY - y, 2)));
+                    if (distance > entityLOS) continue;
+
+                    // Check whether or not we can still see this tile
+                    LOS[x, y] = HasLOSTo(new Coordinate(x, y));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns whether or not the player has line of sight to
+        /// the given coordinate.
+        /// </summary>
+        private bool HasLOSTo(Coordinate c)
+        {
+            // Scroll through units and buildings that belong to the player, and figure out which are within range
+            // Stop if we find one that is
+            HashSet<Entity> entities = new HashSet<Entity>();
+            foreach (Unit u in client.units)
+                if (u.player == client.playerNumber)
+                    entities.Add(u);
+                    
+            foreach (Building b in client.buildings)
+                if (b.player == client.playerNumber)
+                    entities.Add(b);
+
+            foreach(Entity e in entities)
+            {
+                // Distance between the entity and the tile
+                int distance = (int)(Math.Sqrt(Math.Pow(e.GetX() - c.x, 2) + Math.Pow(e.GetY() - c.y, 2)));
+                if (distance <= e.GetLOS()) return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -197,48 +369,6 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Renders the game panel; i.e. the part of the window which contains
-        /// the entities, tiles, etc. Also renders the resource counts and minimap.
-        /// Uses the client's perspective to do so.
-        /// </summary>
-        /*private void RenderGamePanel(Graphics g)
-        {
-            int panelWidth = (int)(GAME_AREA_WIDTH * Width);
-            int panelHeight = (int)(GAME_AREA_HEIGHT * Height);
-            int panelX = 0;
-            int panelY = 0;
-            
-            g.DrawRectangle(new Pen(new SolidBrush(Color.Black)), new Rectangle(panelX, panelY, panelWidth, panelHeight));
-
-            Font font = new Font("Arial", 50, FontStyle.Regular);
-            StringFormat format = new StringFormat();
-            format.Alignment = StringAlignment.Center;
-            format.LineAlignment = StringAlignment.Center;
-            g.DrawString("Game area center", font, Brushes.Black, new PointF(panelWidth / 2, panelHeight / 2), format);
-
-            // DRAW THE TILES //
-            int tileWidth = (int) (panelWidth / HORIZONTAL_TILES);
-            int tileHeight = tileWidth;
-
-            // How much of a tile we have to draw above the screen
-            int topTileYOffset = (int)((client.screenY - (int)client.screenY) * tileHeight);
-            // How much of a tile we have to draw to the left of the screen
-            int topTileXOffset = (int)((client.screenX - (int)client.screenX) * tileWidth);
-
-            for (int i = 0; i + client.screenX < client.map.width; i++)
-            {
-                // If we're already off the edge of the screen, top drawing
-                if (i * tileWidth >= panelWidth) break;
-                for(int j = 0; j + client.screenY < client.map.height; j++)
-                {
-                    // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
-                    // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i+(int)client.screenX, j+(int)client.screenY).image, new Rectangle(i*tileWidth - topTileXOffset,j*tileHeight - topTileYOffset,tileWidth, tileHeight));
-                }
-            }
-        }*/
-
-        /// <summary>
         /// Renders all tiles on the map
         /// </summary>
         private void RenderTiles(Graphics g, Rectangle bounds)
@@ -264,13 +394,15 @@ namespace Devious_Retention
 
             for (int i = 0; i + screenX < client.map.width && i < maxXTiles; i++)
             {
+                if (i + (int)screenX < 0) continue;
                 for (int j = 0; j + screenY < client.map.height && j < maxYTiles; j++)
                 {
+                    if (j + (int)screenY < 0) continue;
                     // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
                     // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i + (int)client.screenX, j + (int)client.screenY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
+                    g.DrawImage(client.map.GetTile(i + (int)screenX, j + (int)screenY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                     // If this tile is out of line of sight, draw a light grey overlay (grey it out)
-                    if (!LOS[i + (int)client.screenX, j + (int)client.screenY])
+                    if (!LOS[i + (int)screenX, j + (int)screenY])
                         g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                 }
             }
@@ -311,8 +443,8 @@ namespace Devious_Retention
             foreach(Entity e in entities)
             {
                 // First check if they're even on the screen
-                if (e.GetX() + e.GetSize() < client.screenX || e.GetX() > client.screenX + maxXTiles) continue;
-                if (e.GetY() + e.GetSize() < client.screenY || e.GetY() > client.screenY + maxYTiles) continue;
+                if (e.GetX() + e.GetSize() < screenX || e.GetX() > screenX + maxXTiles) continue;
+                if (e.GetY() + e.GetSize() < screenY || e.GetY() > screenY + maxYTiles) continue;
                 // And check if we have line of sight to them
                 if (!LOS[(int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2)]) continue;
 
@@ -666,14 +798,6 @@ namespace Devious_Retention
             bounds.X += RIGHT_AREA_BORDER_WIDTH;
             bounds.Width -= RIGHT_AREA_BORDER_WIDTH;
 
-            g.DrawRectangle(new Pen(new SolidBrush(Color.Black)), bounds);
-
-            Font font = new Font("Arial", 50, FontStyle.Regular);
-            StringFormat format = new StringFormat();
-            format.Alignment = StringAlignment.Center;
-            format.LineAlignment = StringAlignment.Center;
-            g.DrawString("Top right panel", font, Brushes.Black, new PointF(bounds.X + bounds.Width / 2, bounds.Height / 2), format);
-
             // If the building panel is open, draw that
             if (buildingPanelOpen)
             {
@@ -686,12 +810,14 @@ namespace Devious_Retention
                     // If the building can't be built yet, it will be greyed out
                     bool grayed = !(client.info.technologies.ContainsKey(b.prerequisite) && client.info.technologies[b.prerequisite].researched);
 
-                    Image image = grayed ? b.greyedImage : b.image;
                     Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (i % iconWidth),
                         bounds.Y + ICON_GAP + (int)(i / iconWidth) * (ICON_SIZE + ICON_GAP),
                         ICON_SIZE, ICON_SIZE);
 
-                    g.DrawImage(image, iconBounds);
+                    g.DrawImage(b.image, iconBounds);
+                    
+                    if (grayed)
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
 
                     i++;
                 }

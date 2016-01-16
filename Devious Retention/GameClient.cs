@@ -34,8 +34,8 @@ namespace Devious_Retention
         public Color playerColor { get; private set; }
 
         // Where the top-left of the screen is, in map co-ordinates.
-        public double screenY { get; private set; }
-        public double screenX { get; private set; }
+        //public double screenY { get; private set; }
+        //public double screenX { get; private set; }
 
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
@@ -56,10 +56,13 @@ namespace Devious_Retention
         {
             this.info = info;
             this.map = map;
+            this.window = window;
+            window.client = this;
+            window.InitLOS();
             // this.faction = faction;
             // this.connection = connection;
             this.playerNumber = playerNumber;
-            this.playerColor = GameInfo.PLAYER_COLORS[playerNumber];
+            playerColor = GameInfo.PLAYER_COLORS[playerNumber];
 
             resources = new HashSet<Resource>();
             buildings = new HashSet<Building>();
@@ -68,9 +71,6 @@ namespace Devious_Retention
             selected = new List<Entity>();
 
             currentResources = new int[GameInfo.RESOURCE_TYPES];
-
-            screenX = 0;
-            screenY = 0;
 
             buildingPanelOpen = true;
         }
@@ -155,6 +155,14 @@ namespace Devious_Retention
         public void SetEntities(HashSet<Entity> entities)
         {
 
+        }
+
+        /// <summary>
+        /// Adds the given entities to the appropriate sets,
+        /// and notifies the GameWindow to update with their LOS.
+        /// </summary>
+        public void AddEntities(HashSet<Entity> entities)
+        {
         }
 
         /// <summary>

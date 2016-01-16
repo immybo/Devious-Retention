@@ -25,6 +25,7 @@ namespace Devious_Retention
         public static string BUILDING_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Buildings\\";
         public static string UNIT_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Units\\";
         public static string TILE_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Tiles\\";
+        public static string TECHNOLOGY_IMAGE_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Technologies\\";
 
         public static string BUILDING_ICON_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Buildings\\";
         public static string UNIT_ICON_BASE { get; internal set; } = BASE_DIRECTORY + "Images\\Units\\";
@@ -281,6 +282,7 @@ namespace Devious_Retention
             int j = 0;
             string line;
             string name = "";
+            string iconName = "";
             HashSet<string> prerequisites = new HashSet<string>();
             HashSet<String> effects = new HashSet<string>();
             int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
@@ -289,19 +291,20 @@ namespace Devious_Retention
             {
                 if (line.Equals("~"))
                 {
-                    technologies.Add(name, new Technology(name, prerequisites, effects, resourceCosts));
+                    technologies.Add(name, new Technology(name, prerequisites, effects, resourceCosts, iconName));
                     currentLine = -1;
                     prerequisites = new HashSet<string>();
                     effects = new HashSet<String>();
                 }
                 else if (currentLine == 0) { name = line; j++; }
-                else if (currentLine == 1)
+                else if (currentLine == 1) iconName = line;
+                else if (currentLine == 2)
                 {
                     string[] split = line.Split(new char[] { ' ' });
                     for (int i = 0; i < split.Length; i++)
                         prerequisites.Add(split[i]);
                 }
-                else if (currentLine == 2)
+                else if (currentLine == 3)
                 {
                     string[] split = line.Split(new char[] { ' ' });
                     for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)

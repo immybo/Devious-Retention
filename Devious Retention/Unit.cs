@@ -165,7 +165,6 @@ namespace Devious_Retention
         /// </summary>
         private void MoveTick()
         {
-
         }
 
         /// <summary>

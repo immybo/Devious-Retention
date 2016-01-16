@@ -87,4 +87,18 @@ namespace Devious_Retention
             return builder.ToString();
         }
     }
+
+    public struct Coordinate
+    {
+        public int x;
+        public int y;
+        public Coordinate(int x, int y)
+        {
+            this.x = x; this.y = y;
+        }
+        public override bool Equals(Object obj)
+        {
+            return (obj is Coordinate && ((Coordinate)obj).x == x && ((Coordinate)obj).y == y);
+        }
+    }
 }
