@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Net;
+using System.ServiceModel;
+using System.ServiceModel.Description;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -9,12 +12,14 @@ namespace Devious_Retention
 {
     static class Program
     {
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main()
         {
+            
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -61,19 +66,6 @@ namespace Devious_Retention
             client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1, 1));
             // other player's unit
             client.units.Add(new Unit(info.unitTypes["TestUnit"], 13, 13, 2));
-            client.resources.Add(new Resource(info.resourceTypes["TestResource"], 2, 2));
-
-            /* SELECTED BUILDING
-            client.selected.Add(client.buildings.ElementAt(0));
-            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
-            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
-            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit2"]);
-            client.buildings.ElementAt(0).QueueUnit(info.unitTypes["TestUnit"]);
-            */
-            /*
-            client.selected.Add(client.units.ElementAt(0));
-            */
-            client.selected.Add(client.resources.ElementAt(0));
             
             foreach(Unit u in client.units)
             {
@@ -84,8 +76,14 @@ namespace Devious_Retention
                 gameWindow.UpdateLOSAdd(b);
             }
 
-            Application.Run(gameWindow);
+            STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"), null);
+            CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"), client);
+            stc.Connect();
+            cts.Connect();
+            stc.InformEntityAdd(new Resource(info.resourceTypes["TestResource"], 3,0));
 
+            Application.Run(gameWindow);
+            
         }
     }
 }

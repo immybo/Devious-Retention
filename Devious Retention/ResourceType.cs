@@ -39,6 +39,7 @@ namespace Devious_Retention
             this.resourceAmount = resourceAmount;
             this.imageFilename = imageFilename;
             this.gatherSpeed = gatherSpeed;
+            this.size = size;
 
             try
             {

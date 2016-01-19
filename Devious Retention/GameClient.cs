@@ -150,36 +150,61 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Sets the sets of entities to the given set.
+        /// Adds an entity. Does nothing if the entity type isn't found.
         /// </summary>
-        public void SetEntities(HashSet<Entity> entities)
+        /// <param name="entityType">0=unit, 1=building, 2=resource</param>
+        /// <param name="type">The name of the type of entity to be created.</param>
+        /// <param name="xPos">The initial x position of the new entity.</param>
+        /// <param name="yPos">The initial y position of the new entity.</param>
+        /// <param name="player">The player that the entity belongs to. Irrelevant if a resource.</param>
+        public void AddEntity(int entityType, string type, double xPos, double yPos, int player)
+        {
+            if(entityType == 0)
+            {
+                if (!info.unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
+                UnitType unitType = info.unitTypes[type];
+                units.Add(new Unit(unitType, xPos, yPos, player));
+            }
+            else if(entityType == 1)
+            {
+                if (!info.buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
+                BuildingType buildingType = info.buildingTypes[type];
+                buildings.Add(new Building(buildingType, xPos, yPos, player));
+            }
+            else if(entityType == 2)
+            {
+                if (!info.resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
+                ResourceType resourceType = info.resourceTypes[type];
+                resources.Add(new Resource(resourceType, xPos, yPos));
+            }
+        }
+
+        /// <summary>
+        /// Removes an entity.
+        /// </summary>
+        /// <param name="type">0=unit, 1=building, 2=resource</param>
+        /// <param name="deletedEntityID">The ID of the entity to be deleted.</param>
+        public void DeleteEntity(int type, int deletedEntityID)
         {
 
         }
 
         /// <summary>
-        /// Adds the given entities to the appropriate sets,
-        /// and notifies the GameWindow to update with their LOS.
+        /// Changes one property of an entity, e.g. its position,
+        /// hitpoints, built status..
         /// </summary>
-        public void AddEntities(HashSet<Entity> entities)
-        {
-        }
-
-        /// <summary>
-        /// Updates the given entities, and adds them to the client's
-        /// sets of entities if they weren't in there before. Uses the
-        /// entities' IDs to figure out which is which.
-        /// </summary>
-        public void UpdateEntities(HashSet<Entity> changedEntities)
+        /// <param name="entityID">The ID of the entity to be changed. Nothing will happen if no entity with this ID exists.</param>
+        /// <param name="propertyID">The ID of the property to be changed. Nothing will happen if this is invalid.</param>
+        /// <param name="change">The modifier to the property.</param>
+        public void ChangeEntityProperty(int entityID, int propertyID, double change)
         {
 
         }
 
         /// <summary>
-        /// Removes the given entities from the client's sets of entities
-        /// if they were in there. Does nothing if they weren't.
+        /// Sets the technology with the given ID's research state to be TRUE.
         /// </summary>
-        public void DeleteEntities(HashSet<Entity> deletedEntities)
+        public void SetTechnologyResearched(int technologyID)
         {
 
         }

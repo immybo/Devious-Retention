@@ -73,6 +73,11 @@ namespace Devious_Retention
         // What colours each player has
         public static Color[] PLAYER_COLORS { get; private set; } = new Color[3] { Color.White, Color.Blue, Color.Red };
 
+        // Arbitrary; the port used by the server-to-client connection
+        public const int STC_PORT = 4983;
+        // Arbitrary; the port used by the client-to-server connection
+        public const int CTS_PORT = 4984;
+
         public SortedDictionary<string,UnitType> unitTypes { get; internal set; }
         public SortedDictionary<string,BuildingType> buildingTypes { get; internal set; }
         public SortedDictionary<string,ResourceType> resourceTypes { get; internal set; }

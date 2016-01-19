@@ -79,8 +79,7 @@ namespace Devious_Retention
             return 0;
         }
         /// <summary>
-        /// Returns 0! Should never be called, but if it is,
-        /// returning 0 should cause nothing special to happen.
+        /// Returns 0.
         /// </summary>
         public int GetPlayerNumber()
         {
