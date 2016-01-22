@@ -14,7 +14,7 @@ namespace Devious_Retention
     {
         public int width { get; private set; }
         public int height { get; private set; }
-        private int[][] tiles;
+        public int[,] tiles { get; private set; }
         private List<Tile> possibleTiles;
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace Devious_Retention
         /// provided in order. Then, the actual tiles on the map are given
         /// as integers; indices in the list of possible tiles.
         /// </summary>
-        public Map(List<Tile> possibleTiles, int[][] tiles, int width, int height)
+        public Map(List<Tile> possibleTiles, int[,] tiles, int width, int height)
         {
             this.possibleTiles = possibleTiles;
             this.tiles = tiles;
@@ -35,7 +35,7 @@ namespace Devious_Retention
         /// </summary>
         public Tile GetTile(int x, int y)
         {
-            return possibleTiles[tiles[x][y]];
+            return possibleTiles[tiles[x,y]];
         }
     }
 

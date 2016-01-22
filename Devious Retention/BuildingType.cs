@@ -11,7 +11,7 @@ namespace Devious_Retention
     /// These attributes can be changed through technologies, and so
     /// each client has a set of BuildingTypes specific to it.
     /// </summary>
-    public class BuildingType
+    public class BuildingType : ICloneable
     {
         public String name { get; private set; }
         // The initial amount of hitpoints for buildings of this type.
@@ -27,6 +27,7 @@ namespace Devious_Retention
         // How many tiles this building takes up along each axis
         public int size { get; private set; }
         public int[] resistances;
+        private int buildTimeMillis;
         // Ticks
         public int buildTime;
         // Every BuildingType can only have up to one prerequisite technology
@@ -81,6 +82,7 @@ namespace Devious_Retention
             this.lineOfSight = lineOfSight;
             this.size = size;
             this.resistances = resistances;
+            this.buildTimeMillis = buildTimeMillis;
             this.buildTime = (int)(buildTimeMillis / GameInfo.TICK_TIME);
             this.prerequisite = prerequisite;
             this.providesResource = providesResource;
@@ -144,6 +146,15 @@ namespace Devious_Retention
                 builder.Append(s + " ");
 
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// Returns a new BuildingType that is completely identical to this one.
+        /// </summary>
+        public BuildingType Clone()
+        {
+            return new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTimeMillis, prerequisite, providesResource, resourceType,
+                gatherSpeed, canBeBuiltOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits);
         }
     }
 }

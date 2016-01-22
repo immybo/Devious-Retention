@@ -11,7 +11,7 @@ namespace Devious_Retention
     /// These attributes can be changed through technologies, and so
     /// each client has a set of UnitTypes specific to it.
     /// </summary>
-    public class UnitType
+    public class UnitType : ICloneable
     {
         public String name { get; private set; }
         // The initial amount of hitpoints for units of this type.
@@ -22,6 +22,7 @@ namespace Devious_Retention
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
         public int damageType;
         public int[] resistances;
+        public int trainingTimeMillis;
         // Ticks
         public int trainingTime;
         // How many tiles units of this type can move per second
@@ -34,14 +35,6 @@ namespace Devious_Retention
         // Before this technology is researched, no units of this type can be created
         // Not every UnitType has to have a prerequisite, however
         public String prerequisite { get; private set; }
-
-        // Most units are unable to build.
-        // When tasked on a building, these units will simply
-        // walk to the click point. However, if a unit can, it will start
-        // working on the building.
-        public bool canBuild { get; private set; }
-        // 1 is the baseline; a unit with 1 build speed will provide 1 "work second" per second
-        public double buildSpeed; // Only applicable if canBuild
 
         // An aggressive unit will attempt to attack nearby enemy units
         public bool aggressive { get; private set; }
@@ -68,7 +61,7 @@ namespace Devious_Retention
         /// parse the string into these attributes.
         /// </summary>
         public UnitType(string name, int hitpoints, int damage, int damageType, double size, int lineOfSight, int[] resistances, int trainingTimeMillis, double speed,
-                        string prerequisite, bool canBuild, double buildSpeed, bool aggressive, int type, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts)
+                        string prerequisite, bool aggressive, int type, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts)
         {
             this.name = name;
             this.hitpoints = hitpoints;
@@ -77,11 +70,10 @@ namespace Devious_Retention
             this.size = size;
             this.lineOfSight = lineOfSight;
             this.resistances = resistances;
+            this.trainingTimeMillis = trainingTimeMillis;
             this.trainingTime = (int)(trainingTimeMillis / GameInfo.TICK_TIME);
             this.speed = speed;
             this.prerequisite = prerequisite;
-            this.canBuild = canBuild;
-            this.buildSpeed = buildSpeed;
             this.aggressive = aggressive;
             this.type = type;
             this.imageName = imageName;
@@ -106,7 +98,7 @@ namespace Devious_Retention
         /// <summary>
         /// Returns:
         /// "name hitpoints damage damageType lineOfSight size resistance1 resistance2 .. resistanceX trainingTime speed
-        ///     prerequisiteName canBuild buildSpeed aggressive type imageName iconName range attackMilliseconds resourcecost1 resourcecost2 ... resourcecostx"
+        ///     prerequisiteName aggressive type imageName iconName range attackMilliseconds resourcecost1 resourcecost2 ... resourcecostx"
         /// </summary>
         public override String ToString()
         {
@@ -122,8 +114,6 @@ namespace Devious_Retention
             builder.Append(trainingTime + " ");
             builder.Append(speed + " ");
             builder.Append(prerequisite + " ");
-            builder.Append(canBuild + " ");
-            builder.Append(buildSpeed + " ");
             builder.Append(aggressive + " ");
             builder.Append(type + " ");
             builder.Append(imageName + " ");
@@ -134,6 +124,16 @@ namespace Devious_Retention
                 builder.Append(resourceCosts[i] + " ");
 
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// Returns a new UnitType completely identical to this one.
+        /// </summary>
+        /// <returns></returns>
+        public UnitType Clone()
+        {
+            return new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTimeMillis,
+                speed, prerequisite, aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts);
         }
     }
 }

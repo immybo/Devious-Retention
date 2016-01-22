@@ -9,11 +9,14 @@ namespace Devious_Retention
 {
     /// <summary>
     /// Units are a type of entity which can move.
-    /// The main purpose of most units is to fight,
-    /// however some units can also construct buildings.
+    /// The purpose of units is to fight the enemy's units and buildings.
     /// </summary>
     public class Unit : Entity
     {
+        private static int nextID;
+        // Unique
+        public int id { get; private set; }
+
         public int player { get; private set; }
         // As most attributes will change only under circumstances where
         // the UnitType will change as well, this provides most attributes
@@ -31,9 +34,6 @@ namespace Devious_Retention
         private double xToMove;
         private double yToMove;
         private int direction;
-
-        // If this unit has been tasked to construct a building, this will specify the building
-        Building buildingToConstruct;
 
         // The co-ordinates of the top-left corner of this unit
         public double x { get; private set; }
@@ -56,29 +56,9 @@ namespace Devious_Retention
             xToMove = -1;
             yToMove = -1;
             hitpoints = type.hitpoints;
-        }
 
-        /// <summary>
-        /// Attempts to move to and then construct the specified building
-        /// iff thisunit can construct buildings. If this unit can't,
-        /// it will instead merely move to the building location.
-        /// </summary>
-        public void Build(Building building)
-        {
-            buildingToConstruct = building;
-            entityToAttack = null;
-            // Figure out where to move to in order to be able to construct the building
-            
-            // If we're to the left of the building, go to its left side
-            if (this.x < building.x) xToMove = building.x;
-            // If we're on the right of the building, go to its right side
-            else if (this.x > building.x + building.type.size) xToMove = building.x + building.type.size;
-            // Otherwise we must just be able to retain the same x ordinate
-            else xToMove = this.x;
-            
-            if (this.y < building.y) yToMove = building.y;
-            else if (this.y > building.y + building.type.size) yToMove = building.y + building.type.size;
-            else yToMove = this.y;
+            this.id = nextID;
+            nextID++;
         }
         
         /// <summary>
@@ -117,7 +97,6 @@ namespace Devious_Retention
             // the distance to the target
             double distance = Math.Sqrt(Math.Pow(x - entity.GetX(), 2) + Math.Pow(y - entity.GetY(), 2));
             entityToAttack = entity;
-            buildingToConstruct = null;
 
             // If it's out of range, move towards it
             if(distance > type.range)
@@ -155,7 +134,6 @@ namespace Devious_Retention
             // Only performs one action every tick (e.g. can't move AND attack)
             
             if (AttackTick()) return;
-            if (ConstructTick()) return;
             MoveTick();
         }
 
@@ -165,26 +143,6 @@ namespace Devious_Retention
         /// </summary>
         private void MoveTick()
         {
-        }
-
-        /// <summary>
-        /// Produces one tick of work towards constructing the building that this
-        /// unit is assigned to construct. Does nothing if this unit is not adjacent to
-        /// that building, or if the building's construction has been completed.
-        /// Returns whether or not it completed a tick of construction.
-        /// </summary>
-        private bool ConstructTick()
-        {
-            // Not building anything
-            if (buildingToConstruct == null) return false;
-
-            // Too far apart
-            double distance = Math.Sqrt(Math.Pow(x - buildingToConstruct.x, 2) + Math.Pow(y - buildingToConstruct.y, 2));
-            if (distance > GameInfo.ADJACENT_DISTANCE)
-                return false;
-
-            // TODO
-            return false;
         }
 
         /// <summary>
@@ -230,6 +188,18 @@ namespace Devious_Retention
         public int GetPlayerNumber()
         {
             return player;
+        }
+
+        public int GetID()
+        {
+            return id;
+        }
+        /// <summary>
+        /// Resets the next ID to 0.
+        /// </summary>
+        public static void ResetNextID()
+        {
+            nextID = 0;
         }
     }
 }

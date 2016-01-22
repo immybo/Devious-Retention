@@ -12,10 +12,15 @@ namespace Devious_Retention
     /// Some buildings can train units, and some buildings
     /// can attack enemy units and buildings. Some also gather
     /// resources, whether on their own or in combination with
-    /// resource desposits.
+    /// resource desposits. Buildings are created by placing a
+    /// foundation and waiting.
     /// </summary>
     public class Building : Entity
     {
+        private static int nextID;
+        // Unique
+        public int id { get; private set; }
+
         public int player { get; private set; }
 
         // Each building belongs to a BuildingType, from which most of its attributes can be gotten
@@ -56,6 +61,9 @@ namespace Devious_Retention
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
             built = false;
+
+            this.id = nextID;
+            nextID++;
         }
 
         /// <summary>
@@ -150,5 +158,20 @@ namespace Devious_Retention
         {
             return player;
         }
+
+        public int GetID()
+        {
+            return id;
+        }
+
+        /// <summary>
+        /// Resets the next ID to 0.
+        /// </summary>
+        public static void ResetNextID()
+        {
+            nextID = 0;
+        }
+
+        
     }
 }

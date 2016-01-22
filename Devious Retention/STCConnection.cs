@@ -125,36 +125,74 @@ namespace Devious_Retention
         /// <summary>
         /// Informs the client that a given entity
         /// has been deleted.
+        /// 
+        /// Message format:
+        /// [message type=1] [0=unit,1=building,2=resource] [id]
         /// </summary>
         public void InformEntityDeletion(Entity entity)
         {
+            if (outgoingSocket == null || !outgoingSocket.Connected) return;
 
+            int entityType = -1;
+            if (entity is Unit) entityType = 0;
+            else if (entity is Building) entityType = 1;
+            else if (entity is Resource) entityType = 2;
+            outgoingWriter.WriteLine("1 " + entityType + " " + entity.GetID());
         }
 
         /// <summary>
-        /// Informs the client that the map has been
-        /// changed to the given one. Typically only used
-        /// at the start of a game.
+        /// Informs the client that one of an entity's attributes has changed.
+        /// 
+        /// Message format:
+        /// [message type=2] [0=unit,1=building,2=resource] [id] [attribute] [attribute change]
         /// </summary>
-        public void InformMap(Map map)
+        public void InformEntityChange(Entity entity, int attributeID, double attributeChange)
         {
+            if (outgoingSocket == null || !outgoingSocket.Connected) return;
+
+            int entityType = -1;
+            if (entity is Unit) entityType = 0;
+            else if (entity is Building) entityType = 1;
+            else if (entity is Resource) entityType = 2;
+            outgoingWriter.WriteLine("2 " + entityType + " " + entity.GetID() + " " + attributeID + " " + attributeChange);
+        }
+
+        /// <summary>
+        /// Informs the client that the given player has researched
+        /// the given technology.
+        /// 
+        /// Message format:
+        /// [message type=3] [player number] [technology name]
+        /// </summary>
+        public void InformTechnologyResearch(int player, Technology technology)
+        {
+            if (outgoingSocket == null || !outgoingSocket.Connected) return;
+            outgoingWriter.WriteLine("3 " + player + " " + technology.name);
         }
 
         /// <summary>
         /// Informs the client that the game has ended.
+        /// 
+        /// Message format:
+        /// [message type=4] [won]
         /// </summary>
         /// <param name="won">Whether or not this player won the game.</param>
         public void InformGameOver(Boolean won)
         {
-
+            if (outgoingSocket == null || !outgoingSocket.Connected) return;
+            outgoingWriter.WriteLine("4 " + won);
         }
 
         /// <summary>
         /// Informs the client to update the game.
+        /// 
+        /// Message format:
+        /// [message type=5]
         /// </summary>
         public void Tick()
         {
-
+            if (outgoingSocket == null || !outgoingSocket.Connected) return;
+            outgoingWriter.WriteLine("5");
         }
     }
 }

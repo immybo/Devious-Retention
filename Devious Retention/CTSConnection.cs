@@ -74,6 +74,21 @@ namespace Devious_Retention
                             case 0:
                                 AddEntity(splitLine);
                                 break;
+                            case 1:
+                                DeleteEntity(splitLine);
+                                break;
+                            case 2:
+                                ChangeEntity(splitLine);
+                                break;
+                            case 3:
+                                ResearchTechnology(splitLine);
+                                break;
+                            case 4:
+                                GameOver(splitLine);
+                                break;
+                            case 5:
+                                client.Tick();
+                                break;
                         }
                     }
                 }
@@ -119,7 +134,8 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Processes a request to add an entity from the server to the client.
+        /// Interprets and passes on a message from the server to
+        /// the client to add a certain type of entity.
         /// </summary>
         /// <param name="splitLine">The received line, split by spaces.</param>
         private void AddEntity(string[] splitLine)
@@ -130,6 +146,56 @@ namespace Devious_Retention
             double yPos = double.Parse(splitLine[4]);
             int playerNumber = int.Parse(splitLine[1]) == 2 ? 0 : int.Parse(splitLine[5]); // use a player number of 0 if it's a resource
             client.AddEntity(entityType, typeName, xPos, yPos, playerNumber);
+        }
+
+        /// <summary>
+        /// Interprets and passes on a message from the server to
+        /// the client to delete a certain entity.
+        /// </summary>
+        /// <param name="splitLine">The received line, split by spaces.</param>
+        private void DeleteEntity(string[] splitLine)
+        {
+            int entityType = int.Parse(splitLine[1]);
+            int entityID = int.Parse(splitLine[2]);
+            client.DeleteEntity(entityType, entityID);
+        }
+
+        /// <summary>
+        /// Interprets and passes on a message from the server to
+        /// the client to change an attribute of a certain entity.
+        /// </summary>
+        /// <param name="splitLine">The received line, split by spaces.</param>
+        private void ChangeEntity(string[] splitLine)
+        {
+            int entityType = int.Parse(splitLine[1]);
+            int entityID = int.Parse(splitLine[2]);
+            int attribute = int.Parse(splitLine[3]);
+            double attributeChange = int.Parse(splitLine[4]);
+            client.ChangeEntityProperty(entityType, entityID, attribute, attributeChange);
+        }
+
+        /// <summary>
+        /// Interprets and passes on a message from the server to
+        /// the client to research a technology.
+        /// </summary>
+        /// <param name="splitLine">The received line, split by spaces.</param>
+        private void ResearchTechnology(string[] splitLine)
+        {
+            int playerNumber = int.Parse(splitLine[1]);
+            string techName = splitLine[2];
+            client.SetTechnologyResearched(playerNumber, techName);
+        }
+
+        /// <summary>
+        /// Interprets and passes on a message from the server to
+        /// the client that the game has finished, with an included
+        /// result.
+        /// </summary>
+        /// <param name="splitLine">The received line, split by spaces.</param>
+        private void GameOver(string[] splitLine)
+        {
+            bool won = bool.Parse(splitLine[1]);
+            client.EndGame(won);
         }
 
         /// <summary>

@@ -15,6 +15,10 @@ namespace Devious_Retention
     /// </summary>
     public class Resource : Entity
     {
+        private static int nextID;
+        // Unique
+        public int id { get; private set; }
+
         // Every resource belongs to a type, which gives most of its statistics
         public ResourceType type { get; private set; }
 
@@ -34,6 +38,9 @@ namespace Devious_Retention
             this.type = type;
             this.x = x;
             this.y = y;
+
+            this.id = nextID;
+            nextID++;
         }
 
         /// <summary>
@@ -84,6 +91,20 @@ namespace Devious_Retention
         public int GetPlayerNumber()
         {
             return 0;
+        }
+
+        public int GetID()
+        {
+            return id;
+        }
+
+
+        /// <summary>
+        /// Resets the next ID to 0.
+        /// </summary>
+        public static void ResetNextID()
+        {
+            nextID = 0;
         }
     }
 }

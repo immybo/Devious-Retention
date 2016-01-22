@@ -16,8 +16,8 @@ namespace Devious_Retention
     public class GameClient
     {
         private CTSConnection connection;
-        // The client's GameInfo is changed over time by technologies, etc
-        public GameInfo info { get; private set; }
+        // Each player's GameInfo is changed over time due to technologies, factions, etc
+        public List<GameInfo> definitions { get; private set; }
         // Entities are gotten from the server every tick
         public HashSet<Resource> resources { get; private set; }
         public HashSet<Unit> units { get; private set; }
@@ -32,10 +32,6 @@ namespace Devious_Retention
         // This should be unique within a given game
         public int playerNumber { get; private set; }
         public Color playerColor { get; private set; }
-
-        // Where the top-left of the screen is, in map co-ordinates.
-        //public double screenY { get; private set; }
-        //public double screenX { get; private set; }
 
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
@@ -52,9 +48,8 @@ namespace Devious_Retention
         /// When a GameClient is created, it is assumed that entities will be
         /// sent from the CTSConnection before the first tick.
         /// </summary>
-        public GameClient(int playerNumber, Map map, GameWindow window, GameInfo info, CTSConnection connection, Faction faction)
+        public GameClient(int playerNumber, int numberOfPlayers, Map map, GameWindow window, CTSConnection connection, List<Faction> factions)
         {
-            this.info = info;
             this.map = map;
             this.window = window;
             window.client = this;
@@ -73,6 +68,16 @@ namespace Devious_Retention
             currentResources = new int[GameInfo.RESOURCE_TYPES];
 
             buildingPanelOpen = true;
+
+            Unit.ResetNextID();
+            Building.ResetNextID();
+            Resource.ResetNextID();
+
+            GameInfo.ReadDefinitions();
+
+            definitions = new List<GameInfo>();
+            for (int i = 0; i < numberOfPlayers; i++)
+                definitions[i] = new GameInfo();
         }
 
         /// <summary>
@@ -141,7 +146,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Attempts to research the given technology.
-        /// Returns whether ot not the client has enough resources
+        /// Returns whether or not the client has enough resources
         /// for this and the prerequisites are met.
         /// </summary>
         public bool ResearchTechnology(Technology technology)
@@ -161,20 +166,20 @@ namespace Devious_Retention
         {
             if(entityType == 0)
             {
-                if (!info.unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
-                UnitType unitType = info.unitTypes[type];
+                if (!definitions[playerNumber].unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
+                UnitType unitType = definitions[playerNumber].unitTypes[type];
                 units.Add(new Unit(unitType, xPos, yPos, player));
             }
             else if(entityType == 1)
             {
-                if (!info.buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
-                BuildingType buildingType = info.buildingTypes[type];
+                if (!definitions[playerNumber].buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
+                BuildingType buildingType = definitions[playerNumber].buildingTypes[type];
                 buildings.Add(new Building(buildingType, xPos, yPos, player));
             }
             else if(entityType == 2)
             {
-                if (!info.resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
-                ResourceType resourceType = info.resourceTypes[type];
+                if (!definitions[playerNumber].resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
+                ResourceType resourceType = definitions[playerNumber].resourceTypes[type];
                 resources.Add(new Resource(resourceType, xPos, yPos));
             }
         }
@@ -193,18 +198,19 @@ namespace Devious_Retention
         /// Changes one property of an entity, e.g. its position,
         /// hitpoints, built status..
         /// </summary>
+        /// <param name="entityType">0=unit, 1=building, 2=resource</param>
         /// <param name="entityID">The ID of the entity to be changed. Nothing will happen if no entity with this ID exists.</param>
         /// <param name="propertyID">The ID of the property to be changed. Nothing will happen if this is invalid.</param>
         /// <param name="change">The modifier to the property.</param>
-        public void ChangeEntityProperty(int entityID, int propertyID, double change)
+        public void ChangeEntityProperty(int entityType, int entityID, int propertyID, double change)
         {
 
         }
 
         /// <summary>
-        /// Sets the technology with the given ID's research state to be TRUE.
+        /// Sets the technology with the given name's research state to be TRUE for the given player.
         /// </summary>
-        public void SetTechnologyResearched(int technologyID)
+        public void SetTechnologyResearched(int playerNumber, string technologyName)
         {
 
         }

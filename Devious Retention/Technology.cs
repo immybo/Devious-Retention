@@ -10,7 +10,7 @@ namespace Devious_Retention
     /// <summary>
     /// A technology can apply certain effects to a player.
     /// </summary>
-    public class Technology
+    public class Technology : ICloneable
     {
         public bool researched = false;
 
@@ -215,6 +215,14 @@ namespace Devious_Retention
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns a new technology that is identical to this one.
+        /// </summary>
+        public Technology Clone()
+        {
+            return new Technology(name, prerequisites, effects, resourceCosts, iconName);
         }
     }
 }

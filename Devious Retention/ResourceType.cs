@@ -11,7 +11,7 @@ namespace Devious_Retention
     /// <summary>
     /// A ResourceType defines attributes for a specific type of resource.
     /// </summary>
-    public class ResourceType
+    public class ResourceType : ICloneable
     {
         public String name { get; private set; }
         // Which resource this ResourceType provides
@@ -66,6 +66,14 @@ namespace Devious_Retention
             builder.Append(gatherSpeed + " ");
             builder.Append(size);
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// Returns a new ResourceType completely identical to this one.
+        /// </summary>
+        public ResourceType Clone()
+        {
+            return new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size);
         }
     }
 }
