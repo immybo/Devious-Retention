@@ -13,7 +13,7 @@ namespace Devious_Retention
     /// </summary>
     public class Unit : Entity
     {
-        private static int nextID;
+        public static int nextID { get; private set; }
         // Unique
         public int id { get; private set; }
 
@@ -46,19 +46,18 @@ namespace Devious_Retention
         /// A unit will get all of its attributes from
         /// a UnitType. Its position must also be given.
         /// </summary>
-        public Unit(UnitType type, double x, double y, int player)
+        public Unit(UnitType type, int id, double x, double y, int player)
         {
             this.type = type;
+            this.id = id;
             this.x = x;
             this.y = y;
             this.player = player;
+
             direction = 0;
             xToMove = -1;
             yToMove = -1;
             hitpoints = type.hitpoints;
-
-            this.id = nextID;
-            nextID++;
         }
         
         /// <summary>
@@ -200,6 +199,13 @@ namespace Devious_Retention
         public static void ResetNextID()
         {
             nextID = 0;
+        }
+        /// <summary>
+        /// Increments the next ID by 1.
+        /// </summary>
+        public static void IncrementNextID()
+        {
+            nextID++;
         }
     }
 }

@@ -88,7 +88,7 @@ namespace Devious_Retention
                 image = Image.FromFile(GameInfo.UNIT_IMAGE_BASE + imageName);
                 icon = Image.FromFile(GameInfo.UNIT_ICON_BASE + iconName);
             }
-            catch(IOException e)
+            catch(IOException)
             {
                 image = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
                 icon = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
@@ -130,7 +130,7 @@ namespace Devious_Retention
         /// Returns a new UnitType completely identical to this one.
         /// </summary>
         /// <returns></returns>
-        public UnitType Clone()
+        public object Clone()
         {
             return new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTimeMillis,
                 speed, prerequisite, aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts);

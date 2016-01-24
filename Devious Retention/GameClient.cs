@@ -18,10 +18,11 @@ namespace Devious_Retention
         private CTSConnection connection;
         // Each player's GameInfo is changed over time due to technologies, factions, etc
         public List<GameInfo> definitions { get; private set; }
+        public GameInfo info { get; private set; } // This client's GameInfo (= definitions[playerNumber])
         // Entities are gotten from the server every tick
-        public HashSet<Resource> resources { get; private set; }
-        public HashSet<Unit> units { get; private set; }
-        public HashSet<Building> buildings { get; private set; }
+        public Dictionary<int, Resource> resources { get; private set; }
+        public Dictionary<int, Unit> units { get; private set; }
+        public Dictionary<int, Building> buildings { get; private set; }
 
         public List<Entity> selected { get; private set; }
 
@@ -59,9 +60,9 @@ namespace Devious_Retention
             this.playerNumber = playerNumber;
             playerColor = GameInfo.PLAYER_COLORS[playerNumber];
 
-            resources = new HashSet<Resource>();
-            buildings = new HashSet<Building>();
-            units = new HashSet<Unit>();
+            resources = new Dictionary<int, Resource>();
+            buildings = new Dictionary<int, Building>();
+            units = new Dictionary<int, Unit>();
 
             selected = new List<Entity>();
 
@@ -73,11 +74,10 @@ namespace Devious_Retention
             Building.ResetNextID();
             Resource.ResetNextID();
 
-            GameInfo.ReadDefinitions();
-
             definitions = new List<GameInfo>();
             for (int i = 0; i < numberOfPlayers; i++)
-                definitions[i] = new GameInfo();
+                definitions.Add(new GameInfo());
+            info = definitions[playerNumber];
         }
 
         /// <summary>
@@ -162,36 +162,58 @@ namespace Devious_Retention
         /// <param name="xPos">The initial x position of the new entity.</param>
         /// <param name="yPos">The initial y position of the new entity.</param>
         /// <param name="player">The player that the entity belongs to. Irrelevant if a resource.</param>
-        public void AddEntity(int entityType, string type, double xPos, double yPos, int player)
+        public void AddEntity(int entityType, int id, string type, double xPos, double yPos, int player)
         {
             if(entityType == 0)
             {
                 if (!definitions[playerNumber].unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
                 UnitType unitType = definitions[playerNumber].unitTypes[type];
-                units.Add(new Unit(unitType, xPos, yPos, player));
+                Unit unit = new Unit(unitType, id, xPos, yPos, player);
+                units.Add(unit.id, unit);
+                window.UpdateLOSAdd(unit);
             }
             else if(entityType == 1)
             {
                 if (!definitions[playerNumber].buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
                 BuildingType buildingType = definitions[playerNumber].buildingTypes[type];
-                buildings.Add(new Building(buildingType, xPos, yPos, player));
+                Building building = new Building(buildingType, id, xPos, yPos, player);
+                buildings.Add(building.id, building);
+                window.UpdateLOSAdd(building);
             }
             else if(entityType == 2)
             {
                 if (!definitions[playerNumber].resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
                 ResourceType resourceType = definitions[playerNumber].resourceTypes[type];
-                resources.Add(new Resource(resourceType, xPos, yPos));
+                Resource resource = new Resource(resourceType, id, xPos, yPos);
+                resources.Add(resource.id, resource);
             }
         }
 
         /// <summary>
         /// Removes an entity.
+        /// Does nothing if no entity of the given type and ID can be found.
         /// </summary>
-        /// <param name="type">0=unit, 1=building, 2=resource</param>
+        /// <param name="entityType">0=unit, 1=building, 2=resource</param>
         /// <param name="deletedEntityID">The ID of the entity to be deleted.</param>
-        public void DeleteEntity(int type, int deletedEntityID)
+        public void DeleteEntity(int entityType, int deletedEntityID)
         {
-
+            if (entityType == 0)
+            {
+                if (!units.ContainsKey(deletedEntityID)) return;
+                window.UpdateLOSDelete(units[deletedEntityID]);
+                units.Remove(deletedEntityID);
+            }
+            else if (entityType == 1)
+            {
+                if (!buildings.ContainsKey(deletedEntityID)) return;
+                window.UpdateLOSDelete(buildings[deletedEntityID]);
+                buildings.Remove(deletedEntityID);
+            }
+            else if (entityType == 2)
+            {
+                if (!resources.ContainsKey(deletedEntityID)) return;
+                resources.Remove(deletedEntityID);
+            }
         }
 
         /// <summary>

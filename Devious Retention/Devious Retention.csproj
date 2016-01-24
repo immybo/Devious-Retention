@@ -52,12 +52,6 @@
     <Compile Include="Building.cs" />
     <Compile Include="BuildingType.cs" />
     <Compile Include="CTSConnection.cs" />
-    <Compile Include="DebugWindow.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DebugWindow.Designer.cs">
-      <DependentUpon>DebugWindow.cs</DependentUpon>
-    </Compile>
     <Compile Include="Entity.cs" />
     <Compile Include="Faction.cs" />
     <Compile Include="GameClient.cs" />
@@ -78,9 +72,6 @@
     <Compile Include="Technology.cs" />
     <Compile Include="Unit.cs" />
     <Compile Include="UnitType.cs" />
-    <EmbeddedResource Include="DebugWindow.resx">
-      <DependentUpon>DebugWindow.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GameWindow.resx">
       <DependentUpon>GameWindow.cs</DependentUpon>
     </EmbeddedResource>

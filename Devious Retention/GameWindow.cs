@@ -306,11 +306,11 @@ namespace Devious_Retention
             // Scroll through units and buildings that belong to the player, and figure out which are within range
             // Stop if we find one that is
             HashSet<Entity> entities = new HashSet<Entity>();
-            foreach (Unit u in client.units)
+            foreach (Unit u in client.units.Values)
                 if (u.player == client.playerNumber)
                     entities.Add(u);
                     
-            foreach (Building b in client.buildings)
+            foreach (Building b in client.buildings.Values)
                 if (b.player == client.playerNumber)
                     entities.Add(b);
 
@@ -333,10 +333,10 @@ namespace Devious_Retention
             LOS = new bool[client.map.width, client.map.height];
 
             List<Entity> entities = new List<Entity>();
-            foreach (Unit u in client.units)
+            foreach (Unit u in client.units.Values)
                 if (u.player == client.playerNumber)
                     entities.Add(u);
-            foreach (Building b in client.buildings)
+            foreach (Building b in client.buildings.Values)
                 if (b.player == client.playerNumber)
                     entities.Add(b);
 
@@ -432,11 +432,11 @@ namespace Devious_Retention
 
             // Collect all entities into a big list : resources first, then buildings, then units. This means that resources are on the bottom and units on the top
             List<Entity> entities = new List<Entity>();
-            foreach (Resource r in client.resources)
+            foreach (Resource r in client.resources.Values)
                 entities.Add(r);
-            foreach (Building b in client.buildings)
+            foreach (Building b in client.buildings.Values)
                 entities.Add(b);
-            foreach (Unit u in client.units)
+            foreach (Unit u in client.units.Values)
                 entities.Add(u);
 
             // Render them all
@@ -517,9 +517,9 @@ namespace Devious_Retention
 
             // Draw the entities next
             List<Entity> entities = new List<Entity>();
-            foreach (Unit u in client.units)
+            foreach (Unit u in client.units.Values)
                 entities.Add(u);
-            foreach (Building b in client.buildings)
+            foreach (Building b in client.buildings.Values)
                 entities.Add(b);
 
             // Draw on top of the tile image
@@ -529,7 +529,7 @@ namespace Devious_Retention
                 if (!LOS[(int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2)]) continue;
                 // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
                 tileImage.SetPixel((int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2), GameInfo.PLAYER_COLORS[e.GetPlayerNumber()]);
-        }
+            }
 
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp
             g.PixelOffsetMode = PixelOffsetMode.Half; // So that we don't cut off half of the top and left images

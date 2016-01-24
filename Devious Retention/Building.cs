@@ -17,7 +17,7 @@ namespace Devious_Retention
     /// </summary>
     public class Building : Entity
     {
-        private static int nextID;
+        public static int nextID { get; private set; }
         // Unique
         public int id { get; private set; }
 
@@ -52,18 +52,17 @@ namespace Devious_Retention
         /// A building will get most of its initial attributes from a BuildingType.
         /// Its position must also be given.
         /// </summary>
-        public Building(BuildingType type, double x, double y, int player)
+        public Building(BuildingType type, int id, double x, double y, int player)
         {
             this.type = type;
+            this.id = id;
             this.x = x;
             this.y = y;
             this.player = player;
+
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
             built = false;
-
-            this.id = nextID;
-            nextID++;
         }
 
         /// <summary>
@@ -171,7 +170,12 @@ namespace Devious_Retention
         {
             nextID = 0;
         }
-
-        
+        /// <summary>
+        /// Increments the next ID by 1.
+        /// </summary>
+        public static void IncrementNextID()
+        {
+            nextID++;
+        }
     }
 }

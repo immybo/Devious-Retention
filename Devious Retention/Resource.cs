@@ -15,7 +15,7 @@ namespace Devious_Retention
     /// </summary>
     public class Resource : Entity
     {
-        private static int nextID;
+        public static int nextID { get; private set; }
         // Unique
         public int id { get; private set; }
 
@@ -33,23 +33,29 @@ namespace Devious_Retention
         /// Most of a resource's statistics are gathered from its type,
         /// however its position must also be provided.
         /// </summary>
-        public Resource(ResourceType type, double x, double y)
+        public Resource(ResourceType type, int id, double x, double y)
         {
             this.type = type;
+            this.id = id;
             this.x = x;
             this.y = y;
-
-            this.id = nextID;
-            nextID++;
         }
 
         /// <summary>
         /// Reduces the resource's amount of remaining resource
         /// by the given amount.
         /// </summary>
-        public void GatherFrom(int amount)
+        public void TakeResource(int amount)
         {
 
+        }
+        /// <summary>
+        /// Returns whether or not this resource has
+        /// less than or equal to 0 resource remaining
+        /// </summary>
+        public bool Depleted()
+        {
+            return amount <= 0;
         }
 
         /// <summary>
@@ -105,6 +111,13 @@ namespace Devious_Retention
         public static void ResetNextID()
         {
             nextID = 0;
+        }
+        /// <summary>
+        /// Increments the next ID by 1.
+        /// </summary>
+        public static void IncrementNextID()
+        {
+            nextID++;
         }
     }
 }

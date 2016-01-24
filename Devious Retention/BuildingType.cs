@@ -105,7 +105,7 @@ namespace Devious_Retention
                 icon = Image.FromFile(GameInfo.BUILDING_ICON_BASE + iconName);
             }
             // If the image can't be loaded, load a default one instead (which hopefully can!)
-            catch(IOException e)
+            catch(IOException)
             {
                 image = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
                 icon = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
@@ -151,7 +151,7 @@ namespace Devious_Retention
         /// <summary>
         /// Returns a new BuildingType that is completely identical to this one.
         /// </summary>
-        public BuildingType Clone()
+        public object Clone()
         {
             return new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTimeMillis, prerequisite, providesResource, resourceType,
                 gatherSpeed, canBeBuiltOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits);

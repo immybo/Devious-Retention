@@ -19,68 +19,56 @@ namespace Devious_Retention
         [STAThread]
         static void Main()
         {
-            
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            
+            GameInfo.ReadDefinitions();
+            Unit.ResetNextID();
+            Building.ResetNextID();
+            Resource.ResetNextID();
 
-            GameWindow gameWindow;
-            DebugWindow debugWindow;
-
-            Console.WriteLine(GameInfo.BASE_DIRECTORY);
-
-            debugWindow = new DebugWindow();
-            debugWindow.Show();
-            GameInfo info = new GameInfo(true, debugWindow);
-
-            debugWindow.SetDesktopLocation(2000, 100);
-
-            gameWindow = new GameWindow();
-
-            int[][] tiles = new int[][] {
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                new int[15] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+            // CREATE MAP, WINDOW AND CLIENT
+            int[,] tiles = new int[,] {
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
             };
             List<Tile> tileTypes = new List<Tile>();
-            foreach (Tile t in info.tiles.Values)
+            foreach (Tile t in GameInfo.tiles.Values)
                 tileTypes.Add(t);
-            Map map = new Map(tileTypes, tiles, tiles[0].Length, tiles.Length);
-            GameClient client = new GameClient(1, map, gameWindow, info, null, null);
-            info.WriteDebug("Game window opened.", Color.Blue);
+            Map map = new Map(tileTypes, tiles, 15,15);
 
-            info.WriteDefinitionsToDebug();
-            
-            client.units.Add(new Unit(info.unitTypes["TestUnit"], 0,0, 1));
-            client.buildings.Add(new Building(info.buildingTypes["TestBuilding"], 1.1, 1.1, 1));
-            // other player's unit
-            client.units.Add(new Unit(info.unitTypes["TestUnit"], 13, 13, 2));
-            
-            foreach(Unit u in client.units)
-            {
-                gameWindow.UpdateLOSAdd(u);
-            }
-            foreach(Building b in client.buildings)
-            {
-                gameWindow.UpdateLOSAdd(b);
-            }
+            GameWindow gameWindow = new GameWindow();
+            GameClient client = new GameClient(1, 8, map, gameWindow, null, null);
 
+            //client.AddEntity(0, "TestUnit", 0, 0, 1);
+            //client.AddEntity(1, "TestBuilding", 1.1, 1.1, 1);
+            //client.AddEntity(0, "TestUnit", 13, 13, 2);
+
+            // CREATE CONNECTIONS
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"), null);
             CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"), client);
             stc.Connect();
             cts.Connect();
-            stc.InformEntityAdd(new Resource(info.resourceTypes["TestResource"], 3,0));
+
+            //stc.InformEntityAdd(new Resource(client.info.resourceTypes["TestResource"], 3,0));
+
+            Unit deletionTestEntity = new Unit(client.info.unitTypes["TestUnit"], Unit.nextID, 5, 5, 1);
+            Unit.IncrementNextID();
+            stc.InformEntityAdd(deletionTestEntity);
+            stc.InformEntityDeletion(deletionTestEntity);
 
             Application.Run(gameWindow);
             

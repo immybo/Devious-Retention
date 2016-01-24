@@ -108,7 +108,7 @@ namespace Devious_Retention
         /// Informs the client that a new entity has been added.
         /// 
         /// Message format:
-        /// [message type=0] [0=unit,1=building,2=resource] [type name] [xpos] [ypos] [player (if not a resource)]
+        /// [message type=0] [0=unit,1=building,2=resource] [type name] [id] [xpos] [ypos] [player (if not a resource)]
         /// </summary>
         public void InformEntityAdd(Entity entity)
         {
@@ -119,7 +119,7 @@ namespace Devious_Retention
             if (entity is Unit) { entityType = 0; typeName = ((Unit)entity).type.name; }
             else if (entity is Building) { entityType = 1; typeName = ((Building)entity).type.name; }
             else if (entity is Resource) { entityType = 2; typeName = ((Resource)entity).type.name; }
-            outgoingWriter.WriteLine("0 " + entityType + " " + typeName + " " + entity.GetX() + " " + entity.GetY() + " " + entity.GetPlayerNumber());
+            outgoingWriter.WriteLine("0 " + entityType + " " + typeName + " " + entity.GetID() + " " + entity.GetX() + " " + entity.GetY() + " " + entity.GetPlayerNumber());
         }
 
         /// <summary>

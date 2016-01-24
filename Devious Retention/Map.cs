@@ -100,5 +100,9 @@ namespace Devious_Retention
         {
             return (obj is Coordinate && ((Coordinate)obj).x == x && ((Coordinate)obj).y == y);
         }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

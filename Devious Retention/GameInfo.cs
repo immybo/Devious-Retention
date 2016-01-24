@@ -83,6 +83,7 @@ namespace Devious_Retention
         private static SortedDictionary<string, BuildingType> baseBuildingTypes;
         private static SortedDictionary<string, ResourceType> baseResourceTypes;
         private static SortedDictionary<string, Technology> baseTechnologies;
+
         public static SortedDictionary<string, Faction> factions { get; private set; }
         public static SortedDictionary<string, Tile> tiles { get; private set; }
 
@@ -101,13 +102,13 @@ namespace Devious_Retention
             technologies = new SortedDictionary<string, Technology>();
 
             foreach (KeyValuePair<string, UnitType> u in baseUnitTypes)
-                unitTypes.Add(u.Key, u.Value.Clone());
+                unitTypes.Add(u.Key, (UnitType)u.Value.Clone());
             foreach (KeyValuePair<string, BuildingType> b in baseBuildingTypes)
-                buildingTypes.Add(b.Key, b.Value.Clone());
+                buildingTypes.Add(b.Key, (BuildingType)b.Value.Clone());
             foreach (KeyValuePair<string, ResourceType> r in baseResourceTypes)
-                resourceTypes.Add(r.Key, r.Value.Clone());
+                resourceTypes.Add(r.Key, (ResourceType) r.Value.Clone());
             foreach (KeyValuePair<string, Technology> t in baseTechnologies)
-                technologies.Add(t.Key, t.Value.Clone());
+                technologies.Add(t.Key, (Technology)t.Value.Clone());
 
         }
 

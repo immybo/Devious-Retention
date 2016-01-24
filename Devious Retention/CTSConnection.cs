@@ -142,10 +142,11 @@ namespace Devious_Retention
         {
             int entityType = int.Parse(splitLine[1]);
             string typeName = splitLine[2];
-            double xPos = double.Parse(splitLine[3]);
-            double yPos = double.Parse(splitLine[4]);
+            int id = int.Parse(splitLine[3]);
+            double xPos = double.Parse(splitLine[4]);
+            double yPos = double.Parse(splitLine[5]);
             int playerNumber = int.Parse(splitLine[1]) == 2 ? 0 : int.Parse(splitLine[5]); // use a player number of 0 if it's a resource
-            client.AddEntity(entityType, typeName, xPos, yPos, playerNumber);
+            client.AddEntity(entityType, id, typeName, xPos, yPos, playerNumber);
         }
 
         /// <summary>

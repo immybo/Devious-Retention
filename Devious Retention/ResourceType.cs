@@ -46,7 +46,7 @@ namespace Devious_Retention
                 image = Image.FromFile(GameInfo.RESOURCE_IMAGE_BASE + imageFilename);
             }
             // If the image can't be loaded, load a default one instead (which hopefully can!)
-            catch (IOException e)
+            catch (IOException)
             {
                 image = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
             }
@@ -71,7 +71,7 @@ namespace Devious_Retention
         /// <summary>
         /// Returns a new ResourceType completely identical to this one.
         /// </summary>
-        public ResourceType Clone()
+        public object Clone()
         {
             return new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size);
         }

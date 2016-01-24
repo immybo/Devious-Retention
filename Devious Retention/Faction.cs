@@ -36,7 +36,7 @@ namespace Devious_Retention
         /// "[name] [effects]"
         /// </summary>
         /// <returns></returns>
-        public string ToString()
+        public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
             builder.Append(name + " ");
@@ -82,10 +82,6 @@ namespace Devious_Retention
                             if (type.speed < 0) type.speed = 0;
                             break;
                         case 4:
-                            type.buildSpeed += modifier;
-                            if (type.buildSpeed < 0) type.buildSpeed = 0;
-                            break;
-                        case 5:
                             try
                             {
                                 for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
@@ -96,7 +92,7 @@ namespace Devious_Retention
                                 Console.WriteLine("Effect could not be applied from technology. Too few resource cost modifiers were specified. " + e);
                             }
                             break;
-                        case 6:
+                        case 5:
                             try
                             {
                                 for (int i = 0; i < GameInfo.DAMAGE_TYPES; i++)
