@@ -27,10 +27,10 @@ namespace Devious_Retention
         public BuildingType type { get; private set; }
 
         // The current amount of hitpoints must, however, be stored in each individual building
-        public int hitpoints { get; private set; }
+        public int hitpoints;
 
         // Unbuilt buildings will have a different image, and will not be able to perform their functions until built fully
-        public bool built { get; private set; }
+        public bool built;
 
         // A queue of UnitTypes to be created
         public Queue<UnitType> trainingQueue { get; private set; }

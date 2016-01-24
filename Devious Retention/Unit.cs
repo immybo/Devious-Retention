@@ -24,7 +24,7 @@ namespace Devious_Retention
         public UnitType type { get; private set; }
         // In addition to the maximum hitpoints provided by the type,
         // a unit must keep track of its current hitpoints.
-        public int hitpoints { get; private set; }
+        public int hitpoints;
 
         // If this unit hasn't been commanded to move or attack, these will be
         // null,-1,-1 (respectively). If it has, however, it will attempt to move
@@ -36,8 +36,8 @@ namespace Devious_Retention
         private int direction;
 
         // The co-ordinates of the top-left corner of this unit
-        public double x { get; private set; }
-        public double y { get; private set; }
+        public double x;
+        public double y;
 
         // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will attack
         private int attackTick = 0;
@@ -207,5 +207,10 @@ namespace Devious_Retention
         {
             nextID++;
         }
+
+        public void BeginBattleAnimation() { }
+        public void StopBattleAnimation() { }
+        public void BeginMovementAnimation() { }
+        public void StopMovementAnimation() { }
     }
 }

@@ -24,7 +24,19 @@ namespace Devious_Retention
         public Dictionary<int, Unit> units { get; private set; }
         public Dictionary<int, Building> buildings { get; private set; }
 
-        public List<Entity> selected { get; private set; }
+        public List<Entity> selected { get; set; } /// <summary>
+        /// TEMPORARILY PUBLIC
+        /// 
+        /// 
+        /// 
+        /// 
+        /// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// </summary>
 
         public Map map { get; private set; }
 
@@ -170,6 +182,7 @@ namespace Devious_Retention
                 UnitType unitType = definitions[playerNumber].unitTypes[type];
                 Unit unit = new Unit(unitType, id, xPos, yPos, player);
                 units.Add(unit.id, unit);
+                unitType.units.Add(unit);
                 window.UpdateLOSAdd(unit);
             }
             else if(entityType == 1)
@@ -178,6 +191,7 @@ namespace Devious_Retention
                 BuildingType buildingType = definitions[playerNumber].buildingTypes[type];
                 Building building = new Building(buildingType, id, xPos, yPos, player);
                 buildings.Add(building.id, building);
+                buildingType.buildings.Add(building);
                 window.UpdateLOSAdd(building);
             }
             else if(entityType == 2)
@@ -201,12 +215,14 @@ namespace Devious_Retention
             {
                 if (!units.ContainsKey(deletedEntityID)) return;
                 window.UpdateLOSDelete(units[deletedEntityID]);
+                units[deletedEntityID].type.units.Remove(units[deletedEntityID]);
                 units.Remove(deletedEntityID);
             }
             else if (entityType == 1)
             {
                 if (!buildings.ContainsKey(deletedEntityID)) return;
                 window.UpdateLOSDelete(buildings[deletedEntityID]);
+                buildings[deletedEntityID].type.buildings.Remove(buildings[deletedEntityID]);
                 buildings.Remove(deletedEntityID);
             }
             else if (entityType == 2)
@@ -226,7 +242,40 @@ namespace Devious_Retention
         /// <param name="change">The modifier to the property.</param>
         public void ChangeEntityProperty(int entityType, int entityID, int propertyID, double change)
         {
+            if (entityType == 0)
+            {
+                if (!units.ContainsKey(entityID)) return;
+                Unit unit = units[entityID];
 
+                if (propertyID == 0) unit.hitpoints += (int)change;
+                else if (propertyID == 1) unit.x += change;
+                else if (propertyID == 2) unit.y += change;
+                else if(propertyID == 3)
+                {
+                    if ((int)change == 1) unit.BeginBattleAnimation();
+                    else unit.StopBattleAnimation();
+                }
+                else if(propertyID == 4)
+                {
+                    if ((int)change == 1) unit.BeginMovementAnimation();
+                    else unit.StopMovementAnimation();
+                }
+            }
+            else if (entityType == 1)
+            {
+                if (!buildings.ContainsKey(entityID)) return;
+                Building building = buildings[entityID];
+
+                if (propertyID == 0) building.hitpoints += (int)change;
+                else if (propertyID == 1) building.built = true;
+            }
+            else if(entityType == 2)
+            {
+                if (!resources.ContainsKey(entityID)) return;
+                Resource resource = resources[entityID];
+
+                if (propertyID == 0) resource.amount -= (int)change;
+            }
         }
 
         /// <summary>
@@ -234,7 +283,10 @@ namespace Devious_Retention
         /// </summary>
         public void SetTechnologyResearched(int playerNumber, string technologyName)
         {
-
+            if (!definitions[playerNumber].technologies.ContainsKey(technologyName)) return;
+            Technology technology = definitions[playerNumber].technologies[technologyName];
+            technology.researched = true;
+            technology.ApplyEffects(definitions[playerNumber]);
         }
 
         /// <summary>

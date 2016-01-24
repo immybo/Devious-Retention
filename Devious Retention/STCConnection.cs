@@ -145,6 +145,19 @@ namespace Devious_Retention
         /// 
         /// Message format:
         /// [message type=2] [0=unit,1=building,2=resource] [id] [attribute] [attribute change]
+        /// 
+        /// Attribute IDs:
+        /// Unit:
+        /// 0 = hitpoints
+        /// 1 = x position
+        /// 2 = y position
+        /// 3 = play battle animation (1 = start/restart, 0 = stop)
+        /// 4 = play movement animation (1 = start/restart, 0 = stop)
+        /// Building:
+        /// 0 = hitpoints
+        /// 1 = built (only 1 is accepted)
+        /// Resource:
+        /// 0 = amount remaining
         /// </summary>
         public void InformEntityChange(Entity entity, int attributeID, double attributeChange)
         {

@@ -110,6 +110,8 @@ namespace Devious_Retention
                 image = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
                 icon = Image.FromFile(GameInfo.DEFAULT_IMAGE_NAME);
             }
+
+            buildings = new List<Building>();
         }
 
         /// <summary>

@@ -23,7 +23,7 @@ namespace Devious_Retention
         public ResourceType type { get; private set; }
 
         // The current amount of the given resource in this resource
-        public int amount { get; private set; }
+        public int amount;
 
         // The position of the top-left of this resource
         public double x { get; private set; }
@@ -41,14 +41,6 @@ namespace Devious_Retention
             this.y = y;
         }
 
-        /// <summary>
-        /// Reduces the resource's amount of remaining resource
-        /// by the given amount.
-        /// </summary>
-        public void TakeResource(int amount)
-        {
-
-        }
         /// <summary>
         /// Returns whether or not this resource has
         /// less than or equal to 0 resource remaining

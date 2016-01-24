@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.ServiceModel;
 using System.ServiceModel.Description;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -53,25 +54,22 @@ namespace Devious_Retention
             GameWindow gameWindow = new GameWindow();
             GameClient client = new GameClient(1, 8, map, gameWindow, null, null);
 
-            //client.AddEntity(0, "TestUnit", 0, 0, 1);
-            //client.AddEntity(1, "TestBuilding", 1.1, 1.1, 1);
-            //client.AddEntity(0, "TestUnit", 13, 13, 2);
-
             // CREATE CONNECTIONS
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"), null);
             CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"), client);
             stc.Connect();
             cts.Connect();
 
-            //stc.InformEntityAdd(new Resource(client.info.resourceTypes["TestResource"], 3,0));
-
-            Unit deletionTestEntity = new Unit(client.info.unitTypes["TestUnit"], Unit.nextID, 5, 5, 1);
+            // TESTING STUFF
+            Unit testUnit = new Unit(client.info.unitTypes["TestUnit"], Unit.nextID, 5, 5, 1);
             Unit.IncrementNextID();
-            stc.InformEntityAdd(deletionTestEntity);
-            stc.InformEntityDeletion(deletionTestEntity);
+            stc.InformEntityAdd(testUnit);
+            Thread.Sleep(10);
+            client.selected.Add(client.units[0]);
+
+            stc.InformTechnologyResearch(1, client.info.technologies["TestTechnology"]);
 
             Application.Run(gameWindow);
-            
         }
     }
 }
