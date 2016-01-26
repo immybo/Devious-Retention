@@ -48,6 +48,9 @@ namespace Devious_Retention
         // Where the top-left of the screen is, in map co-ordinates.
         public double screenY { get; private set; } = 0;
         public double screenX { get; private set; } = 0;
+        // How many tiles fit on the screen
+        private double maxXTiles = 0;
+        private double maxYTiles = 0;
 
         // Where the mouse started dragging, for selection purposes
         private double startX = -1;
@@ -96,6 +99,7 @@ namespace Devious_Retention
 
             Paint += Render;
             KeyDown += new KeyEventHandler(KeyEvent);
+            MouseClick += new MouseEventHandler(MouseClickEvent);
         }
 
         /// <summary>
@@ -389,15 +393,19 @@ namespace Devious_Retention
             int topTileXOffset = (int)((screenX - (int)screenX) * tileWidth);
 
             // Figure out how many tiles we can draw on the screen
-            int maxXTiles = HORIZONTAL_TILES;
-            int maxYTiles = (int)(Math.Ceiling((double)bounds.Height / tileHeight)); // better too many than too few since we draw over the edges anyway
+            maxXTiles = HORIZONTAL_TILES;
+            maxYTiles = (double)bounds.Height / tileHeight + 0.99; // better too many than too few since we draw over the edges anyway
 
-            for (int i = 0; i + screenX < client.map.width && i < maxXTiles; i++)
+            for (int i = 0; i < maxXTiles; i++)
             {
+                if (i + (int)screenX >= client.map.width) continue;
                 if (i + (int)screenX < 0) continue;
-                for (int j = 0; j + screenY < client.map.height && j < maxYTiles; j++)
+
+                for (int j = 0; j < maxYTiles; j++)
                 {
+                    if (j + (int)screenY >= client.map.height) continue;
                     if (j + (int)screenY < 0) continue;
+
                     // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
                     // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
                     g.DrawImage(client.map.GetTile(i + (int)screenX, j + (int)screenY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
@@ -853,12 +861,33 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Processes any mouse events on the game window. Usually performs the
-        /// appropriate action on the client.
+        /// Processes any mouse clicking events on the game window.
+        /// Mostly figures out the area where the click was and calls the appropriate
+        /// method in the client.
         /// </summary>
-        public void MouseEvent(MouseEventArgs e)
+        public void MouseClickEvent(object sender, MouseEventArgs e)
         {
+            // A mouse click on the minimap
+            if(e.X > Width*(GAME_AREA_WIDTH- MINIMAP_WIDTH) && e.X < Width* GAME_AREA_WIDTH
+            && e.Y > Height*GAME_AREA_HEIGHT - Width*MINIMAP_WIDTH && e.Y < Height* GAME_AREA_HEIGHT)
+            {
+                // Scroll to the appropriate point on the minimap
+                double minimapX = e.X - Width * (GAME_AREA_WIDTH - MINIMAP_WIDTH);
+                double minimapY = e.Y - (Height*GAME_AREA_HEIGHT - Width*MINIMAP_WIDTH);
+                double minimapSize = Width * MINIMAP_WIDTH;
 
+                // How far across (0-1) the point is
+                double proportionX = minimapX / minimapSize;
+                double proportionY = minimapY / minimapSize;
+
+                // The tile of the map we should therefore center on is..
+                screenX = client.map.width * proportionX - maxXTiles/2;
+                screenY = client.map.height * proportionY - maxYTiles/2;
+            }
+
+            // A mouse click on the game area (not the minimap as this has already been checked)
+
+            Refresh(); // TEMPORARY *************************************************************************************************//////////////
         }
     }
 }

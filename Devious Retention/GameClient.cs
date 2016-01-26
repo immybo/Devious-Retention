@@ -211,25 +211,36 @@ namespace Devious_Retention
         /// <param name="deletedEntityID">The ID of the entity to be deleted.</param>
         public void DeleteEntity(int entityType, int deletedEntityID)
         {
+            Entity entity = null;
             if (entityType == 0)
             {
-                if (!units.ContainsKey(deletedEntityID)) return;
-                window.UpdateLOSDelete(units[deletedEntityID]);
-                units[deletedEntityID].type.units.Remove(units[deletedEntityID]);
+                if (!units.ContainsKey(deletedEntityID)) return; // If the unit doesn't exist, do nothing
+
+                entity = units[deletedEntityID];
+                window.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
+
+                units[deletedEntityID].type.units.Remove(units[deletedEntityID]); // And finally remove it from both collections it appears in (in the type and in the client)
                 units.Remove(deletedEntityID);
             }
             else if (entityType == 1)
             {
                 if (!buildings.ContainsKey(deletedEntityID)) return;
-                window.UpdateLOSDelete(buildings[deletedEntityID]);
+
+                entity = buildings[deletedEntityID];
+                window.UpdateLOSDelete(entity);
+
                 buildings[deletedEntityID].type.buildings.Remove(buildings[deletedEntityID]);
                 buildings.Remove(deletedEntityID);
             }
             else if (entityType == 2)
             {
                 if (!resources.ContainsKey(deletedEntityID)) return;
+                entity = resources[deletedEntityID];
                 resources.Remove(deletedEntityID);
             }
+
+            // Remove it from the selected entities if it was in there
+            if (selected.Contains(entity)) selected.Remove(entity);
         }
 
         /// <summary>
