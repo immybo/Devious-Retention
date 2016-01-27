@@ -51,10 +51,20 @@ namespace Devious_Retention
         // How many tiles fit on the screen
         private double maxXTiles = 0;
         private double maxYTiles = 0;
+        // How large tiles are in pixels
+        private int tileWidth = 0;
+        private int tileHeight = 0;
 
         // Where the mouse started dragging, for selection purposes
         private double startX = -1;
         private double startY = -1;
+
+        // Where the mouse currently is
+        private double mouseX = -1;
+        private double mouseY = -1;
+
+        // Whether or not the mouse left button is currently down
+        private bool mouseDown = false;
 
         // Whether the building panel or the technology panel is open
         private bool buildingPanelOpen = true;
@@ -100,6 +110,8 @@ namespace Devious_Retention
             Paint += Render;
             KeyDown += new KeyEventHandler(KeyEvent);
             MouseClick += new MouseEventHandler(MouseClickEvent);
+            MouseDown += new MouseEventHandler(MouseDownEvent);
+            MouseMove += new MouseEventHandler(MouseMoveEvent);
         }
 
         /// <summary>
@@ -107,21 +119,101 @@ namespace Devious_Retention
         /// on the the screen for the client. This means that, if there are
         /// overlapping entities, the one in front will be returned.
         /// </summary>
-        /// <returns>The entity at the position, or void if there was none.</returns>
+        /// <returns>The entity at the position, or null if there was none.</returns>
         public Entity GetEntityAt(double x, double y)
         {
+            // Units > buildings > resources
+            foreach (Entity e in client.units.Values)
+                if (e.GetX() + e.GetSize() > x && e.GetX() < x && e.GetY() + e.GetSize() > y && e.GetY() < y)
+                    return e;
+            foreach (Entity e in client.buildings.Values)
+                if (e.GetX() + e.GetSize() > x && e.GetX() < x && e.GetY() + e.GetSize() > y && e.GetY() < y)
+                    return e;
+            foreach (Entity e in client.resources.Values)
+                if (e.GetX() + e.GetSize() > x && e.GetX() < x && e.GetY() + e.GetSize() > y && e.GetY() < y)
+                    return e;
+
             return null;
         }
 
         /// <summary>
         /// Returns the entities, if there are any, which are contained within
-        /// the rectangle of the display with corners at (x1,y1),(x1,y2),(x2,y1),
-        /// (x2,y2), from the client's perspective.
+        /// the given rectangle.
         /// </summary>
-        /// <returns>The set of entities that were within the rectangle, or void if there were none.</returns>
-        public HashSet<Entity> GetEntitiesIn(double x1, double y1, double x2, double y2)
+        public HashSet<Entity> GetEntitiesIn(Rectangle bounds)
         {
-            return null;
+            HashSet<Entity> entities = new HashSet<Entity>();
+
+            foreach (Entity e in client.units.Values)
+                entities.Add(e);
+            foreach (Entity e in client.buildings.Values)
+                entities.Add(e);
+            foreach (Entity e in client.resources.Values)
+                entities.Add(e);
+            
+            HashSet<Entity> enclosedEntities = new HashSet<Entity>();
+            foreach (Entity e in entities)
+            {
+                if(e.GetX()+e.GetSize() > bounds.X
+                 &&e.GetY()+e.GetSize() > bounds.Y
+                 &&e.GetX() < bounds.X + bounds.Width
+                 &&e.GetY() < bounds.Y + bounds.Height)
+                {
+                    enclosedEntities.Add(e);
+                }
+            }
+            return enclosedEntities;
+        }
+
+        /// <summary>
+        /// Selects the appropriate entities within the given area.
+        /// 
+        /// Priority (lower priorities are only done if there are no entities
+        /// fitting higher priorities):
+        /// 1. Select all of the player's units within the area
+        /// 2. Select all of the player's buildings within the area
+        /// 3. Select all other players' units within the area
+        /// 4. Select all other players' buildings within the area
+        /// 5. Select all resources within the area
+        /// </summary>
+        private void SelectEntitiesInArea(Rectangle rect)
+        {
+            HashSet<Entity> entities = GetEntitiesIn(rect);
+            if (entities.Count == 0) return;
+
+            List<Unit> units = new List<Unit>();
+            List<Building> buildings = new List<Building>();
+            List<Resource> resources = new List<Resource>();
+            foreach(Entity e in entities)
+            {
+                if (e is Unit) units.Add((Unit)e);
+                else if(e is Building) buildings.Add((Building)e);
+                else if (e is Resource) resources.Add((Resource)e);
+            }
+
+            List<Entity> entitiesToAdd = new List<Entity>();
+            // 1. Select all of the player's units within the area
+            if(units.Count != 0)
+                foreach (Unit u in units)
+                    if (u.player == client.playerNumber) entitiesToAdd.Add(u);
+            // 2. Select all of the player's buildings within the area
+            if (entitiesToAdd.Count == 0 && buildings.Count != 0)
+                foreach (Building b in buildings)
+                    if (b.player == client.playerNumber) entitiesToAdd.Add(b);
+            // 3. Select all other players' units within the area
+            if (entitiesToAdd.Count == 0 && units.Count != 0)
+                foreach (Unit u in units)
+                    entitiesToAdd.Add(u);
+            // 4. Select all other players' buildings within the area
+            if (entitiesToAdd.Count == 0 && buildings.Count != 0)
+                foreach (Building b in buildings)
+                    entitiesToAdd.Add(b);
+            // 5. Select all resources within the area
+            if (entitiesToAdd.Count == 0 && resources.Count != 0)
+                foreach (Resource r in resources)
+                    entitiesToAdd.Add(r);
+            
+            client.selected = entitiesToAdd;
         }
 
         /// <summary>
@@ -384,8 +476,8 @@ namespace Devious_Retention
             g.SetClip(clipRect2, CombineMode.Union);
 
             // Figure out how large tiles are; they must always be square
-            int tileWidth = (int)(bounds.Width / HORIZONTAL_TILES);
-            int tileHeight = tileWidth;
+            tileWidth = (int)(bounds.Width / HORIZONTAL_TILES);
+            tileHeight = tileWidth;
 
             // Figure out how much of the top and left tiles must be cut off the screen, due
             // to the camera position being potentially not an integer value
@@ -465,6 +557,16 @@ namespace Devious_Retention
 
                 // And finally, draw them
                 g.DrawImage(e.GetImage(), entityBounds);
+            }
+
+            // If the mouse has been dragged across an area, draw a rectangle around that area
+            if (mouseDown)
+            {
+                int width = (int)Math.Abs(mouseX - startX);
+                int height = (int)Math.Abs(mouseY - startY);
+                int x1 = (int)(mouseX > startX ? startX : mouseX);
+                int y1 = (int)(mouseY > startY ? startY : mouseY);
+                g.DrawRectangle(Pens.Black, x1, y1, width, height);
             }
 
             g.SetClip(new Rectangle(0, 0, Width, Height));
@@ -551,6 +653,23 @@ namespace Devious_Retention
 
             g.InterpolationMode = InterpolationMode.Default;
             g.PixelOffsetMode = PixelOffsetMode.Default;
+
+            // Draw a box around where the camera is
+            double x1 = screenX / client.map.width;
+            double y1 = screenY / client.map.height;
+            double x2 = (screenX + maxXTiles) / client.map.width;
+            double y2 = (screenY + maxYTiles) / client.map.height;
+
+            // If one of the sides would be off the side, just set it to the side
+            if (x1 < 0) x1 = 0;
+            if (y1 < 0) y1 = 0;
+            if (x2 > 1) x2 = 1;
+            if (y2 > 1) y2 = 1;
+
+            g.DrawRectangle(Pens.Black, (int)(x1*(bounds.Width - MINIMAP_BORDER_SIZE) + bounds.X+MINIMAP_BORDER_SIZE),
+                                        (int)(y1*(bounds.Height - MINIMAP_BORDER_SIZE) + bounds.Y+MINIMAP_BORDER_SIZE),
+                                        (int)((x2 - x1)*(bounds.Width - MINIMAP_BORDER_SIZE)),
+                                        (int)((y2 - y1)*(bounds.Height - MINIMAP_BORDER_SIZE)));
         }
 
         /// <summary>
@@ -571,6 +690,9 @@ namespace Devious_Retention
             format.Alignment = StringAlignment.Center;
             // Draw background image
             g.DrawImage(selectedEntityAreaBackgroundImage, bounds);
+
+            // Border
+            g.DrawImage(rightAreaBorderLeft, new Rectangle(bounds.X - RIGHT_AREA_BORDER_WIDTH, 0, RIGHT_AREA_BORDER_WIDTH, Height));
 
             // Find out if we've got a unit, building or resource (or nothing)
             if (client.selected.Count == 0) return; // draw nothing if nothing is selected
@@ -790,9 +912,6 @@ namespace Devious_Retention
                 drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 2;
                 g.DrawString("/s", font, Brushes.Black, drawPoint);
             }
-
-            // Border
-            g.DrawImage(rightAreaBorderLeft, new Rectangle(bounds.X-RIGHT_AREA_BORDER_WIDTH, 0, RIGHT_AREA_BORDER_WIDTH, Height));
         }
 
         /// <summary>
@@ -856,8 +975,6 @@ namespace Devious_Retention
                 this.screenX += SCREEN_X_CHANGE;
             else if (key == Keys.Left)
                 this.screenX -= SCREEN_X_CHANGE;
-
-            Refresh();
         }
 
         /// <summary>
@@ -865,8 +982,11 @@ namespace Devious_Retention
         /// Mostly figures out the area where the click was and calls the appropriate
         /// method in the client.
         /// </summary>
-        public void MouseClickEvent(object sender, MouseEventArgs e)
+        private void MouseClickEvent(object sender, MouseEventArgs e)
         {
+            if (e.Button != MouseButtons.Left) return;
+            mouseDown = false;
+
             // A mouse click on the minimap
             if(e.X > Width*(GAME_AREA_WIDTH- MINIMAP_WIDTH) && e.X < Width* GAME_AREA_WIDTH
             && e.Y > Height*GAME_AREA_HEIGHT - Width*MINIMAP_WIDTH && e.Y < Height* GAME_AREA_HEIGHT)
@@ -886,8 +1006,46 @@ namespace Devious_Retention
             }
 
             // A mouse click on the game area (not the minimap as this has already been checked)
+            else if(e.X < Width*GAME_AREA_WIDTH && e.Y < Height* GAME_AREA_HEIGHT)
+            {
+                // If the mouse was dragged across a sizeable area, treat it as a drag
+                if(Math.Abs(e.X- startX) > 20 || Math.Abs(e.Y- startY) > 20)
+                {
+                    Rectangle entitySelectBounds = new Rectangle((int)(e.X > startX ? startX : e.X), (int)(e.Y > startY ? startY : e.Y),
+                                                                 (int)Math.Abs(e.X- startX), (int)Math.Abs(e.Y- startY));
+                    entitySelectBounds.X /= tileWidth; entitySelectBounds.Y /= tileHeight;
+                    entitySelectBounds.Width /= tileWidth; entitySelectBounds.Y /= tileHeight;
+                    SelectEntitiesInArea(entitySelectBounds);
+                }
+                // Otherwise treat it as a click
+                else
+                {
+                    Entity entity = GetEntityAt((double)e.X/tileWidth, (double)e.Y/tileHeight);
+                    client.selected.Clear();
+                    if(entity != null) client.selected.Add(entity);
+                }
+            }
+        }
 
-            Refresh(); // TEMPORARY *************************************************************************************************//////////////
+        /// <summary>
+        /// Processes any mouse down events on the game window.
+        /// This is used to determine the start of an area selection.
+        /// </summary>
+        private void MouseDownEvent(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+            startX = e.X;
+            startY = e.Y;
+            mouseDown = true;
+        }
+
+        /// <summary>
+        /// Processes any mouse movement events on the game window.
+        /// </summary>
+        private void MouseMoveEvent(object sender, MouseEventArgs e)
+        {
+            mouseX = e.X;
+            mouseY = e.Y;
         }
     }
 }

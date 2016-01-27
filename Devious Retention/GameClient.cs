@@ -24,19 +24,7 @@ namespace Devious_Retention
         public Dictionary<int, Unit> units { get; private set; }
         public Dictionary<int, Building> buildings { get; private set; }
 
-        public List<Entity> selected { get; set; } /// <summary>
-        /// TEMPORARILY PUBLIC
-        /// 
-        /// 
-        /// 
-        /// 
-        /// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// </summary>
+        public List<Entity> selected;
 
         public Map map { get; private set; }
 
@@ -90,6 +78,11 @@ namespace Devious_Retention
             for (int i = 0; i < numberOfPlayers; i++)
                 definitions.Add(new GameInfo());
             info = definitions[playerNumber];
+
+            Timer windowRefreshTimer = new Timer();
+            windowRefreshTimer.Interval = GameInfo.WINDOW_REFRESH_TIME;
+            windowRefreshTimer.Tick += new EventHandler(WindowRefreshTimerHandler);
+            windowRefreshTimer.Start();
         }
 
         /// <summary>
@@ -314,7 +307,14 @@ namespace Devious_Retention
         /// </summary>
         public void Tick()
         {
+        }
 
+        /// <summary>
+        /// Refreshes the game window.
+        /// </summary>
+        private void WindowRefreshTimerHandler(object source, EventArgs e)
+        {
+            window.Refresh();
         }
     }
 }

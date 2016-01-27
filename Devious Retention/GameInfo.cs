@@ -60,6 +60,7 @@ namespace Devious_Retention
 
         // In milliseconds
         public const int TICK_TIME = 100;
+        public const int WINDOW_REFRESH_TIME = 20;
         // Melee, ranged, bombard
         public const int DAMAGE_TYPES  = 3;
         // Metal, oil, energy, science

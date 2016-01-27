@@ -62,10 +62,12 @@ namespace Devious_Retention
 
             // TESTING STUFF
             Unit testUnit = new Unit(client.info.unitTypes["TestUnit"], Unit.nextID, 5, 5, 1);
+            Building testBuilding = new Building(client.info.buildingTypes["TestBuilding"], Building.nextID, 0, 0, 1);
             Unit.IncrementNextID();
+            Building.IncrementNextID();
             stc.InformEntityAdd(testUnit);
+            stc.InformEntityAdd(testBuilding);
             Thread.Sleep(10);
-            client.selected.Add(client.units[0]);
 
             stc.InformTechnologyResearch(1, client.info.technologies["TestTechnology"]);
 
