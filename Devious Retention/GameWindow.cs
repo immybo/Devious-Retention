@@ -481,12 +481,12 @@ namespace Devious_Retention
 
             // Figure out how much of the top and left tiles must be cut off the screen, due
             // to the camera position being potentially not an integer value
-            int topTileYOffset = (int)((screenY - (int)screenY) * tileHeight);
             int topTileXOffset = (int)((screenX - (int)screenX) * tileWidth);
+            int topTileYOffset = (int)((screenY - (int)screenY) * tileHeight);
 
             // Figure out how many tiles we can draw on the screen
-            maxXTiles = HORIZONTAL_TILES;
-            maxYTiles = (double)bounds.Height / tileHeight + 0.99; // better too many than too few since we draw over the edges anyway
+            maxXTiles = HORIZONTAL_TILES + 1;
+            maxYTiles = (double)bounds.Height / tileHeight + 1; // better too many than too few since we draw over the edges anyway
 
             for (int i = 0; i < maxXTiles; i++)
             {

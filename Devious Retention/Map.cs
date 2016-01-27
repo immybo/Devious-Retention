@@ -37,6 +37,26 @@ namespace Devious_Retention
         {
             return possibleTiles[tiles[x,y]];
         }
+
+        /// <summary>
+        /// Returns the list of coordinates which the given entity
+        /// is at least partially on.
+        /// Uses the given map to make sure none of them are out of bounds.
+        /// </summary>
+        public static List<Coordinate> GetIncludedTiles(Map map, Entity entity)
+        {
+            List<Coordinate> coordinates = new List<Coordinate>();
+
+            // Assuming that no entity will be *exactly* on a square, it will occupy (size+1)*(size+1) partial squares
+            // We have to check that it's not off the map just in case the entity IS exactly on the square, because this would cause a crash.
+            // However, checking one extra row/column of tiles isn't a big deal in the rare case that this happens.
+            for(int i = 0; i <= entity.GetSize(); i++)
+                for(int j = 0; j < entity.GetSize(); j++)
+                    if((int)entity.GetX()+i < map.width && (int)entity.GetY()+j < map.height)
+                        coordinates.Add(new Coordinate((int)entity.GetX()+i,(int)entity.GetY()+j));
+
+            return coordinates;
+        }
     }
 
     /// <summary>

@@ -19,10 +19,13 @@ namespace Devious_Retention
         // Each player's GameInfo is changed over time due to technologies, factions, etc
         public List<GameInfo> definitions { get; private set; }
         public GameInfo info { get; private set; } // This client's GameInfo (= definitions[playerNumber])
+
         // Entities are gotten from the server every tick
         public Dictionary<int, Resource> resources { get; private set; }
         public Dictionary<int, Unit> units { get; private set; }
         public Dictionary<int, Building> buildings { get; private set; }
+        // Which entities are where; if at least part of an entity is on a square, it will be recorded in that square's list
+        private List<Entity>[,] entitiesBySquare;
 
         public List<Entity> selected;
 
@@ -133,6 +136,9 @@ namespace Devious_Retention
         /// Attempts to create a building foundation of the given type
         /// at the given position. Returns whether or not the client has 
         /// enough resources for this and the player can create that BuildingType.
+        /// 
+        /// Does not yet remove the resources; only removes them when confirmation
+        /// is received from the server that the foundation was created.
         /// </summary>
         public bool CreateFoundation(BuildingType building, double x, double y)
         {
@@ -143,6 +149,9 @@ namespace Devious_Retention
         /// Attempts to create a unit from the given building.
         /// Returns whether or not the client has enough resources
         /// for this and the building can create that UnitType.
+        /// 
+        /// Does not yet remove the resources; only removes them when confirmation
+        /// is received from the server that the unit was created.
         /// </summary>
         public bool CreateUnit(Building sourceBuilding, UnitType unit)
         {
@@ -169,6 +178,7 @@ namespace Devious_Retention
         /// <param name="player">The player that the entity belongs to. Irrelevant if a resource.</param>
         public void AddEntity(int entityType, int id, string type, double xPos, double yPos, int player)
         {
+            Entity entity = null;
             if(entityType == 0)
             {
                 if (!definitions[playerNumber].unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
@@ -177,6 +187,12 @@ namespace Devious_Retention
                 units.Add(unit.id, unit);
                 unitType.units.Add(unit);
                 window.UpdateLOSAdd(unit);
+                entity = unit;
+
+                // If the unit belongs to the player, remove the resources as well
+                if (unit.player == playerNumber)
+                    for (int i = 0; i < currentResources.Length; i++)
+                        currentResources[i] -= unit.type.resourceCosts[i];
             }
             else if(entityType == 1)
             {
@@ -186,6 +202,12 @@ namespace Devious_Retention
                 buildings.Add(building.id, building);
                 buildingType.buildings.Add(building);
                 window.UpdateLOSAdd(building);
+                entity = building;
+
+                // If the building belongs to the player, remove the resources as well
+                if (building.player == playerNumber)
+                    for (int i = 0; i < currentResources.Length; i++)
+                        currentResources[i] -= building.type.resourceCosts[i];
             }
             else if(entityType == 2)
             {
@@ -193,7 +215,12 @@ namespace Devious_Retention
                 ResourceType resourceType = definitions[playerNumber].resourceTypes[type];
                 Resource resource = new Resource(resourceType, id, xPos, yPos);
                 resources.Add(resource.id, resource);
+                entity = resource;
             }
+            
+            // Check which tiles it at least partially occupies
+            foreach(Coordinate c in Map.GetIncludedTiles(map, entity))
+                entitiesBySquare[c.x, c.y].Add(entity);
         }
 
         /// <summary>
@@ -234,6 +261,9 @@ namespace Devious_Retention
 
             // Remove it from the selected entities if it was in there
             if (selected.Contains(entity)) selected.Remove(entity);
+            // And from the lists of entites by tile
+            foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
+                entitiesBySquare[c.x, c.y].Remove(entity);
         }
 
         /// <summary>

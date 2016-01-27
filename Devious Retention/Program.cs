@@ -60,13 +60,10 @@ namespace Devious_Retention
             stc.Connect();
             cts.Connect();
 
+            GameServer server = new GameServer(new List<STCConnection>() { stc }, map);
+
             // TESTING STUFF
-            Unit testUnit = new Unit(client.info.unitTypes["TestUnit"], Unit.nextID, 5, 5, 1);
-            Building testBuilding = new Building(client.info.buildingTypes["TestBuilding"], Building.nextID, 0, 0, 1);
-            Unit.IncrementNextID();
-            Building.IncrementNextID();
-            stc.InformEntityAdd(testUnit);
-            stc.InformEntityAdd(testBuilding);
+            server.CreateBuilding(1, client.info.buildingTypes["TestBuilding"], 0, 0);
             Thread.Sleep(10);
 
             stc.InformTechnologyResearch(1, client.info.technologies["TestTechnology"]);
