@@ -58,6 +58,9 @@ namespace Devious_Retention
         // Used in the place of an entity image or technology icon if the right one can't be loaded
         public static string DEFAULT_IMAGE_NAME { get; private set; } = BASE_DIRECTORY + "Images\\defaultimage.png";
 
+        public const string TITLE_FONT_NAME = "Arial";
+        public const string FONT_NAME = "Arial";
+
         // In milliseconds
         public const int TICK_TIME = 100;
         public const int WINDOW_REFRESH_TIME = 20;

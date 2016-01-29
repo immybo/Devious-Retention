@@ -65,6 +65,8 @@ namespace Devious_Retention
 
         // Whether or not the mouse left button is currently down
         private bool mouseDown = false;
+        // Whether or not the mouse left button was previous pressed down on top of the game panel
+        private bool mouseDownOnGameArea = false;
 
         // Whether the building panel or the technology panel is open
         private bool buildingPanelOpen = true;
@@ -559,8 +561,8 @@ namespace Devious_Retention
                 g.DrawImage(e.GetImage(), entityBounds);
             }
 
-            // If the mouse has been dragged across an area, draw a rectangle around that area
-            if (mouseDown)
+            // If the mouse has been dragged across an area and started on the game area, draw a rectangle around that area
+            if (mouseDown && mouseDownOnGameArea)
             {
                 int width = (int)Math.Abs(mouseX - startX);
                 int height = (int)Math.Abs(mouseY - startY);
@@ -583,7 +585,7 @@ namespace Devious_Retention
 
             g.DrawImage(resourceDisplayAreaBackgroundImage, bounds);
 
-            Font font = new Font("Arial", (int)(bounds.Height/1.5), FontStyle.Regular);
+            Font font = new Font(GameInfo.FONT_NAME, (int)(bounds.Height/1.5), FontStyle.Regular);
 
             int resourcePadding = 5;
             int resourceIconWidth = bounds.Height - resourcePadding * 2;
@@ -683,8 +685,8 @@ namespace Devious_Retention
             bounds.Width -= RIGHT_AREA_BORDER_WIDTH;
 
             int fontSize = bounds.Width / 25;
-            Font titleFont = new Font("Arial", (int)(fontSize*1.5), FontStyle.Regular);
-            Font font = new Font("Arial", fontSize, FontStyle.Regular);
+            Font titleFont = new Font(GameInfo.TITLE_FONT_NAME, (int)(fontSize*1.5), FontStyle.Regular);
+            Font font = new Font(GameInfo.FONT_NAME, fontSize, FontStyle.Regular);
 
             StringFormat format = new StringFormat();
             format.Alignment = StringAlignment.Center;
@@ -929,16 +931,19 @@ namespace Devious_Retention
             if (buildingPanelOpen)
             {
                 // Find out how many icons we can fit
-                int iconWidth = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
+                int numIconsPerRow = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
 
                 int i = 0;
+
+                // We need a list to draw tooltips
+                List<BuildingType> buildingTypeList = new List<BuildingType>();
                 foreach(BuildingType b in client.info.buildingTypes.Values)
                 {
                     // If the building can't be built yet, it will be greyed out
                     bool grayed = !(client.info.technologies.ContainsKey(b.prerequisite) && client.info.technologies[b.prerequisite].researched);
 
-                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (i % iconWidth),
-                        bounds.Y + ICON_GAP + (int)(i / iconWidth) * (ICON_SIZE + ICON_GAP),
+                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (i % numIconsPerRow),
+                        bounds.Y + ICON_GAP + (int)(i / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
                         ICON_SIZE, ICON_SIZE);
 
                     g.DrawImage(b.image, iconBounds);
@@ -947,8 +952,31 @@ namespace Devious_Retention
                         g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
 
                     i++;
+
+                    buildingTypeList.Add(b);
                 }
                 // Also draw a tooltip if the mouse is over a building
+                if(GetArea(mouseX, mouseY).Equals("top right panel")) // In the right screen area
+                {
+                    // Now find if it's actually over an icon
+                    double column = (double)(mouseX - bounds.X) / (ICON_SIZE + ICON_GAP);
+                    double row = (double)(mouseY - bounds.Y) / (ICON_SIZE + ICON_GAP);
+
+                    int num = (int)row * numIconsPerRow + (int)column;
+                    if (num < client.info.buildingTypes.Values.Count)
+                    {
+                        // Now make sure it's aligned with an icon and not the gaps between them
+                        double columnRemainder = column - (int)column;
+                        double rowRemainder = row - (int)row;
+                        if(columnRemainder > (double)ICON_GAP / (ICON_SIZE+ ICON_GAP) && rowRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP))
+                        {
+                            // Draw it to the bottom left of the mouse cursor
+                            int tooltipWidth = 300;
+                            int tooltipHeight = 500;
+                            DrawBuildingTooltip(g, buildingTypeList[num], new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
+                        }
+                    }
+                }
             }
 
             // Otherwise draw the technology panel
@@ -988,25 +1016,11 @@ namespace Devious_Retention
             mouseDown = false;
 
             // A mouse click on the minimap
-            if(e.X > Width*(GAME_AREA_WIDTH- MINIMAP_WIDTH) && e.X < Width* GAME_AREA_WIDTH
-            && e.Y > Height*GAME_AREA_HEIGHT - Width*MINIMAP_WIDTH && e.Y < Height* GAME_AREA_HEIGHT)
-            {
-                // Scroll to the appropriate point on the minimap
-                double minimapX = e.X - Width * (GAME_AREA_WIDTH - MINIMAP_WIDTH);
-                double minimapY = e.Y - (Height*GAME_AREA_HEIGHT - Width*MINIMAP_WIDTH);
-                double minimapSize = Width * MINIMAP_WIDTH;
-
-                // How far across (0-1) the point is
-                double proportionX = minimapX / minimapSize;
-                double proportionY = minimapY / minimapSize;
-
-                // The tile of the map we should therefore center on is..
-                screenX = client.map.width * proportionX - maxXTiles/2;
-                screenY = client.map.height * proportionY - maxYTiles/2;
-            }
+            if(GetArea(e.X, e.Y).Equals("minimap") && !mouseDownOnGameArea)
+                ScrollToMinimapPoint(e.X, e.Y);
 
             // A mouse click on the game area (not the minimap as this has already been checked)
-            else if(e.X < Width*GAME_AREA_WIDTH && e.Y < Height* GAME_AREA_HEIGHT)
+            else if(GetArea(e.X, e.Y).Equals("game area") && mouseDownOnGameArea)
             {
                 // If the mouse was dragged across a sizeable area, treat it as a drag
                 if(Math.Abs(e.X- startX) > 20 || Math.Abs(e.Y- startY) > 20)
@@ -1037,6 +1051,7 @@ namespace Devious_Retention
             startX = e.X;
             startY = e.Y;
             mouseDown = true;
+            mouseDownOnGameArea = GetArea(e.X, e.Y).Equals("game area");
         }
 
         /// <summary>
@@ -1046,6 +1061,140 @@ namespace Devious_Retention
         {
             mouseX = e.X;
             mouseY = e.Y;
+
+            // If we're dragging the mouse in the minimap area, set the view appropriately
+            if (mouseDown && !mouseDownOnGameArea && GetArea(e.X, e.Y).Equals("minimap"))
+                ScrollToMinimapPoint(e.X, e.Y);
+        }
+
+        /// <summary>
+        /// Returns the area of the screen the given coordinate is in.
+        /// 
+        /// Possible returns:
+        /// "game area"
+        /// "minimap"
+        /// "top right panel"
+        /// "selected entity panel"
+        /// "resource display area"
+        /// 
+        /// Will give an incorrect return if an invalid coordinate is given.
+        /// </summary>
+        private string GetArea(double x, double y)
+        {
+            // On the left of the screen
+            if(x < Width*GAME_AREA_WIDTH)
+            {
+                // In the game area
+                if (y < Height * GAME_AREA_HEIGHT)
+                {
+                    // In the minimap area
+                    if (x > Width * (GAME_AREA_WIDTH - MINIMAP_WIDTH) && y > Height * GAME_AREA_HEIGHT - Width * MINIMAP_WIDTH)
+                        return "minimap";
+                    // Not in the minimap area
+                    else
+                        return "game area";
+                }
+                // Otherwise on the left, it has to be in the resource display area
+                else
+                    return "resource display area";
+            }
+            // On the right of the screen
+            else
+            {
+                // Top = top right panel
+                if (y < Height * TOP_RIGHT_HEIGHT)
+                    return "top right panel";
+                // Otherwise selected entity panel
+                else
+                    return "selected entity panel";
+            }
+        }
+
+        /// <summary>
+        /// Assuming that (x,y) lies on the minimap,
+        /// moves the camera to the appropriate area.
+        /// </summary>
+        private void ScrollToMinimapPoint(double x, double y)
+        {
+            double minimapX = x - Width * (GAME_AREA_WIDTH - MINIMAP_WIDTH);
+            double minimapY = y - (Height * GAME_AREA_HEIGHT - Width * MINIMAP_WIDTH);
+            double minimapSize = Width * MINIMAP_WIDTH;
+
+            // How far across (0-1) the point is
+            double proportionX = minimapX / minimapSize;
+            double proportionY = minimapY / minimapSize;
+
+            // The tile of the map we should therefore center on is..
+            screenX = client.map.width * proportionX - maxXTiles / 2;
+            screenY = client.map.height * proportionY - maxYTiles / 2;
+        }
+
+        /// <summary>
+        /// Draws a tooltip for a specific building type at the specified location.
+        /// </summary>
+        private void DrawBuildingTooltip(Graphics g, BuildingType type, Rectangle bounds)
+        {
+            // First draw the background and the border around it
+            g.FillRectangle(Brushes.White, bounds);
+            g.DrawRectangle(new Pen(Brushes.Black), bounds);
+            g.SetClip(bounds);
+
+            Font titleFont = new Font(GameInfo.TITLE_FONT_NAME, 28, FontStyle.Regular);
+            Font font = new Font(GameInfo.FONT_NAME, 20, FontStyle.Regular);
+            StringFormat centerFormat = new StringFormat();
+            centerFormat.Alignment = StringAlignment.Center;
+            StringFormat vertCenterFormat = new StringFormat();
+            vertCenterFormat.LineAlignment = StringAlignment.Center;
+
+            int yPos = bounds.Y + 20;
+            int xPos = bounds.X + 10;
+            // Name
+            g.DrawString(type.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width/2, yPos), centerFormat);
+            yPos += (int)(titleFont.Size) + 20;
+            // Resource costs
+            double iconGapRatio = (double)ICON_SIZE / ICON_GAP;
+            int resourceGapSize = (int)(bounds.Width / (1 + (1 + iconGapRatio) * GameInfo.RESOURCE_TYPES));
+            int resourceIconSize = (int)(resourceGapSize * iconGapRatio);
+
+            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+            {
+                if (i == GameInfo.RESOURCE_TYPES / 2) { yPos += ICON_SIZE + 10; xPos = bounds.X + 10; }
+
+                g.DrawImage(resourceImages[i], xPos, yPos, ICON_SIZE, ICON_SIZE);
+                xPos += ICON_SIZE + 10;
+                g.DrawString(type.resourceCosts[i]+"", font, Brushes.Black, new Point(xPos, yPos + ICON_SIZE/2), vertCenterFormat);
+                xPos += (int)g.MeasureString("9999",font).Width + 10;
+            }
+            xPos = bounds.X + 10;
+            yPos += ICON_SIZE + 10;
+
+            // Hitpoints and, if applicable, damage
+            g.DrawString("Hitpoints: " + type.hitpoints, font, Brushes.Black, new Point(xPos, yPos));
+            yPos += (int)(font.Size) + 20;
+            if (type.aggressive)
+            {
+                g.DrawString("Damage: " + type.damage, font, Brushes.Black, new Point(xPos, yPos + ICON_SIZE/2), vertCenterFormat);
+                xPos += (int)g.MeasureString("Damage: " + type.damage, font).Width + 10;
+                g.DrawImage(damageTypeIcons[type.damageType], xPos, yPos, ICON_SIZE, ICON_SIZE);
+                xPos = bounds.X + 10;
+                yPos += ICON_SIZE + 10;
+            }
+
+            g.ResetClip();
+        }
+
+        /// <summary>
+        /// Draws a tooltip for the specified unit type at the specified location.
+        /// </summary>
+        private void DrawUnitTooltip(Graphics g, UnitType type, Rectangle bounds)
+        {
+        }
+
+        /// <summary>
+        /// Draws a tooltip for the specified technology at the specified location.
+        /// </summary>
+        private void DrawTechnologyTooltip(Graphics g, Technology technology, Rectangle bounds)
+        {
         }
     }
 }
