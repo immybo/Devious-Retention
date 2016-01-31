@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Devious_Retention
@@ -135,7 +136,6 @@ namespace Devious_Retention
             baseUnitTypes = new SortedDictionary<string, UnitType>();
 
             StreamReader r = new StreamReader(fname);
-            int j = 0;
             string line;
             while ((line = r.ReadLine()) != null)
             {
@@ -162,10 +162,11 @@ namespace Devious_Retention
                 int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                 for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                     resourceCosts[i] = int.Parse(attributes[15 + GameInfo.DAMAGE_TYPES + i]);
+                StringBuilder descriptionBuilder = new StringBuilder();
+                for (int i = 15 + GameInfo.DAMAGE_TYPES + GameInfo.RESOURCE_TYPES; i < attributes.Length; i++)
+                    descriptionBuilder.Append(attributes[i] + " ");
                 baseUnitTypes.Add(name, new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTime, speed, prerequisite, 
-                    aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts));
-
-                j++;
+                    aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, descriptionBuilder.ToString()));
             }
             r.Close();
         }
@@ -175,7 +176,6 @@ namespace Devious_Retention
             baseBuildingTypes = new SortedDictionary<string,BuildingType>();
 
             StreamReader r = new StreamReader(fname);
-            int j = 0;
             string line;
             while ((line = r.ReadLine()) != null)
             {
@@ -205,13 +205,15 @@ namespace Devious_Retention
                 int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
                 for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                     resourceCosts[i] = int.Parse(attributes[18 + GameInfo.DAMAGE_TYPES + i]);
-                string[] trainableUnits = new string[attributes.Length - 18 - DAMAGE_TYPES - RESOURCE_TYPES];
+                string[] trainableUnits = new string[int.Parse(attributes[18+GameInfo.DAMAGE_TYPES+GameInfo.RESOURCE_TYPES])];
                 for (int i = 0; i < trainableUnits.Length; i++)
-                    trainableUnits[i] = attributes[18 + DAMAGE_TYPES + RESOURCE_TYPES + i];
+                    trainableUnits[i] = attributes[19 + DAMAGE_TYPES + RESOURCE_TYPES + i];
+                StringBuilder descriptionBuilder = new StringBuilder();
+                for (int i = 19 + DAMAGE_TYPES + RESOURCE_TYPES + trainableUnits.Length; i < attributes.Length; i++)
+                    descriptionBuilder.Append(attributes[i] + " ");
 
                 baseBuildingTypes.Add(name, new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
-                    builtOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits));
-                j++;
+                    builtOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits, descriptionBuilder.ToString()));
             }
             r.Close();
         }
@@ -221,7 +223,6 @@ namespace Devious_Retention
             baseResourceTypes = new SortedDictionary<string,ResourceType>();
 
             StreamReader r = new StreamReader(fname);
-            int i = 0;
             string line;
             while ((line = r.ReadLine()) != null)
             {
@@ -232,8 +233,10 @@ namespace Devious_Retention
                 string imageFilename = attributes[3];
                 double gatherSpeed = double.Parse(attributes[4]);
                 double size = double.Parse(attributes[5]);
-                baseResourceTypes.Add(name, new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size));
-                i++;
+                StringBuilder descriptionBuilder = new StringBuilder();
+                for (int i = 6; i < attributes.Length; i++)
+                    descriptionBuilder.Append(attributes[i] + " ");
+                baseResourceTypes.Add(name, new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size, descriptionBuilder.ToString()));
             }
             r.Close();
         }
@@ -253,6 +256,7 @@ namespace Devious_Retention
             int j = 0;
             string line;
             string name = "";
+            string description = "";
             string iconName = "";
             HashSet<string> prerequisites = new HashSet<string>();
             HashSet<String> effects = new HashSet<string>();
@@ -262,7 +266,7 @@ namespace Devious_Retention
             {
                 if (line.Equals("~"))
                 {
-                    baseTechnologies.Add(name, new Technology(name, prerequisites, effects, resourceCosts, iconName));
+                    baseTechnologies.Add(name, new Technology(name, prerequisites, effects, resourceCosts, iconName, description));
                     currentLine = -1;
                     prerequisites = new HashSet<string>();
                     effects = new HashSet<String>();
@@ -281,6 +285,8 @@ namespace Devious_Retention
                     for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                         resourceCosts[i] = int.Parse(split[i]);
                 }
+                else if (currentLine == 4)
+                    description = line;
                 else
                     effects.Add(line);
 

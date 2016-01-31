@@ -75,8 +75,8 @@ namespace Devious_Retention
             foreach (Coordinate c in buildingCoordinates)
                 if(entitiesBySquare[c.x, c.y] != null)
                     foreach (Entity e in entitiesBySquare[c.x, c.y])
-                        if (e.GetX() + e.GetSize() > building.x && e.GetY() + e.GetSize() > building.y
-                        && e.GetX() < building.x + building.GetSize() && e.GetY() < building.y + building.GetSize()) // If they collide, do nothing
+                        if (e.x + e.type.size > building.x && e.y + e.type.size > building.y
+                        && e.x < building.x + building.type.size && e.y < building.y + building.type.size) // If they collide, do nothing
                             return;
 
             // No collisions, so we can safetly place the foundation :)

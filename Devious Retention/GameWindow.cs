@@ -126,13 +126,13 @@ namespace Devious_Retention
         {
             // Units > buildings > resources
             foreach (Entity e in client.units.Values)
-                if (e.GetX() + e.GetSize() > x && e.GetX() < x && e.GetY() + e.GetSize() > y && e.GetY() < y)
+                if (e.x + e.type.size > x && e.x < x && e.y + e.type.size > y && e.y < y)
                     return e;
             foreach (Entity e in client.buildings.Values)
-                if (e.GetX() + e.GetSize() > x && e.GetX() < x && e.GetY() + e.GetSize() > y && e.GetY() < y)
+                if (e.x + e.type.size > x && e.x < x && e.y + e.type.size > y && e.y < y)
                     return e;
             foreach (Entity e in client.resources.Values)
-                if (e.GetX() + e.GetSize() > x && e.GetX() < x && e.GetY() + e.GetSize() > y && e.GetY() < y)
+                if (e.x + e.type.size > x && e.x < x && e.y + e.type.size > y && e.y < y)
                     return e;
 
             return null;
@@ -156,10 +156,10 @@ namespace Devious_Retention
             HashSet<Entity> enclosedEntities = new HashSet<Entity>();
             foreach (Entity e in entities)
             {
-                if(e.GetX()+e.GetSize() > bounds.X
-                 &&e.GetY()+e.GetSize() > bounds.Y
-                 &&e.GetX() < bounds.X + bounds.Width
-                 &&e.GetY() < bounds.Y + bounds.Height)
+                if(e.x+e.type.size > bounds.X
+                 &&e.y+e.type.size > bounds.Y
+                 &&e.x < bounds.X + bounds.Width
+                 &&e.y < bounds.Y + bounds.Height)
                 {
                     enclosedEntities.Add(e);
                 }
@@ -197,11 +197,11 @@ namespace Devious_Retention
             // 1. Select all of the player's units within the area
             if(units.Count != 0)
                 foreach (Unit u in units)
-                    if (u.player == client.playerNumber) entitiesToAdd.Add(u);
+                    if (u.playerNumber == client.playerNumber) entitiesToAdd.Add(u);
             // 2. Select all of the player's buildings within the area
             if (entitiesToAdd.Count == 0 && buildings.Count != 0)
                 foreach (Building b in buildings)
-                    if (b.player == client.playerNumber) entitiesToAdd.Add(b);
+                    if (b.playerNumber == client.playerNumber) entitiesToAdd.Add(b);
             // 3. Select all other players' units within the area
             if (entitiesToAdd.Count == 0 && units.Count != 0)
                 foreach (Unit u in units)
@@ -231,14 +231,14 @@ namespace Devious_Retention
                 new Rectangle(0,0,(int)(Width*GAME_AREA_WIDTH),(int)(Height* GAME_AREA_HEIGHT)));
             RenderEntities(g,
                 new Rectangle(0, 0, (int)(Width * GAME_AREA_WIDTH), (int)(Height * GAME_AREA_HEIGHT)));
+            RenderMinimap(g,
+                new Rectangle((int)((GAME_AREA_WIDTH - MINIMAP_WIDTH) * Width), (int)(GAME_AREA_HEIGHT * Height - MINIMAP_WIDTH * Width), (int)(MINIMAP_WIDTH * Width), (int)(MINIMAP_WIDTH * Width)));
             RenderResourceDisplayArea(g,
                 new Rectangle(0, (int)(Height * GAME_AREA_HEIGHT), (int)(GAME_AREA_WIDTH * Width), (int)((1 - GAME_AREA_HEIGHT) * Height)));
             RenderSelectedEntityPanel(g,
                 new Rectangle((int)(GAME_AREA_WIDTH*Width),(int)(TOP_RIGHT_HEIGHT* Height),(int)((1-GAME_AREA_WIDTH) * Width), (int)((1-TOP_RIGHT_HEIGHT)* Height)));
             RenderTopRightPanel(g,
                 new Rectangle((int)(GAME_AREA_WIDTH * Width), 0, (int)((1 - GAME_AREA_WIDTH) * Width), (int)(TOP_RIGHT_HEIGHT * Height)));
-            RenderMinimap(g,
-                new Rectangle((int)((GAME_AREA_WIDTH-MINIMAP_WIDTH) * Width), (int)(GAME_AREA_HEIGHT* Height - MINIMAP_WIDTH* Width), (int)(MINIMAP_WIDTH* Width), (int)(MINIMAP_WIDTH* Width)));
         }
     
         /// <summary>
@@ -269,10 +269,10 @@ namespace Devious_Retention
             // Resources don't have LOS
             if (e is Resource) return;
 
-            int entityLOS = e.GetLOS();
+            int entityLOS = e.type.lineOfSight;
             // Just round it down for simplicity
-            int entityX = (int)(e.GetX() + e.GetSize() / 2);
-            int entityY = (int)(e.GetY() + e.GetSize() / 2);
+            int entityX = (int)(e.x + e.type.size / 2);
+            int entityY = (int)(e.y + e.type.size / 2);
 
             // Simple way of figuring out a circle
             for (int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
@@ -307,16 +307,16 @@ namespace Devious_Retention
             List<Coordinate> oldTiles = new List<Coordinate>();
 
             // Figure out the old circle
-            int oldUnitX = (int)(unit.GetX() + unit.GetSize() / 2 - dX);
-            int oldUnitY = (int)(unit.GetY() + unit.GetSize() / 2 - dY);
-            for (int x = oldUnitX - unit.GetLOS(); x <= oldUnitX + unit.GetLOS(); x++)
+            int oldUnitX = (int)(unit.x + unit.unitType.size / 2 - dX);
+            int oldUnitY = (int)(unit.y + unit.unitType.size / 2 - dY);
+            for (int x = oldUnitX - unit.unitType.lineOfSight; x <= oldUnitX + unit.unitType.lineOfSight; x++)
             {
-                for (int y = oldUnitY - unit.GetLOS(); y <= oldUnitY + unit.GetLOS(); y++)
+                for (int y = oldUnitY - unit.unitType.lineOfSight; y <= oldUnitY + unit.unitType.lineOfSight; y++)
                 {
                     if (x < 0 || y < 0) continue;
                     if (x >= client.map.width || y >= client.map.height) continue;
                     int distance = (int)(Math.Sqrt(Math.Pow(oldUnitX - x, 2) + Math.Pow(oldUnitY - y, 2)));
-                    if (distance > unit.GetLOS()) continue;
+                    if (distance > unit.unitType.lineOfSight) continue;
 
                     // This is one of the tiles that the unit used to be able to see
                     oldTiles.Add(new Coordinate(x, y));
@@ -324,16 +324,16 @@ namespace Devious_Retention
             }
 
             // Figure out the new circle
-            int newUnitX = (int)(unit.GetX() + unit.GetSize() / 2);
-            int newUnitY = (int)(unit.GetY() + unit.GetSize() / 2);
-            for (int x = newUnitX - unit.GetLOS(); x <= newUnitX + unit.GetLOS(); x++)
+            int newUnitX = (int)(unit.x + unit.unitType.size / 2);
+            int newUnitY = (int)(unit.y + unit.unitType.size / 2);
+            for (int x = newUnitX - unit.unitType.lineOfSight; x <= newUnitX + unit.unitType.lineOfSight; x++)
             {
-                for (int y = newUnitY - unit.GetLOS(); y <= newUnitY + unit.GetLOS(); y++)
+                for (int y = newUnitY - unit.unitType.lineOfSight; y <= newUnitY + unit.unitType.lineOfSight; y++)
                 {
                     if (x < 0 || y < 0) continue;
                     if (x >= client.map.width || y >= client.map.height) continue;
                     int distance = (int)(Math.Sqrt(Math.Pow(newUnitX - x, 2) + Math.Pow(newUnitY - y, 2)));
-                    if (distance > unit.GetLOS()) continue;
+                    if (distance > unit.unitType.lineOfSight) continue;
 
                     // This is one of the tiles that the unit can now see
                     newTiles.Add(new Coordinate(x, y));
@@ -376,9 +376,9 @@ namespace Devious_Retention
         {
             if (entity is Resource) return;
 
-            int entityLOS = entity.GetLOS();
-            int entityX = (int)(entity.GetX() + entity.GetSize() / 2);
-            int entityY = (int)(entity.GetY() + entity.GetSize() / 2);
+            int entityLOS = entity.type.lineOfSight;
+            int entityX = (int)(entity.x + entity.type.size / 2);
+            int entityY = (int)(entity.y + entity.type.size / 2);
             // Go through all the tiles the entity could see and recheck if we can still see them
             for (int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
             {
@@ -405,18 +405,18 @@ namespace Devious_Retention
             // Stop if we find one that is
             HashSet<Entity> entities = new HashSet<Entity>();
             foreach (Unit u in client.units.Values)
-                if (u.player == client.playerNumber)
+                if (u.playerNumber == client.playerNumber)
                     entities.Add(u);
                     
             foreach (Building b in client.buildings.Values)
-                if (b.player == client.playerNumber)
+                if (b.playerNumber == client.playerNumber)
                     entities.Add(b);
 
             foreach(Entity e in entities)
             {
                 // Distance between the entity and the tile
-                int distance = (int)(Math.Sqrt(Math.Pow(e.GetX() - c.x, 2) + Math.Pow(e.GetY() - c.y, 2)));
-                if (distance <= e.GetLOS()) return true;
+                int distance = (int)(Math.Sqrt(Math.Pow(e.x - c.x, 2) + Math.Pow(e.y - c.y, 2)));
+                if (distance <= e.type.lineOfSight) return true;
             }
 
             return false;
@@ -432,18 +432,18 @@ namespace Devious_Retention
 
             List<Entity> entities = new List<Entity>();
             foreach (Unit u in client.units.Values)
-                if (u.player == client.playerNumber)
+                if (u.playerNumber == client.playerNumber)
                     entities.Add(u);
             foreach (Building b in client.buildings.Values)
-                if (b.player == client.playerNumber)
+                if (b.playerNumber == client.playerNumber)
                     entities.Add(b);
 
             foreach(Entity e in entities)
             {
-                int entityLOS = e.GetLOS();
+                int entityLOS = e.type.lineOfSight;
                 // Just round it down for simplicity
-                int entityX = (int)(e.GetX()+e.GetSize()/2);
-                int entityY = (int)(e.GetY()+e.GetSize()/2);
+                int entityX = (int)(e.x+e.type.size/2);
+                int entityY = (int)(e.y+e.type.size/2);
 
                 // Simple way of figuring out a circle
                 for(int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
@@ -545,20 +545,20 @@ namespace Devious_Retention
             foreach(Entity e in entities)
             {
                 // First check if they're even on the screen
-                if (e.GetX() + e.GetSize() < screenX || e.GetX() > screenX + maxXTiles) continue;
-                if (e.GetY() + e.GetSize() < screenY || e.GetY() > screenY + maxYTiles) continue;
+                if (e.x + e.type.size < screenX || e.x > screenX + maxXTiles) continue;
+                if (e.y + e.type.size < screenY || e.y > screenY + maxYTiles) continue;
                 // And check if we have line of sight to them
-                if (!LOS[(int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2)]) continue;
+                if (!LOS[(int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2)]) continue;
 
                 // Since they are on the screen, figure out their bounds
                 Rectangle entityBounds = new Rectangle();
-                entityBounds.X = (int)((e.GetX() - screenX) * tileWidth); // their distance from the left/top of the screen
-                entityBounds.Y = (int)((e.GetY() - screenY) * tileHeight);
-                entityBounds.Width = (int)(e.GetSize() * tileWidth);
-                entityBounds.Height = (int)(e.GetSize() * tileHeight);
+                entityBounds.X = (int)((e.x - screenX) * tileWidth); // their distance from the left/top of the screen
+                entityBounds.Y = (int)((e.y - screenY) * tileHeight);
+                entityBounds.Width = (int)(e.type.size * tileWidth);
+                entityBounds.Height = (int)(e.type.size * tileHeight);
 
                 // And finally, draw them
-                g.DrawImage(e.GetImage(), entityBounds);
+                g.DrawImage(e.image, entityBounds);
             }
 
             // If the mouse has been dragged across an area and started on the game area, draw a rectangle around that area
@@ -638,9 +638,9 @@ namespace Devious_Retention
             foreach (Entity e in entities)
             {
                 // Do nothing if we don't have line of sight there
-                if (!LOS[(int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2)]) continue;
+                if (!LOS[(int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2)]) continue;
                 // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
-                tileImage.SetPixel((int)(e.GetX() + e.GetSize() / 2), (int)(e.GetY() + e.GetSize() / 2), GameInfo.PLAYER_COLORS[e.GetPlayerNumber()]);
+                tileImage.SetPixel((int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2), GameInfo.PLAYER_COLORS[e.playerNumber]);
             }
 
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp
@@ -710,31 +710,31 @@ namespace Devious_Retention
                 // Middle x, top y
                 Point drawPoint = new Point(bounds.X + bounds.Width / 2, bounds.Y + 10);
                 // Draw the title in the middle
-                g.DrawString(building.type.name, titleFont, Brushes.Black, drawPoint, format);
+                g.DrawString(building.buildingType.name, titleFont, Brushes.Black, drawPoint, format);
 
                 // Now draw everything else on a left alignment
                 drawPoint.X = bounds.X + 10;
                 drawPoint.Y += (int)(fontSize*1.5) + 20;
 
                 // HITPOINTS
-                g.DrawString("HP: " + building.hitpoints + "/" + building.type.hitpoints, font, Brushes.Black, drawPoint);
+                g.DrawString("HP: " + building.hitpoints + "/" + building.buildingType.hitpoints, font, Brushes.Black, drawPoint);
                 drawPoint.Y += fontSize + 10;
 
                 // DAMAGE
                 // Only draw the damage if this building can attack
-                if (building.type.aggressive)
+                if (building.buildingType.aggressive)
                 {
                     g.DrawString("Damage:", font, Brushes.Black, drawPoint);
                     // icon for the damage type
-                    g.DrawImage(damageTypeIcons[building.type.damageType],
+                    g.DrawImage(damageTypeIcons[building.buildingType.damageType],
                         new Rectangle(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 10,
                                       drawPoint.Y, (int)(DAMAGE_ICON_SIZE*bounds.Width),(int)(DAMAGE_ICON_SIZE*bounds.Width)));
-                    g.DrawString(building.type.damage + "", font, Brushes.Black,
+                    g.DrawString(building.buildingType.damage + "", font, Brushes.Black,
                         new Point(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 20 + (int)(DAMAGE_ICON_SIZE * bounds.Width),drawPoint.Y));
                     drawPoint.Y += fontSize + 10;
 
                     // RANGE
-                    g.DrawString("Range: " + building.type.range, font, Brushes.Black, drawPoint);
+                    g.DrawString("Range: " + building.buildingType.range, font, Brushes.Black, drawPoint);
                     drawPoint.Y += fontSize + 10;
                 }
 
@@ -746,25 +746,25 @@ namespace Devious_Retention
                     g.DrawImage(damageTypeIcons[i],
                         new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE*bounds.Width), (int)(DAMAGE_ICON_SIZE*bounds.Width)));
                     drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 10;
-                    g.DrawString(building.type.resistances[i] + "%", font, Brushes.Black, drawPoint);
-                    drawPoint.X += (int)(g.MeasureString(building.type.resistances[i] + "%", font).Width) + 10;
+                    g.DrawString(building.buildingType.resistances[i] + "%", font, Brushes.Black, drawPoint);
+                    drawPoint.X += (int)(g.MeasureString(building.buildingType.resistances[i] + "%", font).Width) + 10;
                 }
 
                 // RESOURCE GATHER RATE
                 // Only draw the resource gather rate if this building is built on a resource it can gather, or passively grants resources
-                if (building.type.providesResource || (building.type.canBeBuiltOnResource && building.resource != null))
+                if (building.buildingType.providesResource || (building.buildingType.canBeBuiltOnResource && building.resource != null))
                 {
                     double gatherRate;
-                    if (building.type.providesResource) // passively provides resource
-                        gatherRate = building.type.gatherSpeed;
+                    if (building.buildingType.providesResource) // passively provides resource
+                        gatherRate = building.buildingType.gatherSpeed;
                     else // actively provides resource
-                        gatherRate = building.resource.type.gatherSpeed;
+                        gatherRate = building.resource.resourceType.gatherSpeed;
 
                     drawPoint.X = bounds.X + 10;
                     drawPoint.Y += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 20;
                     g.DrawString("Gathering " + gatherRate, font, Brushes.Black, drawPoint);
                     drawPoint.X += (int)(g.MeasureString("Gathering " + gatherRate, font).Width) + 4;
-                    g.DrawImage(resourceImages[building.type.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                    g.DrawImage(resourceImages[building.buildingType.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
                     drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 2;
                     g.DrawString("/s", font, Brushes.Black, drawPoint);
                 }
@@ -777,7 +777,7 @@ namespace Devious_Retention
                 drawPoint.Y += fontSize + 10;
 
                 // max visible unit types
-                int maxUnits = (int)(1 / TRAINING_QUEUE_ICON_SIZE);
+                int maxUnits = (int)((bounds.Width- ICON_GAP) / (ICON_SIZE+ICON_GAP));
 
                 List<UnitType> queueUnits = new List<UnitType>();
                 List<int> queueUnitCounts = new List<int>();
@@ -825,49 +825,79 @@ namespace Devious_Retention
                 }
 
                 // TRAINABLE UNITS
-                drawPoint.X = bounds.X + 10;
-                drawPoint.Y += 20;
-
-                g.DrawString("Trainable Units", font, Brushes.Black, drawPoint);
-                drawPoint.Y += fontSize + 10;
-
-                int currentOnLine = 0; // how many icons are on the current line
-                foreach(string s in building.type.trainableUnits)
+                if (building.buildingType.trainableUnits.Length > 0)
                 {
-                    if (client.info.unitTypes.ContainsKey(s))
-                    {
-                        UnitType u = client.info.unitTypes[s];
-                        g.DrawImage(u.icon,
-                            new Rectangle(drawPoint.X, drawPoint.Y, (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width), (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width)));
+                    drawPoint.X = bounds.X + ICON_GAP;
+                    drawPoint.Y += 20;
 
-                        drawPoint.X += (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width) + 10;
-                        currentOnLine++;
-                        if (currentOnLine >= maxUnits)
-                        { // Go down to next line
-                            drawPoint.Y += (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width) + 10;
-                            drawPoint.X = bounds.X + 10;
+                    g.DrawString("Trainable Units", font, Brushes.Black, drawPoint);
+                    drawPoint.Y += fontSize + 20;
+                    int startOfTrainableUnitsY = drawPoint.Y - ICON_GAP;
+
+                    int currentOnLine = 0; // how many icons are on the current line
+                    List<UnitType> unitTypesList = new List<UnitType>();
+                    foreach (string s in building.buildingType.trainableUnits)
+                    {
+                        if (client.info.unitTypes.ContainsKey(s))
+                        {
+                            UnitType u = client.info.unitTypes[s];
+                            unitTypesList.Add(u);
+                            g.DrawImage(u.icon,
+                                new Rectangle(drawPoint.X, drawPoint.Y, ICON_SIZE, ICON_SIZE));
+
+                            drawPoint.X += ICON_SIZE + ICON_GAP;
+                            currentOnLine++;
+                            if (currentOnLine >= maxUnits)
+                            { // Go down to next line
+                                drawPoint.Y += ICON_SIZE + ICON_GAP;
+                                drawPoint.X = bounds.X + ICON_GAP;
+                            }
+                        }
+                        // Do nothing if the unit type doesn't exist or can't be found
+                    }
+
+                    drawPoint.X = bounds.X + ICON_GAP;
+                    // Also draw a tooltip if the mouse is over a trainable unit
+                    if (GetArea(mouseX, mouseY).Equals("selected entity panel") && mouseY > startOfTrainableUnitsY)
+                    {
+                        // Now find if it's actually over an icon
+                        double column = (double)(mouseX - bounds.X) / (ICON_SIZE + ICON_GAP);
+                        double row = (double)(mouseY - startOfTrainableUnitsY) / (ICON_SIZE + ICON_GAP);
+
+                        int num = (int)row * maxUnits + (int)column;
+                        if (num < unitTypesList.Count)
+                        {
+                            // Now make sure it's aligned with an icon and not the gaps between them
+                            double columnRemainder = column - (int)column;
+                            double rowRemainder = row - (int)row;
+                            if (columnRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP) && rowRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP))
+                            {
+                                // Draw it to the top left
+                                int tooltipWidth = 300;
+                                int tooltipHeight = 500;
+                                DrawEntityTooltip(g, unitTypesList[num], new Rectangle((int)mouseX - tooltipWidth, (int)mouseY - tooltipHeight, tooltipWidth, tooltipHeight));
+                            }
                         }
                     }
-                    // Do nothing if the unit type doesn't exist or can't be found
                 }
             }
             else if (entity is Unit)
             {
                 Unit unit = (Unit)entity;
                 Point drawPoint = new Point(bounds.X + 10, bounds.Y + 20 + (int)(fontSize * 1.5));
-                g.DrawString(unit.type.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+                g.DrawString(unit.unitType.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
                 
                 // HITPOINTS
-                g.DrawString("HP: " + unit.hitpoints + "/" + unit.type.hitpoints, font, Brushes.Black, drawPoint);
+                g.DrawString("HP: " + unit.hitpoints + "/" + unit.unitType.hitpoints, font, Brushes.Black, drawPoint);
                 drawPoint.Y += fontSize + 10;
 
                 // DAMAGE
                 g.DrawString("Damage:", font, Brushes.Black, drawPoint);
                 // icon for the damage type
-                g.DrawImage(damageTypeIcons[unit.type.damageType],
+                g.DrawImage(damageTypeIcons[unit.unitType.damageType],
                     new Rectangle(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 10,
                         drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
-                    g.DrawString(unit.type.damage + "", font, Brushes.Black,
+                    g.DrawString(unit.unitType.damage + "", font, Brushes.Black,
                         new Point(drawPoint.X + (int)g.MeasureString("Damage:", font).Width + 20 + (int)(DAMAGE_ICON_SIZE * bounds.Width), drawPoint.Y));
                 drawPoint.Y += fontSize + 10;
 
@@ -879,38 +909,38 @@ namespace Devious_Retention
                     g.DrawImage(damageTypeIcons[i],
                         new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
                     drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 10;
-                    g.DrawString(unit.type.resistances[i] + "%", font, Brushes.Black, drawPoint);
-                    drawPoint.X += (int)(g.MeasureString(unit.type.resistances[i] + "%", font).Width) + 10;
+                    g.DrawString(unit.unitType.resistances[i] + "%", font, Brushes.Black, drawPoint);
+                    drawPoint.X += (int)(g.MeasureString(unit.unitType.resistances[i] + "%", font).Width) + 10;
                 }
 
                 // RANGE
                 drawPoint.X = bounds.X + 10;
                 drawPoint.Y += fontSize + 10;
-                g.DrawString("Range: " + unit.type.range, font, Brushes.Black, drawPoint);
+                g.DrawString("Range: " + unit.unitType.range, font, Brushes.Black, drawPoint);
 
                 // SPEED
                 drawPoint.Y += fontSize + 10;
-                g.DrawString("Speed: " + unit.type.speed, font, Brushes.Black, drawPoint);
+                g.DrawString("Speed: " + unit.unitType.speed, font, Brushes.Black, drawPoint);
             }
             else if (entity is Resource)
             {
                 Resource resource = (Resource)entity;
                 Point drawPoint = new Point(bounds.X + 10, bounds.Y + 20 + (int)(fontSize * 1.5));
-                g.DrawString(resource.type.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
+                g.DrawString(resource.resourceType.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y + 10), format);
 
                 // REMAINING RESOURCE
-                g.DrawString(resource.amount+"/"+resource.type.resourceAmount, font, Brushes.Black, drawPoint);
-                drawPoint.X += (int)(g.MeasureString(resource.amount+"/"+resource.type.resourceAmount, font).Width) + 4;
-                g.DrawImage(resourceImages[resource.type.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                g.DrawString(resource.amount+"/"+resource.resourceType.resourceAmount, font, Brushes.Black, drawPoint);
+                drawPoint.X += (int)(g.MeasureString(resource.amount+"/"+resource.resourceType.resourceAmount, font).Width) + 4;
+                g.DrawImage(resourceImages[resource.resourceType.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
                 drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 4;
                 g.DrawString("remaining.", font, Brushes.Black, drawPoint);
 
                 // GATHER RATE
                 drawPoint.X = bounds.X + 10;
                 drawPoint.Y += fontSize + 10;
-                g.DrawString("Gather rate: " + resource.type.gatherSpeed, font, Brushes.Black, drawPoint);
-                drawPoint.X += (int)(g.MeasureString("Gather rate: " + resource.type.gatherSpeed, font).Width) + 2;
-                g.DrawImage(resourceImages[resource.type.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                g.DrawString("Gather rate: " + resource.resourceType.gatherSpeed, font, Brushes.Black, drawPoint);
+                drawPoint.X += (int)(g.MeasureString("Gather rate: " + resource.resourceType.gatherSpeed, font).Width) + 2;
+                g.DrawImage(resourceImages[resource.resourceType.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
                 drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 2;
                 g.DrawString("/s", font, Brushes.Black, drawPoint);
             }
@@ -973,7 +1003,7 @@ namespace Devious_Retention
                             // Draw it to the bottom left of the mouse cursor
                             int tooltipWidth = 300;
                             int tooltipHeight = 500;
-                            DrawBuildingTooltip(g, buildingTypeList[num], new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
+                            DrawEntityTooltip(g, buildingTypeList[num], new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
                         }
                     }
                 }
@@ -1130,9 +1160,9 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Draws a tooltip for a specific building type at the specified location.
+        /// Draws a tooltip for a specific entity type at the specified location.
         /// </summary>
-        private void DrawBuildingTooltip(Graphics g, BuildingType type, Rectangle bounds)
+        private void DrawEntityTooltip(Graphics g, EntityType type, Rectangle bounds)
         {
             // First draw the background and the border around it
             g.FillRectangle(Brushes.White, bounds);
@@ -1141,16 +1171,16 @@ namespace Devious_Retention
 
             Font titleFont = new Font(GameInfo.TITLE_FONT_NAME, 28, FontStyle.Regular);
             Font font = new Font(GameInfo.FONT_NAME, 20, FontStyle.Regular);
+            Font miniFont = new Font(GameInfo.FONT_NAME, 14, FontStyle.Regular);
             StringFormat centerFormat = new StringFormat();
             centerFormat.Alignment = StringAlignment.Center;
             StringFormat vertCenterFormat = new StringFormat();
             vertCenterFormat.LineAlignment = StringAlignment.Center;
 
-            int yPos = bounds.Y + 20;
-            int xPos = bounds.X + 10;
+            Point pos = new Point(bounds.X + ICON_GAP, bounds.Y + ICON_GAP);
             // Name
-            g.DrawString(type.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width/2, yPos), centerFormat);
-            yPos += (int)(titleFont.Size) + 20;
+            g.DrawString(type.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width/2, pos.Y), centerFormat);
+            pos.Y += (int)(titleFont.Size) + 20;
             // Resource costs
             double iconGapRatio = (double)ICON_SIZE / ICON_GAP;
             int resourceGapSize = (int)(bounds.Width / (1 + (1 + iconGapRatio) * GameInfo.RESOURCE_TYPES));
@@ -1158,36 +1188,32 @@ namespace Devious_Retention
 
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
             {
-                if (i == GameInfo.RESOURCE_TYPES / 2) { yPos += ICON_SIZE + 10; xPos = bounds.X + 10; }
+                if (i == GameInfo.RESOURCE_TYPES / 2) { pos.Y += ICON_SIZE + 10; pos.X = bounds.X + ICON_GAP; }
 
-                g.DrawImage(resourceImages[i], xPos, yPos, ICON_SIZE, ICON_SIZE);
-                xPos += ICON_SIZE + 10;
-                g.DrawString(type.resourceCosts[i]+"", font, Brushes.Black, new Point(xPos, yPos + ICON_SIZE/2), vertCenterFormat);
-                xPos += (int)g.MeasureString("9999",font).Width + 10;
+                g.DrawImage(resourceImages[i], pos.X, pos.Y, ICON_SIZE, ICON_SIZE);
+                pos.X += ICON_SIZE + 10;
+                g.DrawString(type.resourceCosts[i]+"", font, Brushes.Black, new Point(pos.X, pos.Y + ICON_SIZE/2), vertCenterFormat);
+                pos.X += (int)g.MeasureString("9999",font).Width + 10;
             }
-            xPos = bounds.X + 10;
-            yPos += ICON_SIZE + 10;
+            pos.X = bounds.X + ICON_GAP;
+            pos.Y += ICON_SIZE + 10;
 
             // Hitpoints and, if applicable, damage
-            g.DrawString("Hitpoints: " + type.hitpoints, font, Brushes.Black, new Point(xPos, yPos));
-            yPos += (int)(font.Size) + 20;
-            if (type.aggressive)
+            g.DrawString("Hitpoints: " + type.hitpoints, font, Brushes.Black, pos);
+            pos.Y += (int)(font.Size) + 20;
+            if (type is UnitType || type.aggressive)
             {
-                g.DrawString("Damage: " + type.damage, font, Brushes.Black, new Point(xPos, yPos + ICON_SIZE/2), vertCenterFormat);
-                xPos += (int)g.MeasureString("Damage: " + type.damage, font).Width + 10;
-                g.DrawImage(damageTypeIcons[type.damageType], xPos, yPos, ICON_SIZE, ICON_SIZE);
-                xPos = bounds.X + 10;
-                yPos += ICON_SIZE + 10;
+                g.DrawString("Damage: " + type.damage, font, Brushes.Black, new Point(pos.X, pos.Y + ICON_SIZE/2), vertCenterFormat);
+                pos.X += (int)g.MeasureString("Damage: " + type.damage, font).Width + 10;
+                g.DrawImage(damageTypeIcons[type.damageType], pos.X, pos.Y, ICON_SIZE, ICON_SIZE);
+                pos.X = bounds.X + ICON_GAP;
+                pos.Y += ICON_SIZE + 10;
             }
 
-            g.ResetClip();
-        }
+            // Description (wrap it in the box)
+            g.DrawString(type.description, miniFont, Brushes.Black, new Rectangle(bounds.X + 10, pos.Y, bounds.Width - 20, bounds.Height - (pos.Y-bounds.Y) - 10));
 
-        /// <summary>
-        /// Draws a tooltip for the specified unit type at the specified location.
-        /// </summary>
-        private void DrawUnitTooltip(Graphics g, UnitType type, Rectangle bounds)
-        {
+            g.ResetClip();
         }
 
         /// <summary>

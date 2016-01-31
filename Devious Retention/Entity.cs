@@ -14,21 +14,14 @@ namespace Devious_Retention
     /// </summary>
     public interface Entity
     {
-        /// <summary>
-        /// GetImage should always return the image for the entity's current frame of animation,
-        /// direction, etc.
-        /// </summary>
-        Image GetImage();
-        /// <summary>
-        /// Every entity has a size, and for the purposes of rendering it may as well be a double.
-        /// </summary>
-        Double GetSize();
+        Image image { get; }
+        EntityType type { get; } // unfortunately, this means that we must have two properties for this
+        // in each entity, as apparently returning a type that implements EntityType isn't good enough......
 
-        Double GetX();
-        Double GetY();
-
-        int GetLOS();
-        int GetPlayerNumber();
-        int GetID();
+        double x { get; set; }
+        double y { get; set; }
+        
+        int playerNumber { get; }
+        int id { get; }
     }
 }

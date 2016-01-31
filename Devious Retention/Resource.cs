@@ -20,14 +20,25 @@ namespace Devious_Retention
         public int id { get; private set; }
 
         // Every resource belongs to a type, which gives most of its statistics
-        public ResourceType type { get; private set; }
+        public ResourceType resourceType { get; private set; }
+        public EntityType type { get; private set; }
 
         // The current amount of the given resource in this resource
         public int amount;
 
         // The position of the top-left of this resource
-        public double x { get; private set; }
-        public double y { get; private set; }
+        public double x { get; set; }
+        public double y { get; set; }
+
+        public Image image
+        {
+            get
+            {
+                return resourceType.image;
+            }
+        }
+
+        public int playerNumber { get; } = 0;
 
         /// <summary>
         /// Most of a resource's statistics are gathered from its type,
@@ -35,6 +46,7 @@ namespace Devious_Retention
         /// </summary>
         public Resource(ResourceType type, int id, double x, double y)
         {
+            this.resourceType = type;
             this.type = type;
             this.id = id;
             this.x = x;
@@ -49,53 +61,6 @@ namespace Devious_Retention
         {
             return amount <= 0;
         }
-
-        /// <summary>
-        /// Returns the image that is currently appropriate for this resource.
-        /// </summary>
-        public Image GetImage()
-        {
-            return type.image;
-        }
-
-        /// <summary>
-        /// Returns the size of this resource's type
-        /// </summary>
-        public double GetSize()
-        {
-            return type.size;
-        }
-
-        public double GetX()
-        {
-            return x;
-        }
-        public double GetY()
-        {
-            return y;
-        }
-
-        /// <summary>
-        /// Returns 0! Should never be called, but if it is,
-        /// returning 0 should cause nothing special to happen.
-        /// </summary>
-        public int GetLOS()
-        {
-            return 0;
-        }
-        /// <summary>
-        /// Returns 0.
-        /// </summary>
-        public int GetPlayerNumber()
-        {
-            return 0;
-        }
-
-        public int GetID()
-        {
-            return id;
-        }
-
 
         /// <summary>
         /// Resets the next ID to 0.

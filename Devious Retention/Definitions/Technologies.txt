@@ -2,5 +2,6 @@ TestTechnology
 TestTechnology.png
 
 50 50 50 50
+This is the test technology.
 1 TestUnit 0 100
 ~

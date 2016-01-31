@@ -11,9 +11,10 @@ namespace Devious_Retention
     /// <summary>
     /// A ResourceType defines attributes for a specific type of resource.
     /// </summary>
-    public class ResourceType : ICloneable
+    public class ResourceType : ICloneable, EntityType
     {
-        public String name { get; private set; }
+        public string name { get; private set; }
+        public string description { get; private set; }
         // Which resource this ResourceType provides
         public int resourceType { get; private set; }
         // How much of the resource this ResourceType initially contains
@@ -28,13 +29,26 @@ namespace Devious_Retention
 
         public double size{ get; private set; }
 
+        // All unsupported
+        public double speed { get; set; } = -1;
+        public int[] resistances { get; set; } = null;
+        public int range { get; set; } = -1;
+        public string prerequisite { get; } = null;
+        public int lineOfSight { get; set; } = 0;
+        public int hitpoints { get; set; } = -1;
+        public int damageType { get; set; } = -1;
+        public int damage { get; set; } = -1;
+        public bool aggressive { get; } = false;
+        public int[] resourceCosts { get; } = null;
+
         /// <summary>
         /// Anything attempting to create a ResourceType from a file must first
         /// parse the string into these attributes.
         /// </summary>
-        public ResourceType(string name, int resourceType, int resourceAmount, string imageFilename, double gatherSpeed, double size)
+        public ResourceType(string name, int resourceType, int resourceAmount, string imageFilename, double gatherSpeed, double size, string description)
         {
             this.name = name;
+            this.description = description;
             this.resourceType = resourceType;
             this.resourceAmount = resourceAmount;
             this.imageFilename = imageFilename;
@@ -54,7 +68,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns:
-        /// "[name] [resourceType] [resourceAmount] [imageFilename] [gatherSpeed] [size]"
+        /// "[name] [resourceType] [resourceAmount] [imageFilename] [gatherSpeed] [size] [description]"
         /// </summary>
         public override String ToString()
         {
@@ -65,6 +79,7 @@ namespace Devious_Retention
             builder.Append(imageFilename + " ");
             builder.Append(gatherSpeed + " ");
             builder.Append(size);
+            builder.Append(description + " ");
             return builder.ToString();
         }
 
@@ -73,7 +88,7 @@ namespace Devious_Retention
         /// </summary>
         public object Clone()
         {
-            return new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size);
+            return new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size, description);
         }
     }
 }

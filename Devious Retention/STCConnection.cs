@@ -116,10 +116,10 @@ namespace Devious_Retention
 
             int entityType = -1;
             string typeName = "";
-            if (entity is Unit) { entityType = 0; typeName = ((Unit)entity).type.name; }
-            else if (entity is Building) { entityType = 1; typeName = ((Building)entity).type.name; }
-            else if (entity is Resource) { entityType = 2; typeName = ((Resource)entity).type.name; }
-            outgoingWriter.WriteLine("0 " + entityType + " " + typeName + " " + entity.GetID() + " " + entity.GetX() + " " + entity.GetY() + " " + entity.GetPlayerNumber());
+            if (entity is Unit) { entityType = 0; typeName = ((Unit)entity).unitType.name; }
+            else if (entity is Building) { entityType = 1; typeName = ((Building)entity).buildingType.name; }
+            else if (entity is Resource) { entityType = 2; typeName = ((Resource)entity).resourceType.name; }
+            outgoingWriter.WriteLine("0 " + entityType + " " + typeName + " " + entity.id + " " + entity.x + " " + entity.y + " " + entity.playerNumber);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Devious_Retention
             if (entity is Unit) entityType = 0;
             else if (entity is Building) entityType = 1;
             else if (entity is Resource) entityType = 2;
-            outgoingWriter.WriteLine("1 " + entityType + " " + entity.GetID());
+            outgoingWriter.WriteLine("1 " + entityType + " " + entity.id);
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace Devious_Retention
             if (entity is Unit) entityType = 0;
             else if (entity is Building) entityType = 1;
             else if (entity is Resource) entityType = 2;
-            outgoingWriter.WriteLine("2 " + entityType + " " + entity.GetID() + " " + attributeID + " " + attributeChange);
+            outgoingWriter.WriteLine("2 " + entityType + " " + entity.id + " " + attributeID + " " + attributeChange);
         }
 
         /// <summary>

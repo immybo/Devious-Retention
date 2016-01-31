@@ -11,24 +11,25 @@ namespace Devious_Retention
     /// These attributes can be changed through technologies, and so
     /// each client has a set of UnitTypes specific to it.
     /// </summary>
-    public class UnitType : ICloneable
+    public class UnitType : ICloneable, EntityType
     {
-        public String name { get; private set; }
+        public string name { get; private set; }
+        public string description { get; private set; }
         // The initial amount of hitpoints for units of this type.
-        public int hitpoints;
+        public int hitpoints { get; set; }
         // The base amount of damage that this unit will do to other units per attack.
-        public int damage;
+        public int damage { get; set; }
         // So that unit counters can effectively be made, there are multiple different types of damage.
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
-        public int damageType;
-        public int[] resistances;
-        public int trainingTimeMillis;
+        public int damageType { get; private set; }
+        public int[] resistances { get; set; }
+        public int trainingTimeMillis { get; set; }
         // Ticks
-        public int trainingTime;
+        public int trainingTime { get; set; }
         // How many tiles units of this type can move per second
-        public double speed;
+        public double speed { get; set; }
         // How many tiles this unit can "see"
-        public int lineOfSight;
+        public int lineOfSight { get; set; }
         // The radius of the collision circle, and the size of the image along each axis, of this unit
         public double size { get; private set; }
         // Every UnitType can only have up to one prerequisite technology
@@ -42,28 +43,29 @@ namespace Devious_Retention
         public int type { get; private set; }
 
         // How many tiles away this unit can attack from
-        public int range { get; private set; }
+        public int range { get; set; }
         // How many ticks it takes this unit to attack
         public int attackTicks { get; private set; }
         private int attackSpeedMilliseconds;
 
-        public int[] resourceCosts;
+        public int[] resourceCosts { get; set; }
 
         private string imageName;
         public Image image { get; private set; }
         private string iconName;
         public Image icon { get; private set; }
 
-        public List<Unit> units;
+        public List<Unit> units { get; set; }
 
         /// <summary>
         /// Anything attempting to create a UnitType from a file must first
         /// parse the string into these attributes.
         /// </summary>
         public UnitType(string name, int hitpoints, int damage, int damageType, double size, int lineOfSight, int[] resistances, int trainingTimeMillis, double speed,
-                        string prerequisite, bool aggressive, int type, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts)
+                        string prerequisite, bool aggressive, int type, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts, string description)
         {
             this.name = name;
+            this.description = description;
             this.hitpoints = hitpoints;
             this.damage = damage;
             this.damageType = damageType;
@@ -100,7 +102,7 @@ namespace Devious_Retention
         /// <summary>
         /// Returns:
         /// "name hitpoints damage damageType lineOfSight size resistance1 resistance2 .. resistanceX trainingTime speed
-        ///     prerequisiteName aggressive type imageName iconName range attackMilliseconds resourcecost1 resourcecost2 ... resourcecostx"
+        ///     prerequisiteName aggressive type imageName iconName range attackMilliseconds resourcecost1 resourcecost2 ... resourcecostx description"
         /// </summary>
         public override String ToString()
         {
@@ -124,6 +126,7 @@ namespace Devious_Retention
             builder.Append(attackSpeedMilliseconds + " ");
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 builder.Append(resourceCosts[i] + " ");
+            builder.Append(description + " ");
 
             return builder.ToString();
         }
@@ -135,7 +138,7 @@ namespace Devious_Retention
         public object Clone()
         {
             return new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTimeMillis,
-                speed, prerequisite, aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts);
+                speed, prerequisite, aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, description);
         }
     }
 }

@@ -190,9 +190,9 @@ namespace Devious_Retention
                 entity = unit;
 
                 // If the unit belongs to the player, remove the resources as well
-                if (unit.player == playerNumber)
+                if (unit.playerNumber == playerNumber)
                     for (int i = 0; i < currentResources.Length; i++)
-                        currentResources[i] -= unit.type.resourceCosts[i];
+                        currentResources[i] -= unit.unitType.resourceCosts[i];
             }
             else if(entityType == 1)
             {
@@ -205,9 +205,9 @@ namespace Devious_Retention
                 entity = building;
 
                 // If the building belongs to the player, remove the resources as well
-                if (building.player == playerNumber)
+                if (building.playerNumber == playerNumber)
                     for (int i = 0; i < currentResources.Length; i++)
-                        currentResources[i] -= building.type.resourceCosts[i];
+                        currentResources[i] -= building.buildingType.resourceCosts[i];
             }
             else if(entityType == 2)
             {
@@ -239,7 +239,7 @@ namespace Devious_Retention
                 entity = units[deletedEntityID];
                 window.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
 
-                units[deletedEntityID].type.units.Remove(units[deletedEntityID]); // And finally remove it from both collections it appears in (in the type and in the client)
+                units[deletedEntityID].unitType.units.Remove(units[deletedEntityID]); // And finally remove it from both collections it appears in (in the type and in the client)
                 units.Remove(deletedEntityID);
             }
             else if (entityType == 1)
@@ -249,7 +249,7 @@ namespace Devious_Retention
                 entity = buildings[deletedEntityID];
                 window.UpdateLOSDelete(entity);
 
-                buildings[deletedEntityID].type.buildings.Remove(buildings[deletedEntityID]);
+                buildings[deletedEntityID].buildingType.buildings.Remove(buildings[deletedEntityID]);
                 buildings.Remove(deletedEntityID);
             }
             else if (entityType == 2)

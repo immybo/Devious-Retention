@@ -11,25 +11,26 @@ namespace Devious_Retention
     /// These attributes can be changed through technologies, and so
     /// each client has a set of BuildingTypes specific to it.
     /// </summary>
-    public class BuildingType : ICloneable
+    public class BuildingType : ICloneable, EntityType
     {
-        public String name { get; private set; }
+        public string name { get; private set; }
+        public string description { get; private set; }
         // The initial amount of hitpoints for buildings of this type.
-        public int hitpoints;
+        public int hitpoints { get; set; }
         // The base amount of damage that this building will do to other units per attack.
         // Note that some buildings don't attack; this will be 0 in that case.
-        public int damage;
+        public int damage { get; set; }
         // So that unit counters can effectively be made, there are multiple different types of damage.
         // Although every attack must do at least one damage, a resistance against a type of damage reduces it by a percentage.
         public int damageType { get; private set; }
         // How many tiles this building can "see"
-        public int lineOfSight;
+        public int lineOfSight { get; set; }
         // How many tiles this building takes up along each axis
-        public int size { get; private set; }
-        public int[] resistances;
+        public double size { get; private set; }
+        public int[] resistances { get; set; }
         private int buildTimeMillis;
         // Ticks
-        public int buildTime;
+        public int buildTime { get; set; }
         // Every BuildingType can only have up to one prerequisite technology
         // Before this technology is researched, no buildings of this type can be created
         // Not every BuildingType has to have a prerequisite, however
@@ -37,9 +38,9 @@ namespace Devious_Retention
 
         // Most buildings don't provide any resources.
         // Those that do, however, passively provide an infinite amount of that resource, usually at a slow rate.
-        public bool providesResource;
-        public int resourceType;
-        public double gatherSpeed;
+        public bool providesResource { get; set; }
+        public int resourceType { get; set; }
+        public double gatherSpeed { get; set; }
 
         // Some buildings can be built on top of resource sites, and they will extract that resource.
         // If they do, the gather rate is set by that specific resource type.
@@ -51,7 +52,7 @@ namespace Devious_Retention
         // Buildings that are act the same as aggressive units (except can't move towards the enemy).
         public bool aggressive { get; private set; }
 
-        public int[] resourceCosts;
+        public int[] resourceCosts { get; set; }
 
         // What types of unit can be trained from this type of building
         public string[] trainableUnits { get; private set; }
@@ -62,21 +63,25 @@ namespace Devious_Retention
         public Image icon { get; private set; }
 
         // How many tiles away this building can attack from (only relevant if aggressive)
-        public int range { get; private set; }
+        public int range { get; set; }
         // How many ticks it takes this building to attack (only relevant if aggressive)
         public int attackTicks { get; private set; }
         private int attackSpeedMilliseconds;
 
-        public List<Building> buildings;
+        public List<Building> buildings { get; set; }
+
+        // Unused
+        public double speed { get; set; } = -1;
 
         /// <summary>
         /// Anything attempting to create a BuildingType from a file must first
         /// parse the string into these attributes.
         /// </summary>
-        public BuildingType(string name, int hitpoints, int damage, int damageType, int lineOfSight, int size, int[] resistances, int buildTimeMillis, string prerequisite, bool providesResource, int resourceType,
-            double gatherSpeed, bool builtOnResource, int builtOnResourceType, bool aggressive, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts, string[] trainableUnits)
+        public BuildingType(string name, int hitpoints, int damage, int damageType, int lineOfSight, double size, int[] resistances, int buildTimeMillis, string prerequisite, bool providesResource, int resourceType,
+            double gatherSpeed, bool canBeBuiltOnResource, int builtOnResourceType, bool aggressive, string imageName, string iconName, int range, int attackSpeedMilliseconds, int[] resourceCosts, string[] trainableUnits, string description)
         {
             this.name = name;
+            this.description = description;
             this.hitpoints = hitpoints;
             this.damageType = damageType;
             this.lineOfSight = lineOfSight;
@@ -88,7 +93,7 @@ namespace Devious_Retention
             this.providesResource = providesResource;
             this.resourceType = resourceType;
             this.gatherSpeed = gatherSpeed;
-            this.canBeBuiltOnResource = builtOnResource;
+            this.canBeBuiltOnResource = canBeBuiltOnResource;
             this.builtOnResourceType = builtOnResourceType;
             this.aggressive = aggressive;
             this.imageName = imageName;
@@ -117,7 +122,8 @@ namespace Devious_Retention
         /// <summary>
         /// Returns:
         /// "name hitpoints damage damageType lineOfSight size resistance1 resistance2 .. resistanceX buildTime
-        ///     prerequisiteName providesResource resourceType gatherSpeed builtOnResource builtOnResourceType aggressive imageName iconName range attackSpeedMilliseconds resourcecost1 resourcecost2 .. resourcecostx trainableUnits"
+        ///     prerequisiteName providesResource resourceType gatherSpeed canBeBuiltOnResource builtOnResourceType aggressive imageName
+        ///  iconName range attackSpeedMilliseconds resourcecost1 resourcecost2 .. resourcecostx trainableUnits.count trainableUnits description"
         /// </summary>
         public override String ToString()
         {
@@ -144,8 +150,10 @@ namespace Devious_Retention
             builder.Append(attackSpeedMilliseconds + " ");
             for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                 builder.Append(resourceCosts[i] + " ");
+            builder.Append(trainableUnits.Length + " ");
             foreach(string s in trainableUnits)
                 builder.Append(s + " ");
+            builder.Append(description);
 
             return builder.ToString();
         }
@@ -156,7 +164,7 @@ namespace Devious_Retention
         public object Clone()
         {
             return new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTimeMillis, prerequisite, providesResource, resourceType,
-                gatherSpeed, canBeBuiltOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits);
+                gatherSpeed, canBeBuiltOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits, description);
         }
     }
 }

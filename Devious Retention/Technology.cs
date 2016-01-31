@@ -14,7 +14,8 @@ namespace Devious_Retention
     {
         public bool researched = false;
 
-        public String name { get; private set; }
+        public string name { get; private set; }
+        public string description { get; private set; }
 
         public int[] resourceCosts { get; private set; }
 
@@ -45,9 +46,10 @@ namespace Devious_Retention
         /// As no technology types exist, all of a technology's attributes must be given
         /// to create one.
         /// </summary>
-        public Technology(String name, HashSet<String> prerequisites, HashSet<String> effects, int[] resourceCosts, string iconName)
+        public Technology(string name, HashSet<String> prerequisites, HashSet<String> effects, int[] resourceCosts, string iconName, string description)
         {
             this.name = name;
+            this.description = description;
             this.prerequisites = prerequisites;
             this.effects = effects;
             this.resourceCosts = resourceCosts;
@@ -57,7 +59,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns a string representing this technology.
-        /// "[name] [prerequisites] ~ [effects] ~ [resourceCosts] [iconName]"
+        /// "[name] [prerequisites] ~ [effects] ~ [resourceCosts] [iconName] [description]"
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -72,7 +74,8 @@ namespace Devious_Retention
             builder.Append("~ ");
             foreach (int i in resourceCosts)
                 builder.Append(i + " ");
-            builder.Append(iconName);
+            builder.Append(iconName + " ");
+            builder.Append(description);
             return builder.ToString();
         }
 
@@ -218,7 +221,7 @@ namespace Devious_Retention
         /// </summary>
         public object Clone()
         {
-            return new Technology(name, prerequisites, effects, resourceCosts, iconName);
+            return new Technology(name, prerequisites, effects, resourceCosts, iconName, description);
         }
     }
 }

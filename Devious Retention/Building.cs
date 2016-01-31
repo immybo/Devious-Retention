@@ -21,10 +21,11 @@ namespace Devious_Retention
         // Unique
         public int id { get; private set; }
 
-        public int player { get; private set; }
+        public int playerNumber { get; private set; }
 
         // Each building belongs to a BuildingType, from which most of its attributes can be gotten
-        public BuildingType type { get; private set; }
+        public BuildingType buildingType { get; private set; }
+        public EntityType type { get; private set; }
 
         // The current amount of hitpoints must, however, be stored in each individual building
         public int hitpoints;
@@ -41,12 +42,20 @@ namespace Devious_Retention
         public Resource resource { get; private set; }
 
         // The co-ordinates of the top-left corner of this building
-        public double x { get; private set; }
-        public double y { get; private set; }
+        public double x { get; set; }
+        public double y { get; set; }
 
         private Entity entityToAttack;
 
         private int attackTick = 0;
+
+        public Image image
+        {
+            get
+            {
+                return buildingType.image;
+            }
+        }
 
         /// <summary>
         /// A building will get most of its initial attributes from a BuildingType.
@@ -54,11 +63,12 @@ namespace Devious_Retention
         /// </summary>
         public Building(BuildingType type, int id, double x, double y, int player)
         {
+            this.buildingType = type;
             this.type = type;
             this.id = id;
             this.x = x;
             this.y = y;
-            this.player = player;
+            this.playerNumber = player;
 
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
@@ -72,7 +82,7 @@ namespace Devious_Retention
         public void QueueUnit(UnitType unit)
         {
             // Check if that UnitType can actually be trained
-            if (!type.trainableUnits.Contains(unit.name))
+            if (!buildingType.trainableUnits.Contains(unit.name))
                 return;
 
             trainingQueue.Enqueue(unit);
@@ -85,7 +95,7 @@ namespace Devious_Retention
         /// </summary>
         public void TakeDamage(int damage, int damageType)
         {
-            int realDamage = (int)(damage * (100 - type.resistances[damageType]) / 100);
+            int realDamage = (int)(damage * (100 - buildingType.resistances[damageType]) / 100);
             hitpoints -= realDamage;
         }
 
@@ -109,7 +119,7 @@ namespace Devious_Retention
         /// </summary>
         public void ChangeMaxHP(int newMaxHP)
         {
-            double newHPMultiplier = (double)newMaxHP / type.hitpoints;
+            double newHPMultiplier = (double)newMaxHP / buildingType.hitpoints;
             hitpoints = (int)(hitpoints * newHPMultiplier);
         }
 
@@ -120,47 +130,6 @@ namespace Devious_Retention
         public void Tick()
         {
 
-        }
-
-        /// <summary>
-        /// Returns the image that is currently appropriate for this building.
-        /// </summary>
-        /// <returns></returns>
-        public Image GetImage()
-        {
-            return type.image;
-        }
-
-        /// <summary>
-        /// Returns the size of this building's type
-        /// </summary>
-        public Double GetSize()
-        {
-            return type.size;
-        }
-
-        public Double GetX()
-        {
-            return x;
-        }
-        public Double GetY()
-        {
-            return y;
-        }
-
-        public int GetLOS()
-        {
-            return type.lineOfSight;
-        }
-
-        public int GetPlayerNumber()
-        {
-            return player;
-        }
-
-        public int GetID()
-        {
-            return id;
         }
 
         /// <summary>

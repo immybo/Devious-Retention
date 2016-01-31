@@ -17,11 +17,12 @@ namespace Devious_Retention
         // Unique
         public int id { get; private set; }
 
-        public int player { get; private set; }
+        public int playerNumber { get; private set; }
         // As most attributes will change only under circumstances where
         // the UnitType will change as well, this provides most attributes
         // so not many fields are needed.
-        public UnitType type { get; private set; }
+        public UnitType unitType { get; private set; }
+        public EntityType type { get; private set; }
         // In addition to the maximum hitpoints provided by the type,
         // a unit must keep track of its current hitpoints.
         public int hitpoints;
@@ -36,11 +37,19 @@ namespace Devious_Retention
         private int direction;
 
         // The co-ordinates of the top-left corner of this unit
-        public double x;
-        public double y;
+        public double x { get; set; }
+        public double y { get; set; }
 
         // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will attack
         private int attackTick = 0;
+
+        public Image image
+        {
+            get
+            {
+                return unitType.image;
+            }
+        }
 
         /// <summary>
         /// A unit will get all of its attributes from
@@ -48,11 +57,12 @@ namespace Devious_Retention
         /// </summary>
         public Unit(UnitType type, int id, double x, double y, int player)
         {
+            this.unitType = type;
             this.type = type;
             this.id = id;
             this.x = x;
             this.y = y;
-            this.player = player;
+            this.playerNumber = player;
 
             direction = 0;
             xToMove = -1;
@@ -80,7 +90,7 @@ namespace Devious_Retention
         /// <param name="damageType">The type of damage being dealt.</param>
         public void TakeDamage(int damage, int damageType)
         {
-            int realDamage = (int)(damage * (100 - type.resistances[damageType]) / 100);
+            int realDamage = (int)(damage * (100 - unitType.resistances[damageType]) / 100);
             hitpoints -= realDamage;
         }
 
@@ -94,21 +104,21 @@ namespace Devious_Retention
             if (entity is Resource) return;
 
             // the distance to the target
-            double distance = Math.Sqrt(Math.Pow(x - entity.GetX(), 2) + Math.Pow(y - entity.GetY(), 2));
+            double distance = Math.Sqrt(Math.Pow(x - entity.x, 2) + Math.Pow(y - entity.y, 2));
             entityToAttack = entity;
 
             // If it's out of range, move towards it
-            if(distance > type.range)
+            if(distance > unitType.range)
             {
                 // Figure out what angle (radians) we are from the unit (-y=0, +y=pi)
-                double adjacentLength = entity.GetY() - y; // positive if the entity is higher than this
-                double oppositeLength = entity.GetX() - x; // positive if the entity is to the right of this
+                double adjacentLength = entity.y - y; // positive if the entity is higher than this
+                double oppositeLength = entity.x - x; // positive if the entity is to the right of this
 
                 double angle = Math.Atan2(oppositeLength,adjacentLength);
 
                 // Figure out the target position, which is [range] distance from the entity on that angle
-                xToMove = entity.GetX() + Math.Cos(angle) * type.range;
-                yToMove = entity.GetY() + Math.Sin(angle) * type.range;
+                xToMove = entity.x + Math.Cos(angle) * unitType.range;
+                yToMove = entity.y + Math.Sin(angle) * unitType.range;
             }
         }
 
@@ -120,7 +130,7 @@ namespace Devious_Retention
         /// </summary>
         public void ChangeMaxHP(int newMaxHP)
         {
-            double newHPMultiplier = (double)newMaxHP / type.hitpoints;
+            double newHPMultiplier = (double)newMaxHP / unitType.hitpoints;
             hitpoints = (int)(hitpoints * newHPMultiplier);
         }
 
@@ -155,44 +165,6 @@ namespace Devious_Retention
             return false;
         }
 
-        /// <summary>
-        /// Returns the current image for this unit, based on its direction,
-        /// animations and type.
-        /// </summary>
-        public Image GetImage()
-        {
-            return type.image;
-        }
-
-        /// <summary>
-        /// Returns the size of this unit's type.
-        /// </summary>
-        public double GetSize()
-        {
-            return type.size;
-        }
-
-        public double GetX()
-        {
-            return x;
-        }
-        public double GetY()
-        {
-            return y;
-        }
-        public int GetLOS()
-        {
-            return type.lineOfSight;
-        }
-        public int GetPlayerNumber()
-        {
-            return player;
-        }
-
-        public int GetID()
-        {
-            return id;
-        }
         /// <summary>
         /// Resets the next ID to 0.
         /// </summary>

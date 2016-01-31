@@ -53,6 +53,7 @@
     <Compile Include="BuildingType.cs" />
     <Compile Include="CTSConnection.cs" />
     <Compile Include="Entity.cs" />
+    <Compile Include="EntityType.cs" />
     <Compile Include="Faction.cs" />
     <Compile Include="GameClient.cs" />
     <Compile Include="GameInfo.cs" />
