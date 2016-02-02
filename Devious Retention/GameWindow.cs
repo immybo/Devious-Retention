@@ -309,6 +309,7 @@ namespace Devious_Retention
             // Figure out the old circle
             int oldUnitX = (int)(unit.x + unit.unitType.size / 2 - dX);
             int oldUnitY = (int)(unit.y + unit.unitType.size / 2 - dY);
+
             for (int x = oldUnitX - unit.unitType.lineOfSight; x <= oldUnitX + unit.unitType.lineOfSight; x++)
             {
                 for (int y = oldUnitY - unit.unitType.lineOfSight; y <= oldUnitY + unit.unitType.lineOfSight; y++)
@@ -415,7 +416,7 @@ namespace Devious_Retention
             foreach(Entity e in entities)
             {
                 // Distance between the entity and the tile
-                int distance = (int)(Math.Sqrt(Math.Pow(e.x - c.x, 2) + Math.Pow(e.y - c.y, 2)));
+                double distance = Math.Sqrt(Math.Pow(e.x - c.x, 2) + Math.Pow(e.y - c.y, 2));
                 if (distance <= e.type.lineOfSight) return true;
             }
 
@@ -1042,31 +1043,42 @@ namespace Devious_Retention
         /// </summary>
         private void MouseClickEvent(object sender, MouseEventArgs e)
         {
-            if (e.Button != MouseButtons.Left) return;
-            mouseDown = false;
-
-            // A mouse click on the minimap
-            if(GetArea(e.X, e.Y).Equals("minimap") && !mouseDownOnGameArea)
-                ScrollToMinimapPoint(e.X, e.Y);
-
-            // A mouse click on the game area (not the minimap as this has already been checked)
-            else if(GetArea(e.X, e.Y).Equals("game area") && mouseDownOnGameArea)
+            if (e.Button == MouseButtons.Right)
             {
-                // If the mouse was dragged across a sizeable area, treat it as a drag
-                if(Math.Abs(e.X- startX) > 20 || Math.Abs(e.Y- startY) > 20)
+                // If it's on the game area and there's a selected unit, move that selected unit
+                if(GetArea(e.X, e.Y).Equals("game area") && client.selected.Count > 0)
                 {
-                    Rectangle entitySelectBounds = new Rectangle((int)(e.X > startX ? startX : e.X), (int)(e.Y > startY ? startY : e.Y),
-                                                                 (int)Math.Abs(e.X- startX), (int)Math.Abs(e.Y- startY));
-                    entitySelectBounds.X /= tileWidth; entitySelectBounds.Y /= tileHeight;
-                    entitySelectBounds.Width /= tileWidth; entitySelectBounds.Y /= tileHeight;
-                    SelectEntitiesInArea(entitySelectBounds);
+                    double tileX = screenX + (double)e.X / tileWidth;
+                    double tileY = screenY + (double)e.Y / tileHeight;
+                    client.MoveUnits(tileX, tileY);
                 }
-                // Otherwise treat it as a click
-                else
+            }
+            else if (e.Button == MouseButtons.Left)
+            {
+                mouseDown = false;
+                // A mouse click on the minimap
+                if (GetArea(e.X, e.Y).Equals("minimap") && !mouseDownOnGameArea)
+                    ScrollToMinimapPoint(e.X, e.Y);
+
+                // A mouse click on the game area (not the minimap as this has already been checked)
+                else if (GetArea(e.X, e.Y).Equals("game area") && mouseDownOnGameArea)
                 {
-                    Entity entity = GetEntityAt((double)e.X/tileWidth, (double)e.Y/tileHeight);
-                    client.selected.Clear();
-                    if(entity != null) client.selected.Add(entity);
+                    // If the mouse was dragged across a sizeable area, treat it as a drag
+                    if (Math.Abs(e.X - startX) > 20 || Math.Abs(e.Y - startY) > 20)
+                    {
+                        Rectangle entitySelectBounds = new Rectangle((int)(e.X > startX ? startX : e.X), (int)(e.Y > startY ? startY : e.Y),
+                                                                     (int)Math.Abs(e.X - startX), (int)Math.Abs(e.Y - startY));
+                        entitySelectBounds.X /= tileWidth; entitySelectBounds.Y /= tileHeight;
+                        entitySelectBounds.Width /= tileWidth; entitySelectBounds.Y /= tileHeight;
+                        SelectEntitiesInArea(entitySelectBounds);
+                    }
+                    // Otherwise treat it as a click
+                    else
+                    {
+                        Entity entity = GetEntityAt((double)e.X / tileWidth, (double)e.Y / tileHeight);
+                        client.selected.Clear();
+                        if (entity != null) client.selected.Add(entity);
+                    }
                 }
             }
         }

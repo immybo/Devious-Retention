@@ -60,13 +60,39 @@ namespace Devious_Retention
 
                 while (true)
                 {
-                    Console.WriteLine(reader.ReadLine());
+                    // If anything was read,
+                    string line = reader.ReadLine();
+                    if (line != null)
+                    {
+                        string[] splitLine = line.Split(new Char[] { ' ' });
+                        // Check what type of message it was
+                        int messageType = int.Parse(splitLine[0]);
+
+                        // And process that message appropriately
+                        switch (messageType)
+                        {
+                            case 3:
+                                InformServerUnitMove(splitLine);
+                                break;
+                        }
+                    }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
+        }
+
+        /// <summary>
+        /// Tells the server to move a unit.
+        /// </summary>
+        private void InformServerUnitMove(string[] splitLine)
+        {
+            int id = int.Parse(splitLine[1]);
+            double dX = double.Parse(splitLine[2]);
+            double dY = double.Parse(splitLine[3]);
+            server.MoveUnit(id, dX, dY);
         }
 
         /// <summary>
@@ -108,9 +134,9 @@ namespace Devious_Retention
         /// Informs the client that a new entity has been added.
         /// 
         /// Message format:
-        /// [message type=0] [0=unit,1=building,2=resource] [type name] [id] [xpos] [ypos] [player (if not a resource)]
+        /// [message type=0] [isFree] [0=unit,1=building,2=resource] [type name] [id] [xpos] [ypos] [player (if not a resource)]
         /// </summary>
-        public void InformEntityAdd(Entity entity)
+        public void InformEntityAdd(Entity entity, bool isFree)
         {
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
 
@@ -119,7 +145,7 @@ namespace Devious_Retention
             if (entity is Unit) { entityType = 0; typeName = ((Unit)entity).unitType.name; }
             else if (entity is Building) { entityType = 1; typeName = ((Building)entity).buildingType.name; }
             else if (entity is Resource) { entityType = 2; typeName = ((Resource)entity).resourceType.name; }
-            outgoingWriter.WriteLine("0 " + entityType + " " + typeName + " " + entity.id + " " + entity.x + " " + entity.y + " " + entity.playerNumber);
+            outgoingWriter.WriteLine("0 " + isFree + " " + entityType + " " + typeName + " " + entity.id + " " + entity.x + " " + entity.y + " " + entity.playerNumber);
         }
 
         /// <summary>
@@ -162,7 +188,6 @@ namespace Devious_Retention
         public void InformEntityChange(Entity entity, int attributeID, double attributeChange)
         {
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
-
             int entityType = -1;
             if (entity is Unit) entityType = 0;
             else if (entity is Building) entityType = 1;

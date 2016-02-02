@@ -15,7 +15,7 @@ namespace Devious_Retention
     /// </summary>
     public class GameClient
     {
-        private CTSConnection connection;
+        public CTSConnection connection { get; set; }
         // Each player's GameInfo is changed over time due to technologies, factions, etc
         public List<GameInfo> definitions { get; private set; }
         public GameInfo info { get; private set; } // This client's GameInfo (= definitions[playerNumber])
@@ -59,13 +59,14 @@ namespace Devious_Retention
             window.client = this;
             window.InitLOS();
             // this.faction = faction;
-            // this.connection = connection;
+            this.connection = connection;
             this.playerNumber = playerNumber;
             playerColor = GameInfo.PLAYER_COLORS[playerNumber];
 
             resources = new Dictionary<int, Resource>();
             buildings = new Dictionary<int, Building>();
             units = new Dictionary<int, Unit>();
+            entitiesBySquare = new List<Entity>[map.width, map.height];
 
             selected = new List<Entity>();
 
@@ -133,6 +134,33 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Attempts to pathfind with the selected units and move them to (x,y)
+        /// If (x,y) is off the map, moves them to the edge of the map in whichever
+        /// dimension is off of it
+        /// </summary>
+        public void MoveUnits(double x, double y)
+        {
+            List<Unit> selectedUnits = new List<Unit>();
+            foreach (Entity e in selected)
+                if (e is Unit)
+                    selectedUnits.Add((Unit)e);
+
+            if (x < 0) x = 0;
+            if (y < 0) y = 0;
+
+            // No pathfinding for now, just move it IF it wouldn't go off the map
+            foreach (Unit unit in selectedUnits)
+            {
+                double adjustedX = x - unit.type.size / 2;
+                double adjustedY = y - unit.type.size / 2;
+                if (x + unit.type.size >= map.width) adjustedX = map.width - unit.type.size;
+                if (y + unit.type.size >= map.height) adjustedY = map.height - unit.type.size;
+
+                connection.RequestMove(unit, adjustedX - unit.x, adjustedY - unit.y);
+            }
+        }
+
+        /// <summary>
         /// Attempts to create a building foundation of the given type
         /// at the given position. Returns whether or not the client has 
         /// enough resources for this and the player can create that BuildingType.
@@ -171,12 +199,13 @@ namespace Devious_Retention
         /// <summary>
         /// Adds an entity. Does nothing if the entity type isn't found.
         /// </summary>
+        /// <param name="isFree">Whether or not this entity doesn't cost resources.</param>
         /// <param name="entityType">0=unit, 1=building, 2=resource</param>
         /// <param name="type">The name of the type of entity to be created.</param>
         /// <param name="xPos">The initial x position of the new entity.</param>
         /// <param name="yPos">The initial y position of the new entity.</param>
         /// <param name="player">The player that the entity belongs to. Irrelevant if a resource.</param>
-        public void AddEntity(int entityType, int id, string type, double xPos, double yPos, int player)
+        public void AddEntity(bool isFree, int entityType, int id, string type, double xPos, double yPos, int player)
         {
             Entity entity = null;
             if(entityType == 0)
@@ -190,7 +219,7 @@ namespace Devious_Retention
                 entity = unit;
 
                 // If the unit belongs to the player, remove the resources as well
-                if (unit.playerNumber == playerNumber)
+                if (unit.playerNumber == playerNumber && !isFree)
                     for (int i = 0; i < currentResources.Length; i++)
                         currentResources[i] -= unit.unitType.resourceCosts[i];
             }
@@ -205,7 +234,7 @@ namespace Devious_Retention
                 entity = building;
 
                 // If the building belongs to the player, remove the resources as well
-                if (building.playerNumber == playerNumber)
+                if (building.playerNumber == playerNumber && !isFree)
                     for (int i = 0; i < currentResources.Length; i++)
                         currentResources[i] -= building.buildingType.resourceCosts[i];
             }
@@ -217,10 +246,13 @@ namespace Devious_Retention
                 resources.Add(resource.id, resource);
                 entity = resource;
             }
-            
+
             // Check which tiles it at least partially occupies
-            foreach(Coordinate c in Map.GetIncludedTiles(map, entity))
-                entitiesBySquare[c.x, c.y].Add(entity);
+            foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
+            {
+                if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { entity };
+                else entitiesBySquare[c.x, c.y].Add(entity);
+            }
         }
 
         /// <summary>
@@ -282,34 +314,42 @@ namespace Devious_Retention
                 Unit unit = units[entityID];
 
                 if (propertyID == 0) unit.hitpoints += (int)change;
-                else if (propertyID == 1) unit.x += change;
-                else if (propertyID == 2) unit.y += change;
-                else if(propertyID == 3)
+                else if (propertyID == 1)
+                {
+                    unit.x += change;
+                    if (unit.playerNumber == playerNumber) window.UpdateLOSMove(unit, change, 0);
+                }
+                else if (propertyID == 2)
+                {
+                    unit.y += change;
+                    if (unit.playerNumber == playerNumber) window.UpdateLOSMove(unit, 0, change);
+                }
+                else if (propertyID == 3)
                 {
                     if ((int)change == 1) unit.BeginBattleAnimation();
                     else unit.StopBattleAnimation();
                 }
-                else if(propertyID == 4)
+                else if (propertyID == 4)
                 {
                     if ((int)change == 1) unit.BeginMovementAnimation();
                     else unit.StopMovementAnimation();
                 }
-            }
-            else if (entityType == 1)
-            {
-                if (!buildings.ContainsKey(entityID)) return;
-                Building building = buildings[entityID];
+                }
+                else if (entityType == 1)
+                {
+                    if (!buildings.ContainsKey(entityID)) return;
+                    Building building = buildings[entityID];
 
-                if (propertyID == 0) building.hitpoints += (int)change;
-                else if (propertyID == 1) building.built = true;
-            }
-            else if(entityType == 2)
-            {
-                if (!resources.ContainsKey(entityID)) return;
-                Resource resource = resources[entityID];
+                    if (propertyID == 0) building.hitpoints += (int)change;
+                    else if (propertyID == 1) building.built = true;
+                }
+                else if (entityType == 2)
+                {
+                    if (!resources.ContainsKey(entityID)) return;
+                    Resource resource = resources[entityID];
 
-                if (propertyID == 0) resource.amount -= (int)change;
-            }
+                    if (propertyID == 0) resource.amount -= (int)change;
+                }
         }
 
         /// <summary>

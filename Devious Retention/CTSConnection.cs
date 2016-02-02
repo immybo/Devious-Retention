@@ -140,13 +140,14 @@ namespace Devious_Retention
         /// <param name="splitLine">The received line, split by spaces.</param>
         private void AddEntity(string[] splitLine)
         {
-            int entityType = int.Parse(splitLine[1]);
-            string typeName = splitLine[2];
-            int id = int.Parse(splitLine[3]);
-            double xPos = double.Parse(splitLine[4]);
-            double yPos = double.Parse(splitLine[5]);
-            int playerNumber = int.Parse(splitLine[1]) == 2 ? 0 : int.Parse(splitLine[6]); // use a player number of 0 if it's a resource
-            client.AddEntity(entityType, id, typeName, xPos, yPos, playerNumber);
+            bool isFree = bool.Parse(splitLine[1]);
+            int entityType = int.Parse(splitLine[2]);
+            string typeName = splitLine[3];
+            int id = int.Parse(splitLine[4]);
+            double xPos = double.Parse(splitLine[5]);
+            double yPos = double.Parse(splitLine[6]);
+            int playerNumber = int.Parse(splitLine[2]) == 2 ? 0 : int.Parse(splitLine[7]); // use a player number of 0 if it's a resource
+            client.AddEntity(isFree, entityType, id, typeName, xPos, yPos, playerNumber);
         }
 
         /// <summary>
@@ -171,7 +172,7 @@ namespace Devious_Retention
             int entityType = int.Parse(splitLine[1]);
             int entityID = int.Parse(splitLine[2]);
             int attribute = int.Parse(splitLine[3]);
-            double attributeChange = int.Parse(splitLine[4]);
+            double attributeChange = double.Parse(splitLine[4]);
             client.ChangeEntityProperty(entityType, entityID, attribute, attributeChange);
         }
 
@@ -225,10 +226,13 @@ namespace Devious_Retention
 
         /// <summary>
         /// Sends a request for the given unit to be moved by the given amount.
+        /// 
+        /// Message format:
+        /// [message type = 3] [unit id] [dX] [dY]
         /// </summary>
         public void RequestMove(Unit unit, double dX, double dY)
         {
-
+            outgoingWriter.WriteLine("3 " + unit.id + " " + dX + " " + dY);
         }
 
         /// <summary>

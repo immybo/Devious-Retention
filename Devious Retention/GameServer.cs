@@ -15,7 +15,7 @@ namespace Devious_Retention
     /// </summary>
     class GameServer
     {
-        private List<STCConnection> connections;
+        public List<STCConnection> connections { get; set; }
         
         // One map for every player, contains only technologies that they have researched
         private List<Dictionary<String, Technology>> researched;
@@ -39,7 +39,11 @@ namespace Devious_Retention
         /// </summary>
         public GameServer(List<STCConnection> connections, Map map)
         {
-            this.connections = connections;
+            if (connections != null)
+                this.connections = connections;
+            else
+                this.connections = new List<STCConnection>();
+
             this.map = map;
 
             units = new Dictionary<int, Unit>();
@@ -81,7 +85,7 @@ namespace Devious_Retention
 
             // No collisions, so we can safetly place the foundation :)
             foreach (STCConnection c in connections)
-                c.InformEntityAdd(building);
+                c.InformEntityAdd(building, false);
 
             buildings.Add(building.id, building);
             foreach(Coordinate c in buildingCoordinates)
@@ -96,9 +100,46 @@ namespace Devious_Retention
         /// Attempts to create a unit of the given type from the given building.
         /// Does nothing if no space could be found around the building.
         /// </summary>
-        public bool CreateUnit(Building sourceBuilding, UnitType unit)
+        public void CreateUnit(Building sourceBuilding, UnitType unit)
         {
-            return false;
+        }
+
+        /// <summary>
+        /// Creates an entity and informs all clients.
+        /// </summary>
+        public void SpawnEntity(EntityType type, int player, double x, double y)
+        {
+            Entity entity = null;
+
+            if (type is UnitType)
+            {
+                entity = new Unit((UnitType)type, Unit.nextID, x, y, player);
+                Unit.IncrementNextID();
+                units.Add(entity.id, (Unit)entity);
+            }
+            else if(type is BuildingType)
+            {
+                entity = new Building((BuildingType)type, Building.nextID, x, y, player);
+                Building.IncrementNextID();
+                buildings.Add(entity.id, (Building)entity);
+            }
+            else if(type is ResourceType)
+            {
+                entity = new Resource((ResourceType)type, Resource.nextID, x, y);
+                resources.Add(entity.id, (Resource)entity);
+            }
+
+            // Make sure to add it to the list of entities by coordinate as well as the regular entity dictionaries
+            List<Coordinate> entityCoordinates = Map.GetIncludedTiles(map, entity);
+            foreach (Coordinate c in entityCoordinates)
+            {
+                if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { entity };
+                else entitiesBySquare[c.x, c.y].Add(entity);
+            }
+
+            if (entity == null) return;
+            foreach (STCConnection c in connections)
+                c.InformEntityAdd(entity, true);
         }
 
         /// <summary>
@@ -127,9 +168,19 @@ namespace Devious_Retention
         /// able to move by this much; this is assumed when the command
         /// is sent.
         /// </summary>
-        public void MoveUnit(Unit unit, double dX, double dY)
+        public void MoveUnit(int unitID, double dX, double dY)
         {
+            if (!units.ContainsKey(unitID)) return;
+            Unit unit = units[unitID];
 
+            unit.x += dX;
+            unit.y += dY;
+
+            foreach (STCConnection c in connections)
+            {
+                c.InformEntityChange(unit, 1, dX);
+                c.InformEntityChange(unit, 2, dY);
+            }
         }
 
         /// <summary>
