@@ -90,9 +90,9 @@ namespace Devious_Retention
         private void InformServerUnitMove(string[] splitLine)
         {
             int id = int.Parse(splitLine[1]);
-            double dX = double.Parse(splitLine[2]);
-            double dY = double.Parse(splitLine[3]);
-            server.MoveUnit(id, dX, dY);
+            double x = double.Parse(splitLine[2]);
+            double y = double.Parse(splitLine[3]);
+            server.CommandUnitToMove(id, x, y);
         }
 
         /// <summary>
@@ -175,24 +175,23 @@ namespace Devious_Retention
         /// Attribute IDs:
         /// Unit:
         /// 0 = hitpoints
-        /// 1 = x position
-        /// 2 = y position
-        /// 3 = play battle animation (1 = start/restart, 0 = stop)
-        /// 4 = play movement animation (1 = start/restart, 0 = stop)
+        /// 1 = x and y position (2 attribute changes)
+        /// 2 = play battle animation (1 = start/restart, 0 = stop)
+        /// 3 = play movement animation (1 = start/restart, 0 = stop)
         /// Building:
         /// 0 = hitpoints
         /// 1 = built (only 1 is accepted)
         /// Resource:
         /// 0 = amount remaining
         /// </summary>
-        public void InformEntityChange(Entity entity, int attributeID, double attributeChange)
+        public void InformEntityChange(Entity entity, int attributeID, double attributeChange, double attributeChange2)
         {
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
             int entityType = -1;
             if (entity is Unit) entityType = 0;
             else if (entity is Building) entityType = 1;
             else if (entity is Resource) entityType = 2;
-            outgoingWriter.WriteLine("2 " + entityType + " " + entity.id + " " + attributeID + " " + attributeChange);
+            outgoingWriter.WriteLine("2 " + entityType + " " + entity.id + " " + attributeID + " " + attributeChange + " " + attributeChange2);
         }
 
         /// <summary>

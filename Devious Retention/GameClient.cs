@@ -134,9 +134,7 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Attempts to pathfind with the selected units and move them to (x,y)
-        /// If (x,y) is off the map, moves them to the edge of the map in whichever
-        /// dimension is off of it
+        /// Asks the server to move selected units to (x,y)
         /// </summary>
         public void MoveUnits(double x, double y)
         {
@@ -147,8 +145,8 @@ namespace Devious_Retention
 
             if (x < 0) x = 0;
             if (y < 0) y = 0;
-
-            // No pathfinding for now, just move it IF it wouldn't go off the map
+            
+            // We can check here if it would go off the map
             foreach (Unit unit in selectedUnits)
             {
                 double adjustedX = x - unit.type.size / 2;
@@ -156,7 +154,7 @@ namespace Devious_Retention
                 if (x + unit.type.size >= map.width) adjustedX = map.width - unit.type.size;
                 if (y + unit.type.size >= map.height) adjustedY = map.height - unit.type.size;
 
-                connection.RequestMove(unit, adjustedX - unit.x, adjustedY - unit.y);
+                connection.RequestMove(unit, adjustedX, adjustedY);
             }
         }
 
@@ -306,7 +304,7 @@ namespace Devious_Retention
         /// <param name="entityID">The ID of the entity to be changed. Nothing will happen if no entity with this ID exists.</param>
         /// <param name="propertyID">The ID of the property to be changed. Nothing will happen if this is invalid.</param>
         /// <param name="change">The modifier to the property.</param>
-        public void ChangeEntityProperty(int entityType, int entityID, int propertyID, double change)
+        public void ChangeEntityProperty(int entityType, int entityID, int propertyID, double change, double change2)
         {
             if (entityType == 0)
             {
@@ -317,39 +315,35 @@ namespace Devious_Retention
                 else if (propertyID == 1)
                 {
                     unit.x += change;
-                    if (unit.playerNumber == playerNumber) window.UpdateLOSMove(unit, change, 0);
+                    unit.y += change2;
+                    if (unit.playerNumber == playerNumber) window.UpdateLOSMove(unit, change, change2);
                 }
                 else if (propertyID == 2)
-                {
-                    unit.y += change;
-                    if (unit.playerNumber == playerNumber) window.UpdateLOSMove(unit, 0, change);
-                }
-                else if (propertyID == 3)
                 {
                     if ((int)change == 1) unit.BeginBattleAnimation();
                     else unit.StopBattleAnimation();
                 }
-                else if (propertyID == 4)
+                else if (propertyID == 3)
                 {
                     if ((int)change == 1) unit.BeginMovementAnimation();
                     else unit.StopMovementAnimation();
                 }
-                }
-                else if (entityType == 1)
-                {
-                    if (!buildings.ContainsKey(entityID)) return;
-                    Building building = buildings[entityID];
+            }
+            else if (entityType == 1)
+            {
+                if (!buildings.ContainsKey(entityID)) return;
+                Building building = buildings[entityID];
 
-                    if (propertyID == 0) building.hitpoints += (int)change;
-                    else if (propertyID == 1) building.built = true;
-                }
-                else if (entityType == 2)
-                {
-                    if (!resources.ContainsKey(entityID)) return;
-                    Resource resource = resources[entityID];
+                if (propertyID == 0) building.hitpoints += (int)change;
+                else if (propertyID == 1) building.built = true;
+            }
+            else if (entityType == 2)
+            {
+                if (!resources.ContainsKey(entityID)) return;
+                Resource resource = resources[entityID];
 
-                    if (propertyID == 0) resource.amount -= (int)change;
-                }
+                if (propertyID == 0) resource.amount -= (int)change;
+            }
         }
 
         /// <summary>

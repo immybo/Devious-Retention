@@ -31,6 +31,12 @@ namespace Devious_Retention
         // Which entities are where; if at least part of an entity is on a square, it will be recorded in that square's list
         private List<Entity>[,] entitiesBySquare;
 
+        // What units have been commanded to move
+        private List<Unit> movingUnits;
+        // What entities have been commanded to attack
+        private List<Unit> attackingUnits;
+        private List<Building> attackingBuildings;
+
         /// <summary>
         /// To create a GameServer, all clients (STCConnections) must be provided,
         /// as well as a generic base GameInfo. Note that the GameServer treats every
@@ -51,17 +57,24 @@ namespace Devious_Retention
             resources = new Dictionary<int, Resource>();
             entitiesBySquare = new List<Entity>[map.width,map.height];
 
+            movingUnits = new List<Unit>();
+            attackingUnits = new List<Unit>();
+            attackingBuildings = new List<Building>();
+
             Timer tickTimer = new Timer();
             tickTimer.Interval = GameInfo.TICK_TIME;
             tickTimer.Tick += Tick;
+            tickTimer.Start();
         }
 
         /// <summary>
-        /// Tells all clients that a tick has occured.
+        /// Processes a tick
         /// </summary>
         private void Tick(object sender, EventArgs e)
         {
-            foreach (STCConnection c in connections)
+            MoveAllUnits(); // Move all the units that need moving
+
+            foreach (STCConnection c in connections) // Inform all the clients
                 c.Tick();
         }
 
@@ -163,24 +176,15 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Moves the given unit by (dX, dY).
-        /// Does NO CHECKING as to whether the unit would actually be
-        /// able to move by this much; this is assumed when the command
-        /// is sent.
+        /// Gives the given unit a command to move to (x,y).
         /// </summary>
-        public void MoveUnit(int unitID, double dX, double dY)
+        public void CommandUnitToMove(int unitID, double x, double y)
         {
             if (!units.ContainsKey(unitID)) return;
             Unit unit = units[unitID];
-
-            unit.x += dX;
-            unit.y += dY;
-
-            foreach (STCConnection c in connections)
-            {
-                c.InformEntityChange(unit, 1, dX);
-                c.InformEntityChange(unit, 2, dY);
-            }
+            if(!movingUnits.Contains(unit)) movingUnits.Add(unit);
+            unit.xToMove = x;
+            unit.yToMove = y;
         }
 
         /// <summary>
@@ -191,6 +195,37 @@ namespace Devious_Retention
         public void DeleteEntity(Entity entity)
         {
 
+        }
+
+        /// <summary>
+        /// Moves all units which have been commanded to move by one tick's worth of movement.
+        /// </summary>
+        private void MoveAllUnits()
+        {
+            List<Unit> toRemove = new List<Unit>();
+            foreach (Unit u in movingUnits)
+            {
+                if (u.xToMove == u.x && u.yToMove == u.y) { toRemove.Add(u); continue; }
+
+                double dX = 0;
+                double dY = 0;
+
+                if (u.xToMove >= u.x + u.type.speed / 1000 * GameInfo.TICK_TIME) dX = u.type.speed / 1000 * GameInfo.TICK_TIME;
+                else if (u.xToMove <= u.x - u.type.speed / 1000 * GameInfo.TICK_TIME) dX = -u.type.speed / 1000 * GameInfo.TICK_TIME;
+                else dX = u.xToMove - u.x;
+
+                if (u.yToMove >= u.y + u.type.speed / 1000 * GameInfo.TICK_TIME) dY = u.type.speed / 1000 * GameInfo.TICK_TIME;
+                else if (u.yToMove <= u.y - u.type.speed / 1000 * GameInfo.TICK_TIME) dY = -u.type.speed / 1000 * GameInfo.TICK_TIME;
+                else dY = u.yToMove - u.y;
+
+                u.x += dX;
+                u.y += dY;
+                foreach (STCConnection c in connections)
+                    c.InformEntityChange(u, 1, dX, dY);
+            }
+
+            foreach (Unit u in toRemove)
+                movingUnits.Remove(u);
         }
     }
 }

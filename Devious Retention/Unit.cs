@@ -31,9 +31,9 @@ namespace Devious_Retention
         // null,-1,-1 (respectively). If it has, however, it will attempt to move
         // towards the spot or the unit, or attack the unit if it's within range.
         // Attacking will take priority (although they should never both be active).
-        private Entity entityToAttack;
-        private double xToMove;
-        private double yToMove;
+        public Entity entityToAttack;
+        public double xToMove;
+        public double yToMove;
         private int direction;
 
         // The co-ordinates of the top-left corner of this unit
@@ -41,7 +41,9 @@ namespace Devious_Retention
         public double y { get; set; }
 
         // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will attack
-        private int attackTick = 0;
+        public int attackTick = 0;
+        // " movement animation
+        public int movementTick = 0;
 
         public Image image
         {
@@ -76,11 +78,11 @@ namespace Devious_Retention
         /// is within immoveable terrain), it will move as as close as it can
         /// to it.
         /// </summary>
-        public void Move(double x, double y)
+       /* public void Move(double x, double y)
         {
             xToMove = x;
             yToMove = y;
-        }
+        }*/
 
         /// <summary>
         /// Lowers this unit's hitpoints by the appropriate amount.
@@ -138,21 +140,21 @@ namespace Devious_Retention
         /// Completes another tick of whatever action this unit is performing.
         /// Does nothing if this unit is not performing any action.
         /// </summary>
-        public void Tick()
+        /*public void Tick()
         {
             // Only performs one action every tick (e.g. can't move AND attack)
             
             if (AttackTick()) return;
             MoveTick();
-        }
+        }*/
 
         /// <summary>
         /// Finds the closest path to and then travels one tick towards this unit's target
         /// location (does nothing if this unit has no target location).
         /// </summary>
-        private void MoveTick()
-        {
-        }
+       // private void MoveTick()
+       // {
+       // }
 
         /// <summary>
         /// Produces one tick of work towards this unit's next attack.

@@ -173,7 +173,8 @@ namespace Devious_Retention
             int entityID = int.Parse(splitLine[2]);
             int attribute = int.Parse(splitLine[3]);
             double attributeChange = double.Parse(splitLine[4]);
-            client.ChangeEntityProperty(entityType, entityID, attribute, attributeChange);
+            double attributeChange2 = double.Parse(splitLine[5]);
+            client.ChangeEntityProperty(entityType, entityID, attribute, attributeChange, attributeChange2);
         }
 
         /// <summary>
@@ -225,14 +226,14 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Sends a request for the given unit to be moved by the given amount.
+        /// Sends a request for the given unit to be moved to the given position.
         /// 
         /// Message format:
-        /// [message type = 3] [unit id] [dX] [dY]
+        /// [message type = 3] [unit id] [x] [y]
         /// </summary>
-        public void RequestMove(Unit unit, double dX, double dY)
+        public void RequestMove(Unit unit, double x, double y)
         {
-            outgoingWriter.WriteLine("3 " + unit.id + " " + dX + " " + dY);
+            outgoingWriter.WriteLine("3 " + unit.id + " " + x + " " + y);
         }
 
         /// <summary>

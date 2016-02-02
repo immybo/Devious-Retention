@@ -63,7 +63,7 @@ namespace Devious_Retention
         public const string FONT_NAME = "Arial";
 
         // In milliseconds
-        public const int TICK_TIME = 100;
+        public const int TICK_TIME = 30;
         public const int WINDOW_REFRESH_TIME = 20;
         // Melee, ranged, bombard
         public const int DAMAGE_TYPES  = 3;
