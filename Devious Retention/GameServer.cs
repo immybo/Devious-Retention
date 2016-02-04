@@ -206,7 +206,7 @@ namespace Devious_Retention
             foreach (Unit u in movingUnits)
             {
                 if (u.xToMove == u.x && u.yToMove == u.y) { toRemove.Add(u); continue; }
-
+                
                 double dX = 0;
                 double dY = 0;
 

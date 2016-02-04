@@ -277,7 +277,7 @@ namespace Devious_Retention
                 {
                     string[] split = line.Split(new char[] { ' ' });
                     for (int i = 0; i < split.Length; i++)
-                        prerequisites.Add(split[i]);
+                        if(split[i].Length > 0) prerequisites.Add(split[i]);
                 }
                 else if (currentLine == 3)
                 {

@@ -22,9 +22,9 @@ namespace Devious_Retention
         private string iconName;
         public Image icon { get; private set; }
 
-        // A technology can have one or more prerequisite technologies
+        // A technology can have one prerequisite technology
         // that must be researched before it can be.
-        private HashSet<String> prerequisites;
+        public HashSet<String> prerequisites { get; private set; }
 
         // Each string has a few components, seperated by spaces:
         // - an identifier for whether it affects a unit, a building or a technology

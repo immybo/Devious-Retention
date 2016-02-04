@@ -67,6 +67,10 @@ namespace Devious_Retention
         private bool mouseDown = false;
         // Whether or not the mouse left button was previous pressed down on top of the game panel
         private bool mouseDownOnGameArea = false;
+        // " top right panel
+        private bool mouseDownOnTopRightArea = false;
+        // How far vertically the top right panel has been shifted
+        private int topRightShift = 0;
 
         // Whether the building panel or the technology panel is open
         private bool buildingPanelOpen = true;
@@ -954,9 +958,16 @@ namespace Devious_Retention
         /// </summary>
         private void RenderTopRightPanel(Graphics g, Rectangle bounds)
         {
+            g.SetClip(bounds);
+
+            int fontSize = bounds.Width / 25;
+
             // Account for the border size
             bounds.X += RIGHT_AREA_BORDER_WIDTH;
             bounds.Width -= RIGHT_AREA_BORDER_WIDTH;
+
+            bounds.Y += 40;
+            bounds.Height -= 40;
 
             // If the building panel is open, draw that
             if (buildingPanelOpen)
@@ -974,8 +985,10 @@ namespace Devious_Retention
                     bool grayed = !(client.info.technologies.ContainsKey(b.prerequisite) && client.info.technologies[b.prerequisite].researched);
 
                     Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (i % numIconsPerRow),
-                        bounds.Y + ICON_GAP + (int)(i / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
+                        bounds.Y + ICON_GAP + topRightShift + (int)(i / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
                         ICON_SIZE, ICON_SIZE);
+                    if (iconBounds.Y + ICON_SIZE < 0) continue;
+                    if (iconBounds.Y > bounds.Y + bounds.Height) continue;
 
                     g.DrawImage(b.image, iconBounds);
                     
@@ -987,6 +1000,7 @@ namespace Devious_Retention
                     buildingTypeList.Add(b);
                 }
                 // Also draw a tooltip if the mouse is over a building
+                g.ResetClip();
                 if(GetArea(mouseX, mouseY).Equals("top right panel")) // In the right screen area
                 {
                     // Now find if it's actually over an icon
@@ -1013,9 +1027,68 @@ namespace Devious_Retention
             // Otherwise draw the technology panel
             else
             {
+                int numIconsPerRow = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
+                int x = 0;
+                List<Technology> techList = new List<Technology>();
+                foreach(Technology t in client.info.technologies.Values)
+                {
+                    // If the technology can't be researched yet, grey it out
+                    bool grayed = false;
+                    foreach (string s in t.prerequisites)
+                        if (!client.info.technologies.ContainsKey(s))
+                            grayed = true;
+
+                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (x % numIconsPerRow),
+                        bounds.Y + ICON_GAP + topRightShift + (int)(x / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
+                        ICON_SIZE, ICON_SIZE);
+                    if (iconBounds.Y + ICON_SIZE < 0) continue;
+                    if (iconBounds.Y > bounds.Y + bounds.Height) continue;
+
+                    g.DrawImage(t.icon, iconBounds);
+
+                    if (grayed)
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
+
+                    techList.Add(t);
+                    x++;
+                }
 
                 // Also draw a tooltip if the mouse is over a technology
+                g.ResetClip();
+                if (GetArea(mouseX, mouseY).Equals("top right panel")) // In the right screen area
+                {
+                    // Now find if it's actually over an icon
+                    double column = (double)(mouseX - bounds.X) / (ICON_SIZE + ICON_GAP);
+                    double row = (double)(mouseY - bounds.Y) / (ICON_SIZE + ICON_GAP);
+
+                    int num = (int)row * numIconsPerRow + (int)column;
+                    if (num < client.info.technologies.Values.Count)
+                    {
+                        // Now make sure it's aligned with an icon and not the gaps between them
+                        double columnRemainder = column - (int)column;
+                        double rowRemainder = row - (int)row;
+                        if (columnRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP) && rowRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP))
+                        {
+                            // Draw it to the bottom left of the mouse cursor
+                            int tooltipWidth = 300;
+                            int tooltipHeight = 500;
+                            DrawTechnologyTooltip(g, techList[num], new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
+                        }
+                    }
+                }
             }
+
+            // Draw the switch button
+            g.FillRectangle(Brushes.Azure, bounds.X, bounds.Y-40, bounds.Width, 40);
+            g.DrawRectangle(Pens.Black, bounds.X, bounds.Y-40, bounds.Width, 40);
+            StringFormat centerFormat = new StringFormat();
+            centerFormat.Alignment = StringAlignment.Center;
+            string drawString;
+            if (buildingPanelOpen)
+                drawString = "Open Technology Panel";
+            else
+                drawString = "Open Building Panel";
+            g.DrawString(drawString, new Font(GameInfo.FONT_NAME, fontSize), Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y -35), centerFormat);
         }
 
         /// <summary>
@@ -1043,10 +1116,11 @@ namespace Devious_Retention
         /// </summary>
         private void MouseClickEvent(object sender, MouseEventArgs e)
         {
+            string area = GetArea(e.X, e.Y);
             if (e.Button == MouseButtons.Right)
             {
                 // If it's on the game area and there's a selected unit, move that selected unit
-                if(GetArea(e.X, e.Y).Equals("game area") && client.selected.Count > 0)
+                if(area.Equals("game area") && client.selected.Count > 0)
                 {
                     double tileX = screenX + (double)e.X / tileWidth;
                     double tileY = screenY + (double)e.Y / tileHeight;
@@ -1057,11 +1131,11 @@ namespace Devious_Retention
             {
                 mouseDown = false;
                 // A mouse click on the minimap
-                if (GetArea(e.X, e.Y).Equals("minimap") && !mouseDownOnGameArea)
+                if (area.Equals("minimap") && !mouseDownOnGameArea)
                     ScrollToMinimapPoint(e.X, e.Y);
 
                 // A mouse click on the game area (not the minimap as this has already been checked)
-                else if (GetArea(e.X, e.Y).Equals("game area") && mouseDownOnGameArea)
+                else if (area.Equals("game area") && mouseDownOnGameArea)
                 {
                     // If the mouse was dragged across a sizeable area, treat it as a drag
                     if (Math.Abs(e.X - startX) > 20 || Math.Abs(e.Y - startY) > 20)
@@ -1080,6 +1154,14 @@ namespace Devious_Retention
                         if (entity != null) client.selected.Add(entity);
                     }
                 }
+
+                // On the top right panel
+                else if(area.Equals("top right panel"))
+                {
+                    // On the "switch between panels" place
+                    if (e.Y <= 40 && e.X > GAME_AREA_WIDTH*Width + RIGHT_AREA_BORDER_WIDTH)
+                        buildingPanelOpen = !buildingPanelOpen;
+                }
             }
         }
 
@@ -1094,6 +1176,7 @@ namespace Devious_Retention
             startY = e.Y;
             mouseDown = true;
             mouseDownOnGameArea = GetArea(e.X, e.Y).Equals("game area");
+            mouseDownOnTopRightArea = GetArea(e.X, e.Y).Equals("top right panel");
         }
 
         /// <summary>
@@ -1101,12 +1184,21 @@ namespace Devious_Retention
         /// </summary>
         private void MouseMoveEvent(object sender, MouseEventArgs e)
         {
+            // If we're dragging in the top right panel, scroll it
+            if (mouseDown && mouseDownOnTopRightArea)
+            {
+                topRightShift += (int)mouseY - e.Y;
+                if (topRightShift < 0) topRightShift = 0;
+            }
+
+
             mouseX = e.X;
             mouseY = e.Y;
 
             // If we're dragging the mouse in the minimap area, set the view appropriately
             if (mouseDown && !mouseDownOnGameArea && GetArea(e.X, e.Y).Equals("minimap"))
                 ScrollToMinimapPoint(e.X, e.Y);
+
         }
 
         /// <summary>
@@ -1233,6 +1325,55 @@ namespace Devious_Retention
         /// </summary>
         private void DrawTechnologyTooltip(Graphics g, Technology technology, Rectangle bounds)
         {
+            // First draw the background and the border around it
+            g.FillRectangle(Brushes.White, bounds);
+            g.DrawRectangle(new Pen(Brushes.Black), bounds);
+            g.SetClip(bounds);
+
+            Font titleFont = new Font(GameInfo.TITLE_FONT_NAME, 28, FontStyle.Regular);
+            Font font = new Font(GameInfo.FONT_NAME, 20, FontStyle.Regular);
+            Font miniFont = new Font(GameInfo.FONT_NAME, 14, FontStyle.Regular);
+            StringFormat centerFormat = new StringFormat();
+            centerFormat.Alignment = StringAlignment.Center;
+            StringFormat vertCenterFormat = new StringFormat();
+            vertCenterFormat.LineAlignment = StringAlignment.Center;
+
+            Point pos = new Point(bounds.X + ICON_GAP, bounds.Y + ICON_GAP);
+            // Name
+            g.DrawString(technology.name, titleFont, Brushes.Black, new Point(bounds.X + bounds.Width / 2, pos.Y), centerFormat);
+            pos.Y += (int)(titleFont.Size) + 20;
+
+            // Cost
+            double iconGapRatio = (double)ICON_SIZE / ICON_GAP;
+            int resourceGapSize = (int)(bounds.Width / (1 + (1 + iconGapRatio) * GameInfo.RESOURCE_TYPES));
+            int resourceIconSize = (int)(resourceGapSize * iconGapRatio);
+
+            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+            {
+                if (i == GameInfo.RESOURCE_TYPES / 2) { pos.Y += ICON_SIZE + 10; pos.X = bounds.X + ICON_GAP; }
+
+                g.DrawImage(resourceImages[i], pos.X, pos.Y, ICON_SIZE, ICON_SIZE);
+                pos.X += ICON_SIZE + 10;
+                g.DrawString(technology.resourceCosts[i] + "", font, Brushes.Black, new Point(pos.X, pos.Y + ICON_SIZE / 2), vertCenterFormat);
+                pos.X += (int)g.MeasureString("9999", font).Width + 10;
+            }
+            pos.X = bounds.X + ICON_GAP;
+            pos.Y += ICON_SIZE + 10;
+
+            // Prerequisites
+            StringBuilder prereqBuilder = new StringBuilder();
+            foreach(string s in technology.prerequisites)
+                prereqBuilder.Append(s + ", ");
+            string prereqBuilderString = prereqBuilder.ToString().Length > 0 ? prereqBuilder.ToString() : "Nothing!..";
+            string finalString = "Requires: " + prereqBuilderString.Substring(0, prereqBuilderString.Length - 2);
+            g.DrawString(finalString, miniFont, Brushes.Black, new Rectangle(bounds.X + 10, pos.Y, bounds.Width - 20, bounds.Height - (pos.Y-bounds.Y) - 10));
+
+            pos.Y += (int)(g.MeasureString(finalString, miniFont, bounds.Width - 20).Height) + 15;
+
+            // Description
+            g.DrawString(technology.description, miniFont, Brushes.Black, new Rectangle(bounds.X + 10, pos.Y, bounds.Width - 20, bounds.Height - (pos.Y - bounds.Y) - 10));
+
+            g.ResetClip();
         }
     }
 }
