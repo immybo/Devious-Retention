@@ -68,8 +68,6 @@ namespace Devious_Retention
             server.SpawnEntity(client.info.unitTypes["TestUnit"], 1, 2, 2);
             Thread.Sleep(10);
 
-            stc.InformTechnologyResearch(1, client.info.technologies["TestTechnology"]);
-
             Application.Run(gameWindow);
         }
     }

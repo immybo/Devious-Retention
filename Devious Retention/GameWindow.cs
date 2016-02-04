@@ -1030,14 +1030,23 @@ namespace Devious_Retention
                 int numIconsPerRow = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
                 int x = 0;
                 List<Technology> techList = new List<Technology>();
-                foreach(Technology t in client.info.technologies.Values)
+                List<Technology> grayedTechList = new List<Technology>();
+                // Figure out if technologies are greyed out or not
+                foreach (Technology t in client.info.technologies.Values)
                 {
-                    // If the technology can't be researched yet, grey it out
-                    bool grayed = false;
                     foreach (string s in t.prerequisites)
-                        if (!client.info.technologies.ContainsKey(s))
-                            grayed = true;
+                        if (!client.info.technologies.ContainsKey(s) || !client.info.technologies[s].researched)
+                        {
+                            grayedTechList.Add(t);
+                            goto end;
+                        }
 
+                    techList.Add(t);
+                    end:;
+                }
+
+                foreach(Technology t in techList)
+                {
                     Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (x % numIconsPerRow),
                         bounds.Y + ICON_GAP + topRightShift + (int)(x / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
                         ICON_SIZE, ICON_SIZE);
@@ -1045,12 +1054,21 @@ namespace Devious_Retention
                     if (iconBounds.Y > bounds.Y + bounds.Height) continue;
 
                     g.DrawImage(t.icon, iconBounds);
-
-                    if (grayed)
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
-
-                    techList.Add(t);
                     x++;
+                }
+
+                foreach(Technology t in grayedTechList)
+                {
+                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (x % numIconsPerRow),
+                        bounds.Y + ICON_GAP + topRightShift + (int)(x / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
+                        ICON_SIZE, ICON_SIZE);
+                    if (iconBounds.Y + ICON_SIZE < 0) continue;
+                    if (iconBounds.Y > bounds.Y + bounds.Height) continue;
+
+                    g.DrawImage(t.icon, iconBounds);
+                    x++;
+
+                    g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
                 }
 
                 // Also draw a tooltip if the mouse is over a technology
@@ -1072,7 +1090,8 @@ namespace Devious_Retention
                             // Draw it to the bottom left of the mouse cursor
                             int tooltipWidth = 300;
                             int tooltipHeight = 500;
-                            DrawTechnologyTooltip(g, techList[num], new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
+                            Technology tech = num < techList.Count ? techList[num] : grayedTechList[num - techList.Count];
+                            DrawTechnologyTooltip(g, tech, new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
                         }
                     }
                 }
@@ -1187,8 +1206,8 @@ namespace Devious_Retention
             // If we're dragging in the top right panel, scroll it
             if (mouseDown && mouseDownOnTopRightArea)
             {
-                topRightShift += (int)mouseY - e.Y;
-                if (topRightShift < 0) topRightShift = 0;
+                topRightShift -= (int)mouseY - e.Y;
+                if (topRightShift > 0) topRightShift = 0;
             }
 
 
