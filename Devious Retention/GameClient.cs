@@ -127,15 +127,15 @@ namespace Devious_Retention
             foreach (Entity e in selected)
                 if (e is Unit)
                     selectedUnits.Add((Unit)e);
-
-            if (x < 0) x = 0;
-            if (y < 0) y = 0;
             
             // We can check here if it would go off the map
             foreach (Unit unit in selectedUnits)
             {
                 double adjustedX = x - unit.type.size / 2;
                 double adjustedY = y - unit.type.size / 2;
+                if (adjustedX < 0) adjustedX = 0;
+                if (adjustedY < 0) adjustedY = 0;
+
                 if (x + unit.type.size >= map.width) adjustedX = map.width - unit.type.size;
                 if (y + unit.type.size >= map.height) adjustedY = map.height - unit.type.size;
 
@@ -176,7 +176,11 @@ namespace Devious_Retention
         /// </summary>
         public bool ResearchTechnology(Technology technology)
         {
-            // Make sure we have enough resources
+            // Make sure we have the prerequisites
+            foreach (string s in technology.prerequisites)
+                if (!info.technologies[s].researched)
+                    return false;
+            // And enough resources
             for(int i = 0; i < currentResources.Length; i++)
             {
                 if (currentResources[i] < technology.resourceCosts[i])
