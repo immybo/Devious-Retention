@@ -30,6 +30,10 @@ namespace Devious_Retention
         private const int ICON_SIZE = 50;
         private const int ICON_GAP = 20;
 
+        // How large tooltips are (pixels)
+        private const int TOOLTIP_WIDTH = 300;
+        private const int TOOLTIP_HEIGHT = 500;
+
         private const double RESOURCE_WIDTH = 0.2;
 
         // How opaque the overlay to tiles which we don't have LOS to is
@@ -74,6 +78,8 @@ namespace Devious_Retention
 
         // Whether the building panel or the technology panel is open
         private bool buildingPanelOpen = true;
+        // Areas of icons in the currently open top right panel
+        private Dictionary<Rectangle, string> iconBounds;
 
         // What tiles are within the player's line of sight
         private bool[,] LOS;
@@ -969,56 +975,59 @@ namespace Devious_Retention
             bounds.Y += 40;
             bounds.Height -= 40;
 
+            iconBounds = new Dictionary<Rectangle, string>();
+            int numIconsPerRow = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
+            int i = 0;
+
             // If the building panel is open, draw that
             if (buildingPanelOpen)
             {
-                // Find out how many icons we can fit
-                int numIconsPerRow = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
-
-                int i = 0;
-
-                // We need a list to draw tooltips
-                List<BuildingType> buildingTypeList = new List<BuildingType>();
-                foreach(BuildingType b in client.info.buildingTypes.Values)
+                List<BuildingType> buildingList = new List<BuildingType>();
+                List<BuildingType> grayedBuildingList = new List<BuildingType>();
+                // Figure out if technologies are greyed out or not
+                foreach (BuildingType b in client.info.buildingTypes.Values)
                 {
-                    // If the building can't be built yet, it will be greyed out
-                    bool grayed = !(client.info.technologies.ContainsKey(b.prerequisite) && client.info.technologies[b.prerequisite].researched);
+                    if (!client.info.technologies.ContainsKey(b.prerequisite) || !client.info.technologies[b.prerequisite].researched)
+                        grayedBuildingList.Add(b);
+                    else
+                        buildingList.Add(b);
+                }
 
+                // Then draw the non-greyed ones first
+                List<BuildingType> orderedBuildings = new List<BuildingType>();
+                foreach (BuildingType b in buildingList)
+                    orderedBuildings.Add(b);
+                foreach (BuildingType b in grayedBuildingList)
+                    orderedBuildings.Add(b);
+
+                foreach (BuildingType b in orderedBuildings)
+                {
                     Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (i % numIconsPerRow),
                         bounds.Y + ICON_GAP + topRightShift + (int)(i / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
                         ICON_SIZE, ICON_SIZE);
                     if (iconBounds.Y + ICON_SIZE < 0) continue;
                     if (iconBounds.Y > bounds.Y + bounds.Height) continue;
 
-                    g.DrawImage(b.image, iconBounds);
-                    
-                    if (grayed)
+                    this.iconBounds.Add(iconBounds, b.name);
+                    g.DrawImage(b.icon, iconBounds);
+                    if (grayedBuildingList.Contains(b))
                         g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
-
                     i++;
-
-                    buildingTypeList.Add(b);
                 }
+
                 // Also draw a tooltip if the mouse is over a building
                 g.ResetClip();
-                if(GetArea(mouseX, mouseY).Equals("top right panel")) // In the right screen area
+                if (GetArea(mouseX, mouseY).Equals("top right panel")) // In the right screen area
                 {
-                    // Now find if it's actually over an icon
-                    double column = (double)(mouseX - bounds.X) / (ICON_SIZE + ICON_GAP);
-                    double row = (double)(mouseY - bounds.Y) / (ICON_SIZE + ICON_GAP);
-
-                    int num = (int)row * numIconsPerRow + (int)column;
-                    if (num < client.info.buildingTypes.Values.Count)
+                    // Find if it's actually over an icon
+                    foreach (KeyValuePair<Rectangle, string> pair in iconBounds)
                     {
-                        // Now make sure it's aligned with an icon and not the gaps between them
-                        double columnRemainder = column - (int)column;
-                        double rowRemainder = row - (int)row;
-                        if(columnRemainder > (double)ICON_GAP / (ICON_SIZE+ ICON_GAP) && rowRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP))
+                        // If it's on the icon
+                        if (mouseX >= pair.Key.X && mouseX <= pair.Key.X + pair.Key.Width && mouseY >= pair.Key.Y && mouseY <= pair.Key.Y + pair.Key.Height)
                         {
-                            // Draw it to the bottom left of the mouse cursor
-                            int tooltipWidth = 300;
-                            int tooltipHeight = 500;
-                            DrawEntityTooltip(g, buildingTypeList[num], new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
+                            // Draw the appropriate tooltip
+                            DrawEntityTooltip(g, client.info.buildingTypes[pair.Value], new Rectangle((int)mouseX - TOOLTIP_WIDTH, (int)mouseY, TOOLTIP_WIDTH, TOOLTIP_HEIGHT));
+                            break;
                         }
                     }
                 }
@@ -1027,71 +1036,60 @@ namespace Devious_Retention
             // Otherwise draw the technology panel
             else
             {
-                int numIconsPerRow = (int)((bounds.Width - ICON_GAP) / (ICON_SIZE + ICON_GAP));
-                int x = 0;
                 List<Technology> techList = new List<Technology>();
                 List<Technology> grayedTechList = new List<Technology>();
                 // Figure out if technologies are greyed out or not
                 foreach (Technology t in client.info.technologies.Values)
                 {
+                    if (t.researched) continue; // don't draw it if it's researched
                     foreach (string s in t.prerequisites)
+                    {
                         if (!client.info.technologies.ContainsKey(s) || !client.info.technologies[s].researched)
                         {
                             grayedTechList.Add(t);
                             goto end;
                         }
+                    }
 
                     techList.Add(t);
                     end:;
                 }
 
-                foreach(Technology t in techList)
+                // Then draw the non-greyed ones first
+                List<Technology> orderedTechs = new List<Technology>();
+                foreach (Technology t in techList)
+                    orderedTechs.Add(t);
+                foreach (Technology t in grayedTechList)
+                    orderedTechs.Add(t);
+
+                foreach(Technology t in orderedTechs)
                 {
-                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (x % numIconsPerRow),
-                        bounds.Y + ICON_GAP + topRightShift + (int)(x / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
+                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (i % numIconsPerRow),
+                        bounds.Y + ICON_GAP + topRightShift + (int)(i / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
                         ICON_SIZE, ICON_SIZE);
                     if (iconBounds.Y + ICON_SIZE < 0) continue;
                     if (iconBounds.Y > bounds.Y + bounds.Height) continue;
 
+                    this.iconBounds.Add(iconBounds, t.name);
                     g.DrawImage(t.icon, iconBounds);
-                    x++;
-                }
-
-                foreach(Technology t in grayedTechList)
-                {
-                    Rectangle iconBounds = new Rectangle(bounds.X + ICON_GAP + (ICON_SIZE + ICON_GAP) * (x % numIconsPerRow),
-                        bounds.Y + ICON_GAP + topRightShift + (int)(x / numIconsPerRow) * (ICON_SIZE + ICON_GAP),
-                        ICON_SIZE, ICON_SIZE);
-                    if (iconBounds.Y + ICON_SIZE < 0) continue;
-                    if (iconBounds.Y > bounds.Y + bounds.Height) continue;
-
-                    g.DrawImage(t.icon, iconBounds);
-                    x++;
-
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
+                    if(grayedTechList.Contains(t))
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
+                    i++;
                 }
 
                 // Also draw a tooltip if the mouse is over a technology
                 g.ResetClip();
                 if (GetArea(mouseX, mouseY).Equals("top right panel")) // In the right screen area
                 {
-                    // Now find if it's actually over an icon
-                    double column = (double)(mouseX - bounds.X) / (ICON_SIZE + ICON_GAP);
-                    double row = (double)(mouseY - bounds.Y) / (ICON_SIZE + ICON_GAP);
-
-                    int num = (int)row * numIconsPerRow + (int)column;
-                    if (num < client.info.technologies.Values.Count)
+                    // Find if it's actually over an icon
+                    foreach (KeyValuePair<Rectangle, string> pair in iconBounds)
                     {
-                        // Now make sure it's aligned with an icon and not the gaps between them
-                        double columnRemainder = column - (int)column;
-                        double rowRemainder = row - (int)row;
-                        if (columnRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP) && rowRemainder > (double)ICON_GAP / (ICON_SIZE + ICON_GAP))
+                        // If it's on the icon
+                        if (mouseX >= pair.Key.X && mouseX <= pair.Key.X + pair.Key.Width && mouseY >= pair.Key.Y && mouseY <= pair.Key.Y + pair.Key.Height)
                         {
-                            // Draw it to the bottom left of the mouse cursor
-                            int tooltipWidth = 300;
-                            int tooltipHeight = 500;
-                            Technology tech = num < techList.Count ? techList[num] : grayedTechList[num - techList.Count];
-                            DrawTechnologyTooltip(g, tech, new Rectangle((int)mouseX - tooltipWidth, (int)mouseY, tooltipWidth, tooltipHeight));
+                            // Draw the appropriate tooltip
+                            DrawTechnologyTooltip(g, client.info.technologies[pair.Value], new Rectangle((int)mouseX - TOOLTIP_WIDTH, (int)mouseY, TOOLTIP_WIDTH, TOOLTIP_HEIGHT));
+                            break;
                         }
                     }
                 }
@@ -1180,6 +1178,25 @@ namespace Devious_Retention
                     // On the "switch between panels" place
                     if (e.Y <= 40 && e.X > GAME_AREA_WIDTH*Width + RIGHT_AREA_BORDER_WIDTH)
                         buildingPanelOpen = !buildingPanelOpen;
+                    
+                    // Otherwise check if it's on an icon
+                    foreach(KeyValuePair<Rectangle,string> pair in iconBounds)
+                    {
+                        if(e.X >= pair.Key.X && e.X <= pair.Key.X+pair.Key.Width && e.Y >= pair.Key.Y && e.Y <= pair.Key.Y + pair.Key.Height)
+                        {
+                            // If so, figure out which building or technology it is and act upon it
+                            if (buildingPanelOpen)
+                            {
+                                BuildingType type = client.info.buildingTypes[pair.Value];
+                                PlaceBuilding(type);
+                            }
+                            else
+                            {
+                                Technology tech = client.info.technologies[pair.Value];
+                                client.ResearchTechnology(tech);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1393,6 +1410,16 @@ namespace Devious_Retention
             g.DrawString(technology.description, miniFont, Brushes.Black, new Rectangle(bounds.X + 10, pos.Y, bounds.Width - 20, bounds.Height - (pos.Y - bounds.Y) - 10));
 
             g.ResetClip();
+        }
+
+        /// <summary>
+        /// Sticks the given buildingtype to the mouse cursor, 
+        /// allowing the user to place it by left clicking on the game area
+        /// or discard it by right clicking, or clicking elsewhere.
+        /// </summary>
+        private void PlaceBuilding(BuildingType type)
+        {
+
         }
     }
 }

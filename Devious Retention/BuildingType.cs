@@ -103,6 +103,7 @@ namespace Devious_Retention
             if (attackTicks <= 0) attackTicks = 1;
             this.resourceCosts = resourceCosts;
             this.trainableUnits = trainableUnits;
+            this.iconName = iconName;
 
             try
             { 

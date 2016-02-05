@@ -51,22 +51,21 @@ namespace Devious_Retention
                 tileTypes.Add(t);
             Map map = new Map(tileTypes, tiles, 15,15);
 
-            GameWindow gameWindow = new GameWindow();
-            GameClient client = new GameClient(1, 8, map, gameWindow, null, null);
-            GameServer server = new GameServer(null, map);
-
             // CREATE CONNECTIONS
-            STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"), server);
-            CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"), client);
+            STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"));
+            CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"));
+
+            GameWindow gameWindow = new GameWindow();
+            GameClient client = new GameClient(1, 8, map, gameWindow, cts, null);
+            GameServer server = new GameServer(new List<STCConnection> { stc }, map);
+
+            stc.SetServer(server);
+            cts.SetClient(client);
             stc.Connect();
             cts.Connect();
 
-            client.connection = cts;
-            server.connections.Add(stc);
-
             // TESTING STUFF
             server.SpawnEntity(client.info.unitTypes["TestUnit"], 1, 2, 2);
-            Thread.Sleep(10);
 
             Application.Run(gameWindow);
         }

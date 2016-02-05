@@ -87,24 +87,9 @@ namespace Devious_Retention
             windowRefreshTimer.Interval = GameInfo.WINDOW_REFRESH_TIME;
             windowRefreshTimer.Tick += new EventHandler(WindowRefreshTimerHandler);
             windowRefreshTimer.Start();
-        }
 
-        /// <summary>
-        /// Returns whether or not the player has at least the 
-        /// given amount of each resource.
-        /// </summary>
-        public bool CanAfford(int[] resources)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Removes the given resource amounts from the player.
-        /// Assumes that the player has at least the given resource amounts.
-        /// </summary>
-        public void SpendResources(int[] resources)
-        {
-
+            for (int i = 0; i < currentResources.Length; i++)
+                currentResources[i] += 1000;
         }
 
         /// <summary>
@@ -191,7 +176,19 @@ namespace Devious_Retention
         /// </summary>
         public bool ResearchTechnology(Technology technology)
         {
-            return false;
+            // Make sure we have enough resources
+            for(int i = 0; i < currentResources.Length; i++)
+            {
+                if (currentResources[i] < technology.resourceCosts[i])
+                    return false;
+            }
+
+            // Otherwise remove the resources and tell the server
+            for (int i = 0; i < currentResources.Length; i++)
+                currentResources[i] -= technology.resourceCosts[i];
+            connection.RequestTechnology(technology);
+
+            return true;
         }
 
         /// <summary>

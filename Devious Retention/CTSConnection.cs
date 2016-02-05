@@ -25,9 +25,13 @@ namespace Devious_Retention
         private Socket incomingSocket;
         private GameClient client;
 
-        public CTSConnection(IPAddress ip, GameClient client)
+        public CTSConnection(IPAddress ip)
         {
             this.ip = ip;
+        }
+
+        public void SetClient(GameClient client)
+        {
             this.client = client;
             Listen();
         }
@@ -219,10 +223,13 @@ namespace Devious_Retention
 
         /// <summary>
         /// Sends a request for the given technology to be researched.
+        /// 
+        /// Message format:
+        /// [message type = 2] [technology name] [player]
         /// </summary>
         public void RequestTechnology(Technology technology)
         {
-
+            outgoingWriter.WriteLine("2 " + technology.name + " " + client.playerNumber);
         }
 
         /// <summary>

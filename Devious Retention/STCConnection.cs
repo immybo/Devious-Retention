@@ -25,9 +25,12 @@ namespace Devious_Retention
         private Socket incomingSocket;
         private GameServer server;
 
-        public STCConnection(IPAddress ip, GameServer server)
+        public STCConnection(IPAddress ip)
         {
             this.ip = ip;
+        }
+        public void SetServer(GameServer server)
+        {
             this.server = server;
             Listen();
         }
@@ -71,6 +74,9 @@ namespace Devious_Retention
                         // And process that message appropriately
                         switch (messageType)
                         {
+                            case 2:
+                                InformServerTechnologyResearch(splitLine);
+                                break;
                             case 3:
                                 InformServerUnitMove(splitLine);
                                 break;
@@ -82,6 +88,16 @@ namespace Devious_Retention
             {
                 Console.WriteLine(e);
             }
+        }
+
+        /// <summary>
+        /// Tells the server that a player has researched a technology.
+        /// </summary>
+        private void InformServerTechnologyResearch(string[] splitLine)
+        {
+            string techName = splitLine[1];
+            int player = int.Parse(splitLine[2]);
+            server.ResearchTechnology(player, techName);
         }
 
         /// <summary>

@@ -16,6 +16,7 @@ namespace Devious_Retention
     class GameServer
     {
         public List<STCConnection> connections { get; set; }
+        private GameInfo info;
         
         // One map for every player, contains only technologies that they have researched
         private List<Dictionary<String, Technology>> researched;
@@ -38,8 +39,8 @@ namespace Devious_Retention
         private List<Building> attackingBuildings;
 
         /// <summary>
-        /// To create a GameServer, all clients (STCConnections) must be provided,
-        /// as well as a generic base GameInfo. Note that the GameServer treats every
+        /// To create a GameServer, all clients (STCConnections) must be provided.
+       ///  Note that the GameServer treats every
         /// game as multiplayer, and so computer controlled players will merely
         /// spoof having a connection.
         /// </summary>
@@ -52,10 +53,16 @@ namespace Devious_Retention
 
             this.map = map;
 
+            info = new GameInfo();
+
             units = new Dictionary<int, Unit>();
             buildings = new Dictionary<int, Building>();
             resources = new Dictionary<int, Resource>();
             entitiesBySquare = new List<Entity>[map.width,map.height];
+
+            researched = new List<Dictionary<String, Technology>>();
+            for (int i = 0; i < this.connections.Count; i++)
+                researched.Add(new Dictionary<String, Technology>());
 
             movingUnits = new List<Unit>();
             attackingUnits = new List<Unit>();
@@ -156,12 +163,15 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Adds the given technology to the list of technologies that the
-        /// given player has researched. This can't fail.
+        /// Adds the technology with the given name to the list of technologies that the
+        /// given player has researched. This can't fail (unless something screwed up and the
+        /// technology wasn't found)
         /// </summary>
-        public void ResearchTechnology(int player, Technology technology)
+        public void ResearchTechnology(int player, string technologyName)
         {
-
+            researched[player-1].Add(technologyName, info.technologies[technologyName]);
+            foreach (STCConnection c in connections)
+                c.InformTechnologyResearch(player, info.technologies[technologyName]);
         }
 
         /// <summary>
