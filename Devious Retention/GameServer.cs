@@ -59,6 +59,9 @@ namespace Devious_Retention
             buildings = new Dictionary<int, Building>();
             resources = new Dictionary<int, Resource>();
             entitiesBySquare = new List<Entity>[map.width,map.height];
+            for (int i = 0; i < map.width; i++)
+                for (int j = 0; j < map.height; j++)
+                    entitiesBySquare[i, j] = new List<Entity>();
 
             researched = new List<Dictionary<String, Technology>>();
             for (int i = 0; i < this.connections.Count; i++)
@@ -87,28 +90,25 @@ namespace Devious_Retention
 
         /// <summary>
         /// Attempts to place a foundation of the given building type for the given player at (x,y).
-        /// Does nothing if no foundation could be placed there.
+        /// Does nothing if no foundation could be placed there, or if the building type couldn't be found
         /// </summary>
-        public void CreateBuilding(int player, BuildingType buildingType, double x, double y)
+        public void CreateBuilding(int player, string buildingTypeName, double x, double y)
         {
+            if (!info.buildingTypes.ContainsKey(buildingTypeName)) return;
+            BuildingType buildingType = info.buildingTypes[buildingTypeName];
+
             Building building = new Building(buildingType, Building.nextID, x, y, player);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
-            List<Coordinate> buildingCoordinates = Map.GetIncludedTiles(map, building);
-
-            foreach (Coordinate c in buildingCoordinates)
-                if(entitiesBySquare[c.x, c.y] != null)
-                    foreach (Entity e in entitiesBySquare[c.x, c.y])
-                        if (e.x + e.type.size > building.x && e.y + e.type.size > building.y
-                        && e.x < building.x + building.type.size && e.y < building.y + building.type.size) // If they collide, do nothing
-                            return;
+            if (Collides(x, y, buildingType.size)) return;
 
             // No collisions, so we can safetly place the foundation :)
             foreach (STCConnection c in connections)
                 c.InformEntityAdd(building, false);
 
             buildings.Add(building.id, building);
-            foreach(Coordinate c in buildingCoordinates)
+            List<Coordinate> buildingCoordinates = Map.GetIncludedTiles(map, building);
+            foreach (Coordinate c in buildingCoordinates)
             {
                 if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { building };
                 else entitiesBySquare[c.x, c.y].Add(building);
@@ -118,10 +118,72 @@ namespace Devious_Retention
 
         /// <summary>
         /// Attempts to create a unit of the given type from the given building.
-        /// Does nothing if no space could be found around the building.
+        /// Does nothing if no space could be found around the building,
+        /// or if the building or unit type couldn't be found.
         /// </summary>
-        public void CreateUnit(Building sourceBuilding, UnitType unit)
+        public void CreateUnit(int buildingId, string unitTypeName)
         {
+            if (!buildings.ContainsKey(buildingId)) return;
+            if (!info.unitTypes.ContainsKey(unitTypeName)) return;
+
+            Building building = buildings[buildingId];
+            UnitType type = info.unitTypes[unitTypeName];
+
+            double placeX = -1;
+            double placeY = -1;
+            // Try and see if there's space anywhere around the building
+            double x = building.x - type.size;
+            double y = building.y - type.size - 0.1;
+            // On top
+            for (x = building.x - type.size - 0.1; x <= building.x + building.type.size + 0.1; x += 0.1)
+                if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+            // On the right
+            x = building.x + building.type.size + 0.1;
+            if(placeX == -1)
+                for(y = building.y - type.size - 0.1; y <= building.y + building.type.size + 0.1; y += 0.1)
+                    if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+            // On the bottom
+            y = building.y + building.type.size + 0.1;
+            if(placeX == -1)
+                for(x = building.x + building.type.size + 0.1; x >= building.x - type.size - 0.1; x -= 0.1)
+                    if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+            // On the left
+            x = building.x - type.size - 0.1;
+            if(placeX == -1)
+                for(y = building.y + building.type.size + 0.1; y >= building.y - type.size - 0.1; y -= 0.1)
+                    if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+
+            // Was there a place for it?
+            if (placeX == -1)
+                return;
+            // Now place it
+            Unit unit = new Unit(type, Unit.nextID, placeX, placeY, building.playerNumber);
+            Unit.IncrementNextID();
+
+            foreach (STCConnection c in connections)
+                c.InformEntityAdd(unit, false);
+
+            units.Add(unit.id, unit);
+            List<Coordinate> unitCoordinates = Map.GetIncludedTiles(map, unit);
+            foreach (Coordinate c in unitCoordinates)
+                entitiesBySquare[c.x, c.y].Add(unit);
+        }
+
+        /// <summary>
+        /// Returns whether or not an entity
+        /// at the given position with the given size would collide with any other entity.
+        /// </summary>
+        private bool Collides(double x, double y, double size)
+        {
+            List<Coordinate> includedTiles = Map.GetIncludedTiles(map, x, y, size);
+            foreach (Coordinate c in includedTiles)
+                if (entitiesBySquare[c.x, c.y] != null)
+                    foreach (Entity e in entitiesBySquare[c.x, c.y])
+                        if (e.x + e.type.size > x && e.y + e.type.size > y
+                        && e.x < x + size && e.y < y + size) // If they collide, return true
+                            return true;
+            // If nothing collides return false
+            return false;
         }
 
         /// <summary>
@@ -152,10 +214,7 @@ namespace Devious_Retention
             // Make sure to add it to the list of entities by coordinate as well as the regular entity dictionaries
             List<Coordinate> entityCoordinates = Map.GetIncludedTiles(map, entity);
             foreach (Coordinate c in entityCoordinates)
-            {
-                if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { entity };
-                else entitiesBySquare[c.x, c.y].Add(entity);
-            }
+                entitiesBySquare[c.x, c.y].Add(entity);
 
             if (entity == null) return;
             foreach (STCConnection c in connections)
@@ -228,8 +287,25 @@ namespace Devious_Retention
                 else if (u.yToMove <= u.y - u.type.speed / 1000 * GameInfo.TICK_TIME) dY = -u.type.speed / 1000 * GameInfo.TICK_TIME;
                 else dY = u.yToMove - u.y;
 
+                // Update the list of entities by square
+                List<Coordinate> previousCoords = Map.GetIncludedTiles(map, u);
+                List<Coordinate> coordsToRemove = new List<Coordinate>();
+
                 u.x += dX;
                 u.y += dY;
+
+                List<Coordinate> newCoords = Map.GetIncludedTiles(map, u);
+
+                foreach(Coordinate c in previousCoords)
+                    if (!newCoords.Contains(c))
+                        coordsToRemove.Add(c);
+                    else
+                        newCoords.Remove(c);
+
+                foreach (Coordinate c in newCoords)
+                    entitiesBySquare[c.x, c.y].Add(u);
+
+
                 foreach (STCConnection c in connections)
                     c.InformEntityChange(u, 1, dX, dY);
             }

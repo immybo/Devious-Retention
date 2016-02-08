@@ -145,15 +145,20 @@ namespace Devious_Retention
 
         /// <summary>
         /// Attempts to create a building foundation of the given type
-        /// at the given position. Returns whether or not the client has 
-        /// enough resources for this and the player can create that BuildingType.
+        /// at the given position. Does nothing if the player doesn't have enough resources.
+        /// Returns whether or not the player has enough resources.
         /// 
         /// Does not yet remove the resources; only removes them when confirmation
         /// is received from the server that the foundation was created.
         /// </summary>
         public bool CreateFoundation(BuildingType building, double x, double y)
         {
-            return false;
+            for (int i = 0; i < currentResources.Length; i++)
+                if (currentResources[i] < building.resourceCosts[i])
+                    return false;
+
+            connection.RequestBuilding(building, x, y);
+            return true;
         }
 
         /// <summary>
@@ -166,7 +171,14 @@ namespace Devious_Retention
         /// </summary>
         public bool CreateUnit(Building sourceBuilding, UnitType unit)
         {
-            return false;
+            if (!sourceBuilding.buildingType.trainableUnits.Contains(unit.name)) return false;
+            // And that we have enough resources
+            for (int i = 0; i < currentResources.Length; i++)
+                if (currentResources[i] < unit.resourceCosts[i])
+                    return false;
+
+            connection.RequestUnit(sourceBuilding, unit);
+            return true;
         }
 
         /// <summary>
@@ -182,10 +194,8 @@ namespace Devious_Retention
                     return false;
             // And enough resources
             for(int i = 0; i < currentResources.Length; i++)
-            {
                 if (currentResources[i] < technology.resourceCosts[i])
                     return false;
-            }
 
             // Otherwise remove the resources and tell the server
             for (int i = 0; i < currentResources.Length; i++)

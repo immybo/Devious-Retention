@@ -207,18 +207,24 @@ namespace Devious_Retention
 
         /// <summary>
         /// Sends a request for a building to be created at the specified location.
+        /// 
+        /// Message format:
+        /// [message type = 0] [building type name] [x] [y] [player]
         /// </summary>
         public void RequestBuilding(BuildingType building, double x, double y)
         {
-
+            outgoingWriter.WriteLine("0 " + building.name + " " + x + " " + y + " " + client.playerNumber);
         }
 
         /// <summary>
         /// Sends a request for a unit to be created at the specified building.
+        /// 
+        /// Message:
+        /// [message type = 1] [building id] [unit type name]
         /// </summary>
         public void RequestUnit(Building sourceBuilding, UnitType unit)
         {
-
+            outgoingWriter.WriteLine("1 " + sourceBuilding.id + " " + unit.name);
         }
 
         /// <summary>

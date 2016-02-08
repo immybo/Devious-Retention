@@ -74,6 +74,12 @@ namespace Devious_Retention
                         // And process that message appropriately
                         switch (messageType)
                         {
+                            case 0:
+                                InformServerBuildingCreation(splitLine);
+                                break;
+                            case 1:
+                                InformServerUnitTraining(splitLine);
+                                break;
                             case 2:
                                 InformServerTechnologyResearch(splitLine);
                                 break;
@@ -88,6 +94,29 @@ namespace Devious_Retention
             {
                 Console.WriteLine(e);
             }
+        }
+
+        /// <summary>
+        /// Tells the server that a player has requested that a unit be trained.
+        /// </summary>
+        /// <param name="splitLine"></param>
+        private void InformServerUnitTraining(string[] splitLine)
+        {
+            int id = int.Parse(splitLine[1]);
+            string unitTypeName = splitLine[2];
+            server.CreateUnit(id, unitTypeName);
+        }
+
+        /// <summary>
+        /// Tells the server that a player has requested that a building be constructed.
+        /// </summary>
+        private void InformServerBuildingCreation(string[] splitLine)
+        {
+            string buildingTypeName = splitLine[1];
+            double x = double.Parse(splitLine[2]);
+            double y = double.Parse(splitLine[3]);
+            int playerNumber = int.Parse(splitLine[4]);
+            server.CreateBuilding(playerNumber, buildingTypeName, x, y);
         }
 
         /// <summary>

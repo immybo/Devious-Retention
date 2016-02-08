@@ -67,6 +67,9 @@ namespace Devious_Retention
         private double mouseX = -1;
         private double mouseY = -1;
 
+        // Whether or not the shift key is currently down
+        private bool shiftKeyDown = false;
+
         // Whether or not the mouse left button is currently down
         private bool mouseDown = false;
         // Whether or not the mouse left button was previous pressed down on top of the game panel
@@ -76,10 +79,16 @@ namespace Devious_Retention
         // How far vertically the top right panel has been shifted
         private int topRightShift = 0;
 
+        // The building (if there is one) that is currently on the mouse cursor to be placed
+        private BuildingType placingBuilding = null;
+
         // Whether the building panel or the technology panel is open
         private bool buildingPanelOpen = true;
         // Areas of icons in the currently open top right panel
         private Dictionary<Rectangle, string> iconBounds;
+        // Areas of icons for training units in the selected entity panel
+        // (irrelevant if client.selected[0] isn't a building)
+        private Dictionary<Rectangle, UnitType> unitTrainingIconBounds;
 
         // What tiles are within the player's line of sight
         private bool[,] LOS;
@@ -121,6 +130,7 @@ namespace Devious_Retention
 
             Paint += Render;
             KeyDown += new KeyEventHandler(KeyEvent);
+            KeyUp += new KeyEventHandler(KeyUpEvent);
             MouseClick += new MouseEventHandler(MouseClickEvent);
             MouseDown += new MouseEventHandler(MouseDownEvent);
             MouseMove += new MouseEventHandler(MouseMoveEvent);
@@ -152,7 +162,7 @@ namespace Devious_Retention
         /// Returns the entities, if there are any, which are contained within
         /// the given rectangle.
         /// </summary>
-        public HashSet<Entity> GetEntitiesIn(Rectangle bounds)
+        public HashSet<Entity> GetEntitiesIn(double x, double y, double width, double height)
         {
             HashSet<Entity> entities = new HashSet<Entity>();
 
@@ -166,10 +176,10 @@ namespace Devious_Retention
             HashSet<Entity> enclosedEntities = new HashSet<Entity>();
             foreach (Entity e in entities)
             {
-                if(e.x+e.type.size > bounds.X
-                 &&e.y+e.type.size > bounds.Y
-                 &&e.x < bounds.X + bounds.Width
-                 &&e.y < bounds.Y + bounds.Height)
+                if(e.x+e.type.size > x
+                 &&e.y+e.type.size > y
+                 &&e.x < x + width
+                 &&e.y < y + height)
                 {
                     enclosedEntities.Add(e);
                 }
@@ -188,9 +198,9 @@ namespace Devious_Retention
         /// 4. Select all other players' buildings within the area
         /// 5. Select all resources within the area
         /// </summary>
-        private void SelectEntitiesInArea(Rectangle rect)
+        private void SelectEntitiesInArea(double x1, double y1, double width, double height)
         {
-            HashSet<Entity> entities = GetEntitiesIn(rect);
+            HashSet<Entity> entities = GetEntitiesIn(x1, y1, width, height);
             if (entities.Count == 0) return;
 
             List<Unit> units = new List<Unit>();
@@ -810,8 +820,8 @@ namespace Devious_Retention
                         queueUnits.Add(u);
                         queueUnitCounts.Add(1);
 
-                        g.DrawImage(u.icon,
-                            new Rectangle(drawPoint.X, drawPoint.Y, (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width), (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width)));
+                        Rectangle rect = new Rectangle(drawPoint.X, drawPoint.Y, (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width), (int)(TRAINING_QUEUE_ICON_SIZE * bounds.Width));
+                        g.DrawImage(u.icon, rect);
 
                         if (drawProgress)
                         {
@@ -836,6 +846,7 @@ namespace Devious_Retention
                 }
 
                 // TRAINABLE UNITS
+                unitTrainingIconBounds = new Dictionary<Rectangle, UnitType>();
                 if (building.buildingType.trainableUnits.Length > 0)
                 {
                     drawPoint.X = bounds.X + ICON_GAP;
@@ -853,8 +864,9 @@ namespace Devious_Retention
                         {
                             UnitType u = client.info.unitTypes[s];
                             unitTypesList.Add(u);
-                            g.DrawImage(u.icon,
-                                new Rectangle(drawPoint.X, drawPoint.Y, ICON_SIZE, ICON_SIZE));
+                            Rectangle rect = new Rectangle(drawPoint.X, drawPoint.Y, ICON_SIZE, ICON_SIZE);
+                            unitTrainingIconBounds.Add(rect, u);
+                            g.DrawImage(u.icon, rect);
 
                             drawPoint.X += ICON_SIZE + ICON_GAP;
                             currentOnLine++;
@@ -1106,10 +1118,17 @@ namespace Devious_Retention
             else
                 drawString = "Open Building Panel";
             g.DrawString(drawString, new Font(GameInfo.FONT_NAME, fontSize), Brushes.Black, new Point(bounds.X + bounds.Width / 2, bounds.Y -35), centerFormat);
+
+            // If there's a building on the cursor, render that at the mouse position
+            if(placingBuilding != null)
+            {
+                // We want to draw it so that the mouse is in the middle
+                g.DrawImage(placingBuilding.image, (int)(mouseX - placingBuilding.size * tileWidth / 2), (int)(mouseY - placingBuilding.size * tileHeight / 2), (int)(placingBuilding.size * tileWidth), (int)(placingBuilding.size * tileHeight));
+            }
         }
 
         /// <summary>
-        /// Processes any key events on the game window. If they are recognised as
+        /// Processes any key down events on the game window. If they are recognised as
         /// utilised keys, performs the appropriate action on the client.
         /// </summary>
         public void KeyEvent(object sender, KeyEventArgs e)
@@ -1124,6 +1143,19 @@ namespace Devious_Retention
                 this.screenX += SCREEN_X_CHANGE;
             else if (key == Keys.Left)
                 this.screenX -= SCREEN_X_CHANGE;
+            else if (key == Keys.ShiftKey)
+                shiftKeyDown = true;
+        }
+
+        /// <summary>
+        /// Processes any key up events on the game window.
+        /// </summary>
+        public void KeyUpEvent(object sender, KeyEventArgs e)
+        {
+            Keys key = e.KeyCode;
+
+            if (key == Keys.ShiftKey)
+                shiftKeyDown = false;
         }
 
         /// <summary>
@@ -1147,8 +1179,25 @@ namespace Devious_Retention
             else if (e.Button == MouseButtons.Left)
             {
                 mouseDown = false;
+
+                // Check for placing a building
+                if (placingBuilding != null)
+                {
+                    if (area.Equals("game area"))
+                    {
+                        double x = (double)e.X / tileWidth - placingBuilding.size / 2; // Shift it over as the middle of the building should be on the mouse
+                        double y = (double)e.Y / tileWidth - placingBuilding.size / 2;
+                        if (x < 0) x = 0; if (x + placingBuilding.size > client.map.width) x = client.map.width - placingBuilding.size;
+                        if (y < 0) y = 0; if (y + placingBuilding.size > client.map.height) y = client.map.height - placingBuilding.size;
+                        client.CreateFoundation(placingBuilding, x, y);
+                        if (!shiftKeyDown) placingBuilding = null; // Let the player place multiple buildings with the shift key being down
+                    }
+                    else
+                        placingBuilding = null;
+                }
+
                 // A mouse click on the minimap
-                if (area.Equals("minimap") && !mouseDownOnGameArea)
+                else if (area.Equals("minimap") && !mouseDownOnGameArea)
                     ScrollToMinimapPoint(e.X, e.Y);
 
                 // A mouse click on the game area (not the minimap as this has already been checked)
@@ -1157,11 +1206,11 @@ namespace Devious_Retention
                     // If the mouse was dragged across a sizeable area, treat it as a drag
                     if (Math.Abs(e.X - startX) > 20 || Math.Abs(e.Y - startY) > 20)
                     {
-                        Rectangle entitySelectBounds = new Rectangle((int)(e.X > startX ? startX : e.X), (int)(e.Y > startY ? startY : e.Y),
-                                                                     (int)Math.Abs(e.X - startX), (int)Math.Abs(e.Y - startY));
-                        entitySelectBounds.X /= tileWidth; entitySelectBounds.Y /= tileHeight;
-                        entitySelectBounds.Width /= tileWidth; entitySelectBounds.Y /= tileHeight;
-                        SelectEntitiesInArea(entitySelectBounds);
+                        double x1 = e.X > startX ? startX / tileWidth : (double)e.X / tileWidth;
+                        double y1 = e.Y > startY ? startY / tileHeight : (double)e.Y / tileHeight;
+                        double width = Math.Abs(e.X - startX) / tileWidth;
+                        double height = Math.Abs(e.Y - startY) / tileHeight;
+                        SelectEntitiesInArea(x1, y1, width, height);
                     }
                     // Otherwise treat it as a click
                     else
@@ -1173,22 +1222,22 @@ namespace Devious_Retention
                 }
 
                 // On the top right panel
-                else if(area.Equals("top right panel"))
+                else if (area.Equals("top right panel"))
                 {
                     // On the "switch between panels" place
-                    if (e.Y <= 40 && e.X > GAME_AREA_WIDTH*Width + RIGHT_AREA_BORDER_WIDTH)
+                    if (e.Y <= 40 && e.X > GAME_AREA_WIDTH * Width + RIGHT_AREA_BORDER_WIDTH)
                         buildingPanelOpen = !buildingPanelOpen;
-                    
+
                     // Otherwise check if it's on an icon
-                    foreach(KeyValuePair<Rectangle,string> pair in iconBounds)
+                    foreach (KeyValuePair<Rectangle, string> pair in iconBounds)
                     {
-                        if(e.X >= pair.Key.X && e.X <= pair.Key.X+pair.Key.Width && e.Y >= pair.Key.Y && e.Y <= pair.Key.Y + pair.Key.Height)
+                        if (e.X >= pair.Key.X && e.X <= pair.Key.X + pair.Key.Width && e.Y >= pair.Key.Y && e.Y <= pair.Key.Y + pair.Key.Height)
                         {
                             // If so, figure out which building or technology it is and act upon it
                             if (buildingPanelOpen)
                             {
                                 BuildingType type = client.info.buildingTypes[pair.Value];
-                                PlaceBuilding(type);
+                                placingBuilding = type;
                             }
                             else
                             {
@@ -1198,6 +1247,20 @@ namespace Devious_Retention
                         }
                     }
                 }
+
+                // On the selected entity panel while a building is there
+                else if (area.Equals("selected entity panel") && client.selected[0] is Building)
+                {
+                    // Check if the mouse is on a unit
+                    foreach (KeyValuePair<Rectangle, UnitType> pair in unitTrainingIconBounds)
+                        if (e.X >= pair.Key.X && e.X <= pair.Key.X + pair.Key.Width && e.Y >= pair.Key.Y && e.Y <= pair.Key.Y + pair.Key.Height)
+                        {
+                            // If it is, try to train that type of unit
+                            client.CreateUnit((Building)client.selected[0], pair.Value);
+                            Console.WriteLine("creating " + pair.Value);
+                        }
+                }
+
             }
         }
 
@@ -1410,16 +1473,6 @@ namespace Devious_Retention
             g.DrawString(technology.description, miniFont, Brushes.Black, new Rectangle(bounds.X + 10, pos.Y, bounds.Width - 20, bounds.Height - (pos.Y - bounds.Y) - 10));
 
             g.ResetClip();
-        }
-
-        /// <summary>
-        /// Sticks the given buildingtype to the mouse cursor, 
-        /// allowing the user to place it by left clicking on the game area
-        /// or discard it by right clicking, or clicking elsewhere.
-        /// </summary>
-        private void PlaceBuilding(BuildingType type)
-        {
-
         }
     }
 }
