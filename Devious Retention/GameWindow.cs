@@ -623,7 +623,7 @@ namespace Devious_Retention
                 Point textPoint = new Point(imageBounds.X + resourceIconWidth + resourcePadding, bounds.Y);
 
                 g.DrawImage(resourceImages[i], imageBounds);
-                g.DrawString(client.currentResources[i] + "", font, Brushes.Black, textPoint);
+                g.DrawString((int)client.currentResources[i] + "", font, Brushes.Black, textPoint);
         }
 
             // Draw the border
@@ -1185,8 +1185,8 @@ namespace Devious_Retention
                 {
                     if (area.Equals("game area"))
                     {
-                        double x = (double)e.X / tileWidth - placingBuilding.size / 2; // Shift it over as the middle of the building should be on the mouse
-                        double y = (double)e.Y / tileWidth - placingBuilding.size / 2;
+                        double x = (double)e.X / tileWidth - placingBuilding.size / 2 + screenX; // Shift it over as the middle of the building should be on the mouse
+                        double y = (double)e.Y / tileWidth - placingBuilding.size / 2 + screenY;
                         if (x < 0) x = 0; if (x + placingBuilding.size > client.map.width) x = client.map.width - placingBuilding.size;
                         if (y < 0) y = 0; if (y + placingBuilding.size > client.map.height) y = client.map.height - placingBuilding.size;
                         client.CreateFoundation(placingBuilding, x, y);

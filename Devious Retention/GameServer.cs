@@ -100,7 +100,7 @@ namespace Devious_Retention
             Building building = new Building(buildingType, Building.nextID, x, y, player);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
-            if (Collides(x, y, buildingType.size)) return;
+            if (Collides(building)) return;
 
             // No collisions, so we can safetly place the foundation :)
             foreach (STCConnection c in connections)
@@ -113,7 +113,6 @@ namespace Devious_Retention
                 if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { building };
                 else entitiesBySquare[c.x, c.y].Add(building);
             }
-
         }
 
         /// <summary>
@@ -136,22 +135,22 @@ namespace Devious_Retention
             double y = building.y - type.size - 0.1;
             // On top
             for (x = building.x - type.size - 0.1; x <= building.x + building.type.size + 0.1; x += 0.1)
-                if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+                if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
             // On the right
             x = building.x + building.type.size + 0.1;
             if(placeX == -1)
                 for(y = building.y - type.size - 0.1; y <= building.y + building.type.size + 0.1; y += 0.1)
-                    if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+                    if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
             // On the bottom
             y = building.y + building.type.size + 0.1;
             if(placeX == -1)
                 for(x = building.x + building.type.size + 0.1; x >= building.x - type.size - 0.1; x -= 0.1)
-                    if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+                    if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
             // On the left
             x = building.x - type.size - 0.1;
             if(placeX == -1)
                 for(y = building.y + building.type.size + 0.1; y >= building.y - type.size - 0.1; y -= 0.1)
-                    if (!Collides(x, y, type.size)){ placeX = x; placeY = y; }
+                    if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
 
             // Was there a place for it?
             if (placeX == -1)
@@ -170,10 +169,29 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Returns whether or not an entity
-        /// at the given position with the given size would collide with any other entity.
+        /// Returns whether or not the given entity
+        /// would collide with any other
         /// </summary>
-        private bool Collides(double x, double y, double size)
+        private bool Collides(Entity entity)
+        {
+            List<Coordinate> includedTiles = Map.GetIncludedTiles(map, entity.x, entity.y, entity.type.size);
+            foreach (Coordinate c in includedTiles)
+                if (entitiesBySquare[c.x, c.y] != null)
+                    foreach (Entity e in entitiesBySquare[c.x, c.y])
+                        if (e != entity && e.x + e.type.size > entity.x && e.y + e.type.size > entity.y
+                        && e.x < entity.x + entity.type.size && e.y < entity.y + entity.type.size) // If they collide, return true
+                        {
+                            return true;
+                        }
+            // If nothing collides return false
+            return false;
+        }
+        /// <summary>
+        /// Returns whether or not a new entity
+        /// at the given position and size would
+        /// collide with any other
+        /// </summary>
+        private bool CollidesCoords(double x, double y, double size)
         {
             List<Coordinate> includedTiles = Map.GetIncludedTiles(map, x, y, size);
             foreach (Coordinate c in includedTiles)
@@ -181,7 +199,9 @@ namespace Devious_Retention
                     foreach (Entity e in entitiesBySquare[c.x, c.y])
                         if (e.x + e.type.size > x && e.y + e.type.size > y
                         && e.x < x + size && e.y < y + size) // If they collide, return true
+                        {
                             return true;
+                        }
             // If nothing collides return false
             return false;
         }

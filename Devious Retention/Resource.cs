@@ -24,7 +24,7 @@ namespace Devious_Retention
         public EntityType type { get; private set; }
 
         // The current amount of the given resource in this resource
-        public int amount;
+        public double amount;
 
         // The position of the top-left of this resource
         public double x { get; set; }

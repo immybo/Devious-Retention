@@ -20,6 +20,9 @@ namespace Devious_Retention
         public List<GameInfo> definitions { get; private set; }
         public GameInfo info { get; private set; } // This client's GameInfo (= definitions[playerNumber])
 
+        // Doesn't need to be stored on the server, this is just used to determine time passing between events
+        private int currentTick;
+
         // Entities are gotten from the server every tick
         public Dictionary<int, Resource> resources { get; private set; }
         public Dictionary<int, Unit> units { get; private set; }
@@ -40,7 +43,7 @@ namespace Devious_Retention
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
         // metal, oil, energy, science
-        public int[] currentResources { get; private set; }
+        public double[] currentResources { get; private set; }
 
         // Whether the building panel or the technology panel is open
         public bool buildingPanelOpen { get; private set; }
@@ -70,7 +73,8 @@ namespace Devious_Retention
 
             selected = new List<Entity>();
 
-            currentResources = new int[GameInfo.RESOURCE_TYPES];
+            currentResources = new double[GameInfo.RESOURCE_TYPES];
+            currentTick = 0;
 
             buildingPanelOpen = true;
 
@@ -382,6 +386,42 @@ namespace Devious_Retention
         /// </summary>
         public void Tick()
         {
+            // Events that happen every second
+            if (currentTick % (int)(1000 / GameInfo.TICK_TIME) == 0)
+            {
+                TickResourceGathering();
+            }
+
+            currentTick++;
+        }
+
+        /// <summary>
+        /// Gathers one second's worth of resources from each building 
+        /// that is gathering resources
+        /// </summary>
+        private void TickResourceGathering()
+        {
+            foreach(Building b in buildings.Values)
+            {
+                // Only tick if it is going to provide a resource
+                if(b.buildingType.providesResource)
+                {
+                    currentResources[b.buildingType.resourceType] += b.buildingType.gatherSpeed;
+                }
+                else if(b.buildingType.canBeBuiltOnResource && b.resource != null)
+                {
+                    if (!b.resource.Depleted())
+                    {
+                        double amount = 0;
+                        if (b.resource.amount >= b.resource.resourceType.gatherSpeed)
+                            amount = b.resource.resourceType.gatherSpeed;
+                        else
+                            amount = b.resource.amount;
+                        currentResources[b.buildingType.builtOnResourceType] += amount;
+                        b.resource.amount -= amount;
+                    }
+                }
+            }
         }
 
         /// <summary>
