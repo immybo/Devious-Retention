@@ -65,7 +65,7 @@ namespace Devious_Retention
             cts.Connect();
 
             // TESTING STUFF
-            server.SpawnEntity(client.info.unitTypes["TestUnit"], 1, 2, 2);
+            server.SpawnEntity(client.info.resourceTypes["TestResource"], 0, 2, 2);
 
             Application.Run(gameWindow);
         }

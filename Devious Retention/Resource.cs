@@ -47,6 +47,7 @@ namespace Devious_Retention
         public Resource(ResourceType type, int id, double x, double y)
         {
             this.resourceType = type;
+            this.amount = type.resourceAmount;
             this.type = type;
             this.id = id;
             this.x = x;

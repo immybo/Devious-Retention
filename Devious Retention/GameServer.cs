@@ -17,6 +17,7 @@ namespace Devious_Retention
     {
         public List<STCConnection> connections { get; set; }
         private GameInfo info;
+        private int currentTick;
         
         // One map for every player, contains only technologies that they have researched
         private List<Dictionary<String, Technology>> researched;
@@ -75,6 +76,7 @@ namespace Devious_Retention
             tickTimer.Interval = GameInfo.TICK_TIME;
             tickTimer.Tick += Tick;
             tickTimer.Start();
+            currentTick = 0;
         }
 
         /// <summary>
@@ -86,6 +88,8 @@ namespace Devious_Retention
 
             foreach (STCConnection c in connections) // Inform all the clients
                 c.Tick();
+
+            currentTick++;
         }
 
         /// <summary>
@@ -100,19 +104,28 @@ namespace Devious_Retention
             Building building = new Building(buildingType, Building.nextID, x, y, player);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
-            if (Collides(building)) return;
-
-            // No collisions, so we can safetly place the foundation :)
-            foreach (STCConnection c in connections)
-                c.InformEntityAdd(building, false);
+            if (Collides(building.x, building.y, buildingType.size, false)) return;
 
             buildings.Add(building.id, building);
             List<Coordinate> buildingCoordinates = Map.GetIncludedTiles(map, building);
             foreach (Coordinate c in buildingCoordinates)
             {
                 if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { building };
-                else entitiesBySquare[c.x, c.y].Add(building);
+                else
+                {
+                    // Also see if there are any resource that this is built on
+                    if (buildingType.canBeBuiltOnResource)
+                        foreach(Entity e in entitiesBySquare[c.x, c.y])
+                            if (e is Resource && ((Resource)e).resourceType.resourceType == buildingType.builtOnResourceType)
+                                building.resource = (Resource)e;
+
+                    entitiesBySquare[c.x, c.y].Add(building);
+                }
             }
+
+            // No collisions, so we can safetly place the foundation :)
+            foreach (STCConnection c in connections)
+                c.InformEntityAdd(building, false);
         }
 
         /// <summary>
@@ -135,22 +148,22 @@ namespace Devious_Retention
             double y = building.y - type.size - 0.1;
             // On top
             for (x = building.x - type.size - 0.1; x <= building.x + building.type.size + 0.1; x += 0.1)
-                if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
+                if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
             // On the right
             x = building.x + building.type.size + 0.1;
             if(placeX == -1)
                 for(y = building.y - type.size - 0.1; y <= building.y + building.type.size + 0.1; y += 0.1)
-                    if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
+                    if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
             // On the bottom
             y = building.y + building.type.size + 0.1;
             if(placeX == -1)
                 for(x = building.x + building.type.size + 0.1; x >= building.x - type.size - 0.1; x -= 0.1)
-                    if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
+                    if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
             // On the left
             x = building.x - type.size - 0.1;
             if(placeX == -1)
                 for(y = building.y + building.type.size + 0.1; y >= building.y - type.size - 0.1; y -= 0.1)
-                    if (!CollidesCoords(x, y, type.size)){ placeX = x; placeY = y; }
+                    if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
 
             // Was there a place for it?
             if (placeX == -1)
@@ -169,29 +182,12 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Returns whether or not the given entity
-        /// would collide with any other
-        /// </summary>
-        private bool Collides(Entity entity)
-        {
-            List<Coordinate> includedTiles = Map.GetIncludedTiles(map, entity.x, entity.y, entity.type.size);
-            foreach (Coordinate c in includedTiles)
-                if (entitiesBySquare[c.x, c.y] != null)
-                    foreach (Entity e in entitiesBySquare[c.x, c.y])
-                        if (e != entity && e.x + e.type.size > entity.x && e.y + e.type.size > entity.y
-                        && e.x < entity.x + entity.type.size && e.y < entity.y + entity.type.size) // If they collide, return true
-                        {
-                            return true;
-                        }
-            // If nothing collides return false
-            return false;
-        }
-        /// <summary>
         /// Returns whether or not a new entity
-        /// at the given position and size would
-        /// collide with any other
+        /// at the given coordinates
+        /// would collide with any other.
         /// </summary>
-        private bool CollidesCoords(double x, double y, double size)
+        /// <param name="includeResource">Whether or not to care about any resources colliding.</param>
+        private bool Collides(double x, double y, double size, bool includeResource)
         {
             List<Coordinate> includedTiles = Map.GetIncludedTiles(map, x, y, size);
             foreach (Coordinate c in includedTiles)
@@ -199,9 +195,8 @@ namespace Devious_Retention
                     foreach (Entity e in entitiesBySquare[c.x, c.y])
                         if (e.x + e.type.size > x && e.y + e.type.size > y
                         && e.x < x + size && e.y < y + size) // If they collide, return true
-                        {
-                            return true;
-                        }
+                            if(!(e is Resource) || includeResource)
+                                return true;
             // If nothing collides return false
             return false;
         }
@@ -228,6 +223,7 @@ namespace Devious_Retention
             else if(type is ResourceType)
             {
                 entity = new Resource((ResourceType)type, Resource.nextID, x, y);
+                Resource.IncrementNextID();
                 resources.Add(entity.id, (Resource)entity);
             }
 
@@ -284,6 +280,14 @@ namespace Devious_Retention
         public void DeleteEntity(Entity entity)
         {
 
+        }
+
+        public void GatherResource(double amount, int resourceID)
+        {
+            if (!resources.ContainsKey(resourceID)) return;
+            Resource resource = resources[resourceID];
+            foreach (STCConnection c in connections)
+                c.InformEntityChange(resource, 0, -amount, 0);
         }
 
         /// <summary>

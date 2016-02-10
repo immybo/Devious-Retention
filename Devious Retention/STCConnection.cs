@@ -86,6 +86,9 @@ namespace Devious_Retention
                             case 3:
                                 InformServerUnitMove(splitLine);
                                 break;
+                            case 5:
+                                InformServerResourceGather(splitLine);
+                                break;
                         }
                     }
                 }
@@ -141,6 +144,16 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Tells the server to remove a certain amount from a resource.
+        /// </summary>
+        private void InformServerResourceGather(string[] splitLine)
+        {
+            double amount = double.Parse(splitLine[1]);
+            int id = int.Parse(splitLine[2]);
+            server.GatherResource(amount, id);
+        }
+
+        /// <summary>
         /// Attempts to create a socket connection to the given IP.
         /// Returns whether or not it succeeded in doing so.
         /// Closes any existing connection.
@@ -179,18 +192,19 @@ namespace Devious_Retention
         /// Informs the client that a new entity has been added.
         /// 
         /// Message format:
-        /// [message type=0] [isFree] [0=unit,1=building,2=resource] [type name] [id] [xpos] [ypos] [player (if not a resource)]
+        /// [message type=0] [isFree] [0=unit,1=building,2=resource] [type name] [id] [xpos] [ypos] [player (if not a resource)] [resource id (if a building, -1 if none or not building)]
         /// </summary>
         public void InformEntityAdd(Entity entity, bool isFree)
         {
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
 
             int entityType = -1;
+            int resourceID = -1;
             string typeName = "";
             if (entity is Unit) { entityType = 0; typeName = ((Unit)entity).unitType.name; }
-            else if (entity is Building) { entityType = 1; typeName = ((Building)entity).buildingType.name; }
+            else if (entity is Building) { entityType = 1; typeName = ((Building)entity).buildingType.name; resourceID = ((Building)entity).resource == null ? -1 : ((Building)entity).resource.id; }
             else if (entity is Resource) { entityType = 2; typeName = ((Resource)entity).resourceType.name; }
-            outgoingWriter.WriteLine("0 " + isFree + " " + entityType + " " + typeName + " " + entity.id + " " + entity.x + " " + entity.y + " " + entity.playerNumber);
+            outgoingWriter.WriteLine("0 " + isFree + " " + entityType + " " + typeName + " " + entity.id + " " + entity.x + " " + entity.y + " " + entity.playerNumber + " " + resourceID);
         }
 
         /// <summary>

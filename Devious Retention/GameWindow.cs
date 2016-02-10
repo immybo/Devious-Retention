@@ -785,9 +785,16 @@ namespace Devious_Retention
                     drawPoint.Y += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 20;
                     g.DrawString("Gathering " + gatherRate, font, Brushes.Black, drawPoint);
                     drawPoint.X += (int)(g.MeasureString("Gathering " + gatherRate, font).Width) + 4;
-                    g.DrawImage(resourceImages[building.buildingType.resourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
+                    g.DrawImage(building.buildingType.providesResource ? resourceImages[building.buildingType.resourceType] : resourceImages[building.buildingType.builtOnResourceType], new Rectangle(drawPoint.X, drawPoint.Y, (int)(DAMAGE_ICON_SIZE * bounds.Width), (int)(DAMAGE_ICON_SIZE * bounds.Width)));
                     drawPoint.X += (int)(DAMAGE_ICON_SIZE * bounds.Width) + 2;
                     g.DrawString("/s", font, Brushes.Black, drawPoint);
+
+                    if(building.buildingType.canBeBuiltOnResource && building.resource != null)
+                    {
+                        drawPoint.X = bounds.X + 10;
+                        drawPoint.Y += fontSize + 10;
+                        g.DrawString(building.resource.amount + " remaining in resource.", font, Brushes.Black, drawPoint);
+                    }
                 }
 
                 // TRAINING QUEUE

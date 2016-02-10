@@ -97,32 +97,6 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Selects all entities within the specified rectangle.
-        /// </summary>
-        public void DragSelect(double startX, double startY, double endX, double endY)
-        {
-
-        }
-
-        /// <summary>
-        /// Attempts to select an entity at the given position.
-        /// Does nothing if there is no entity at the given position.
-        /// </summary>
-        public void ClickSelect(double x, double y)
-        {
-
-        }
-
-        /// <summary>
-        /// Processes a click on the currently selected entity pane.
-        /// Uses pixel co-ordinates rather than the usual map co-ordinates.
-        /// </summary>
-        public void ClickEntityPane(int x, int y)
-        {
-
-        }
-
-        /// <summary>
         /// Asks the server to move selected units to (x,y)
         /// </summary>
         public void MoveUnits(double x, double y)
@@ -218,7 +192,8 @@ namespace Devious_Retention
         /// <param name="xPos">The initial x position of the new entity.</param>
         /// <param name="yPos">The initial y position of the new entity.</param>
         /// <param name="player">The player that the entity belongs to. Irrelevant if a resource.</param>
-        public void AddEntity(bool isFree, int entityType, int id, string type, double xPos, double yPos, int player)
+        /// <param name="resource">The resource which the entity is built on, only relevant if it's a building.</param>
+        public void AddEntity(bool isFree, int entityType, int id, string type, double xPos, double yPos, int player, int resourceID)
         {
             Entity entity = null;
             if(entityType == 0)
@@ -241,6 +216,7 @@ namespace Devious_Retention
                 if (!definitions[playerNumber].buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
                 BuildingType buildingType = definitions[playerNumber].buildingTypes[type];
                 Building building = new Building(buildingType, id, xPos, yPos, player);
+                if(resources.ContainsKey(resourceID)) building.resource = resources[resourceID];
                 buildings.Add(building.id, building);
                 buildingType.buildings.Add(building);
                 window.UpdateLOSAdd(building);
@@ -357,7 +333,7 @@ namespace Devious_Retention
                 if (!resources.ContainsKey(entityID)) return;
                 Resource resource = resources[entityID];
 
-                if (propertyID == 0) resource.amount -= (int)change;
+                if (propertyID == 0) resource.amount += change;
             }
         }
 
@@ -417,8 +393,10 @@ namespace Devious_Retention
                             amount = b.resource.resourceType.gatherSpeed;
                         else
                             amount = b.resource.amount;
+
                         currentResources[b.buildingType.builtOnResourceType] += amount;
-                        b.resource.amount -= amount;
+
+                        connection.InformResourceGather(amount, b.resource);
                     }
                 }
             }

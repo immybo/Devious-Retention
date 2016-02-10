@@ -39,7 +39,7 @@ namespace Devious_Retention
         public int trainingQueueTime { get; private set; }
 
         // The resource that this building is on, if any
-        public Resource resource { get; private set; }
+        public Resource resource { get; set; }
 
         // The co-ordinates of the top-left corner of this building
         public double x { get; set; }

@@ -151,7 +151,8 @@ namespace Devious_Retention
             double xPos = double.Parse(splitLine[5]);
             double yPos = double.Parse(splitLine[6]);
             int playerNumber = int.Parse(splitLine[2]) == 2 ? 0 : int.Parse(splitLine[7]); // use a player number of 0 if it's a resource
-            client.AddEntity(isFree, entityType, id, typeName, xPos, yPos, playerNumber);
+            int resource = int.Parse(splitLine[8]);
+            client.AddEntity(isFree, entityType, id, typeName, xPos, yPos, playerNumber, resource);
         }
 
         /// <summary>
@@ -255,6 +256,18 @@ namespace Devious_Retention
         public void RequestDelete(Entity entity)
         {
 
+        }
+
+        /// <summary>
+        /// Tells the server to remove the given amount of resource
+        /// from the given resource.
+        /// 
+        /// Message format:
+        /// [message type = 5] [amount] [resource id]
+        /// </summary>
+        public void InformResourceGather(double amount, Resource resource)
+        {
+            outgoingWriter.WriteLine("5 " + amount + " " + resource.id);
         }
     }
 }
