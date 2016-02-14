@@ -1,70 +1,16 @@
 TestTechnology
 TestTechnology.png
 
+ClashingTechnology
 50 50 50 50
-This is the test technology.
+This is the test technology. It clases with ClashingTechnology.
 1 TestUnit 0 100
 ~
-TestTechnology2
+ClashingTechnology
 TestTechnology.png
+
 TestTechnology
 50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology3
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology4
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology5
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology6
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology7
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology8
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology9
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
-1 TestUnit 0 100
-~
-TestTechnology10
-TestTechnology.png
-
-50 50 50 50
-This is the test technology.
+This is a technology which clashes with the test technology.
 1 TestUnit 0 100
 ~

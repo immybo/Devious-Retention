@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 namespace Devious_Retention
 {
     /// <summary>
-    /// A technology can apply certain effects to a player.
+    /// Technologies are things which the player can research, costing resources,
+    /// to provide a variety of benefits (and detriments!) to them, such as changing
+    /// unit or building type attributes, or unlocking new technologies or buildings.
     /// </summary>
     public class Technology : ICloneable
     {
@@ -22,9 +24,12 @@ namespace Devious_Retention
         private string iconName;
         public Image icon { get; private set; }
 
-        // A technology can have one prerequisite technology
+        // A technology can have a bunch of prerequisite technologies
         // that must be researched before it can be.
-        public HashSet<String> prerequisites { get; private set; }
+        public List<string> prerequisites { get; private set; }
+        // It can also have a bunch of technologies which result in
+        // it not being able to be researched if any of them are.
+        public List<string> clashing { get; private set; }
 
         // Each string has a few components, seperated by spaces:
         // - an identifier for whether it affects a unit, a building or a technology
@@ -40,17 +45,18 @@ namespace Devious_Retention
         // 0 = max hitpoints, 1 = damage, 2 = building time, [note: the next two are SET modifiers, not FLAT modifiers] 3 = provides resource, 4 = resource type, 5 = gather speed, 6 = resource costs, 7 = resistances
         // Technology statistics:
         // 0 = resource costs
-        private HashSet<String> effects;
+        private List<string> effects;
 
         /// <summary>
         /// As no technology types exist, all of a technology's attributes must be given
         /// to create one.
         /// </summary>
-        public Technology(string name, HashSet<String> prerequisites, HashSet<String> effects, int[] resourceCosts, string iconName, string description)
+        public Technology(string name, List<string> prerequisites, List<string> clashing, List<string> effects, int[] resourceCosts, string iconName, string description)
         {
             this.name = name;
             this.description = description;
             this.prerequisites = prerequisites;
+            this.clashing = clashing;
             this.effects = effects;
             this.resourceCosts = resourceCosts;
             this.iconName = iconName;
@@ -59,7 +65,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns a string representing this technology.
-        /// "[name] [prerequisites] ~ [effects] ~ [resourceCosts] [iconName] [description]"
+        /// "[name] [prerequisites] ~ [clashing] ~ [effects] ~ [resourceCosts] [iconName] [description]"
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -68,6 +74,9 @@ namespace Devious_Retention
             builder.Append(name + " ");
             foreach (string p in prerequisites)
                 builder.Append(p + " ");
+            builder.Append("~ ");
+            foreach (string c in clashing)
+                builder.Append(c + " ");
             builder.Append("~ ");
             foreach (string e in effects)
                 builder.Append(e + " ");
@@ -221,7 +230,7 @@ namespace Devious_Retention
         /// </summary>
         public object Clone()
         {
-            return new Technology(name, prerequisites, effects, resourceCosts, iconName, description);
+            return new Technology(name, prerequisites, clashing, effects, resourceCosts, iconName, description);
         }
     }
 }

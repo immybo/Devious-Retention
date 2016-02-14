@@ -170,6 +170,10 @@ namespace Devious_Retention
             foreach (string s in technology.prerequisites)
                 if (!info.technologies[s].researched)
                     return false;
+            // And that we don't have clashing technologies
+            foreach (string s in technology.clashing)
+                if (info.technologies[s].researched)
+                    return false;
             // And enough resources
             for(int i = 0; i < currentResources.Length; i++)
                 if (currentResources[i] < technology.resourceCosts[i])
@@ -425,6 +429,43 @@ namespace Devious_Retention
         private void WindowRefreshTimerHandler(object source, EventArgs e)
         {
             window.Refresh();
+        }
+
+        /// <summary>
+        /// Returns whether or not the player is currently allowed
+        /// to build a building of the type with the given name.
+        /// </summary>
+        public bool CanBuild(BuildingType type)
+        {
+            // Do we have its prerequisite, if it has any?
+            if(type.prerequisite != null && (!info.technologies.ContainsKey(type.prerequisite) || !info.technologies[type.prerequisite].researched))
+            {
+                return false;
+            }
+
+            // Otherwise it can be built
+            return true;
+        }
+
+        /// <summary>
+        /// Returns whether or not the player is currently allowed
+        /// to research the technology with the given name.
+        /// </summary>
+        public bool CanResearch(Technology tech)
+        {
+            // If it's already researched, we can't do so again
+            if (tech.researched) return false;
+            // If any of the prerequisites isn't researched, we can't research it
+            foreach(string s in tech.prerequisites)
+                if (!info.technologies.ContainsKey(s) || !info.technologies[s].researched)
+                    return false;
+            // If any of the clashing technologies is researched, we can't research it
+            foreach (string s in tech.clashing)
+                if (info.technologies.ContainsKey(s) && info.technologies[s].researched)
+                    return false;
+
+            // Otherwise, we can research it
+            return true; 
         }
     }
 }

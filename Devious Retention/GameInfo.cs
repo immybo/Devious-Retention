@@ -246,32 +246,40 @@ namespace Devious_Retention
             baseTechnologies = new SortedDictionary<string,Technology>();
             // Each technology is in a set of lines, ended with a line that has only a ~ in it
             // A technology is formatted:
-            // name
-            // prereq1...prereqX
-            // resourcecost1...resourcecostX
-            // effect1
-            // effect2
-            // effectX
+            // [name]
+            // [prerequisite 1 name] .. [prerequisite x name]
+            // [clashing technology 1 name] .. [clashing technology x name]
+            // [resource cost 1] .. [resource cost x]
+            // [effect 1]
+            // [effect 2]
+            // [effect x]
+            // ~
             StreamReader r = new StreamReader(fname);
-            int j = 0;
+
+            // Define all the variables we need to create a technology
             string line;
             string name = "";
             string description = "";
             string iconName = "";
-            HashSet<string> prerequisites = new HashSet<string>();
-            HashSet<String> effects = new HashSet<string>();
+            List<string> prerequisites = new List<string>();
+            List<string> clashing = new List<string>();
+            List<string> effects = new List<string>();
+
             int[] resourceCosts = new int[GameInfo.RESOURCE_TYPES];
             int currentLine = 0;
+
             while ((line = r.ReadLine()) != null)
             {
+                // If we're on the last line of a technology, create that technology and reset the necessary variables for the next one
                 if (line.Equals("~"))
                 {
-                    baseTechnologies.Add(name, new Technology(name, prerequisites, effects, resourceCosts, iconName, description));
+                    baseTechnologies.Add(name, new Technology(name, prerequisites, clashing, effects, resourceCosts, iconName, description));
                     currentLine = -1;
-                    prerequisites = new HashSet<string>();
-                    effects = new HashSet<String>();
+                    prerequisites = new List<string>();
+                    effects = new List<string>();
                 }
-                else if (currentLine == 0) { name = line; j++; }
+                // Otherwise process the line according to the structure defined above
+                else if (currentLine == 0) name = line;
                 else if (currentLine == 1) iconName = line;
                 else if (currentLine == 2)
                 {
@@ -282,10 +290,16 @@ namespace Devious_Retention
                 else if (currentLine == 3)
                 {
                     string[] split = line.Split(new char[] { ' ' });
+                    for (int i = 0; i < split.Length; i++)
+                        if (split[i].Length > 0) clashing.Add(split[i]);
+                }
+                else if (currentLine == 4)
+                {
+                    string[] split = line.Split(new char[] { ' ' });
                     for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
                         resourceCosts[i] = int.Parse(split[i]);
                 }
-                else if (currentLine == 4)
+                else if (currentLine == 5)
                     description = line;
                 else
                     effects.Add(line);

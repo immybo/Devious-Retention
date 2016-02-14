@@ -14,7 +14,9 @@ namespace Devious_Retention
 {
     public partial class GameWindow : Form
     {
-        // 1 = entire width/height, 0 = nothing
+        public GameClient client;
+
+        // 1 = entire screen width/height, 0 = nothing
         private const double GAME_AREA_WIDTH = 0.75;
         private const double GAME_AREA_HEIGHT = 0.90;
         private const double MINIMAP_WIDTH = 0.15;
@@ -22,22 +24,23 @@ namespace Devious_Retention
 
         private const int HORIZONTAL_TILES = 10;
 
-        // How much the screen moves every tick of holding the button down
-        private const int SCREEN_X_CHANGE = 1;
-        private const int SCREEN_Y_CHANGE = 1;
+        // How much the screen moves every tick of holding the button down, in tiles
+        private const double SCREEN_X_CHANGE = 1;
+        private const double SCREEN_Y_CHANGE = 1;
 
-        // How large the building/technology icons are, and the gaps between them (pixels)
+        // How large most icons are, and the gaps between them (pixels)
         private const int ICON_SIZE = 50;
         private const int ICON_GAP = 20;
+
+        // How wide each resource is in the resource display area, out of 1
+        private const double RESOURCE_WIDTH = 0.2;
 
         // How large tooltips are (pixels)
         private const int TOOLTIP_WIDTH = 300;
         private const int TOOLTIP_HEIGHT = 500;
 
-        private const double RESOURCE_WIDTH = 0.2;
-
-        // How opaque the overlay to tiles which we don't have LOS to is
-        private const int OVERLAY_ALPHA = 100;
+        // How light greyed out things are (0=completely gray,1=normal)
+        private const double OVERLAY_STRENGTH = 0.5;
 
         // relative to the width of the selection panel
         private const double DAMAGE_ICON_SIZE = 0.06;
@@ -47,11 +50,9 @@ namespace Devious_Retention
         private const int RIGHT_AREA_BORDER_WIDTH = 20;
         private const int RESOURCE_AREA_BORDER_WIDTH = 20;
 
-        public GameClient client;
-
         // Where the top-left of the screen is, in map co-ordinates.
-        public double screenY { get; private set; } = 0;
-        public double screenX { get; private set; } = 0;
+        public double viewX { get; private set; } = 0;
+        public double viewY { get; private set; } = 0;
         // How many tiles fit on the screen
         private double maxXTiles = 0;
         private double maxYTiles = 0;
@@ -62,7 +63,6 @@ namespace Devious_Retention
         // Where the mouse started dragging, for selection purposes
         private double startX = -1;
         private double startY = -1;
-
         // Where the mouse currently is
         private double mouseX = -1;
         private double mouseY = -1;
@@ -76,6 +76,7 @@ namespace Devious_Retention
         private bool mouseDownOnGameArea = false;
         // " top right panel
         private bool mouseDownOnTopRightArea = false;
+
         // How far vertically the top right panel has been shifted
         private int topRightShift = 0;
 
@@ -128,6 +129,7 @@ namespace Devious_Retention
             resourceAreaBorderTop = Image.FromFile(Path.Combine(GameInfo.BORDER_IMAGE_BASE, GameInfo.BORDER_RESOURCE_AREA_TOP));
             rightAreaBorderLeft = Image.FromFile(Path.Combine(GameInfo.BORDER_IMAGE_BASE, GameInfo.BORDER_RIGHT_AREA_LEFT));
 
+            // Set all the events
             Paint += Render;
             KeyDown += new KeyEventHandler(KeyEvent);
             KeyUp += new KeyEventHandler(KeyUpEvent);
@@ -137,11 +139,9 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Returns the entity, if there is one, which is displayed at (x,y)
-        /// on the the screen for the client. This means that, if there are
-        /// overlapping entities, the one in front will be returned.
+        /// Returns the entity, if there is one, which is at
+        /// (x,y) in map coordinates.
         /// </summary>
-        /// <returns>The entity at the position, or null if there was none.</returns>
         public Entity GetEntityAt(double x, double y)
         {
             // Units > buildings > resources
@@ -160,7 +160,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns the entities, if there are any, which are contained within
-        /// the given rectangle.
+        /// the given rectangle in map coordinates.
         /// </summary>
         public HashSet<Entity> GetEntitiesIn(double x, double y, double width, double height)
         {
@@ -239,7 +239,7 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Calls all RenderX methods in appropriate order (preceding them with ResizeToFit)
+        /// Renders everything; calls lesser rendering methods.
         /// </summary>
         private void Render(object sender, PaintEventArgs e)
         {
@@ -504,8 +504,8 @@ namespace Devious_Retention
 
             // Figure out how much of the top and left tiles must be cut off the screen, due
             // to the camera position being potentially not an integer value
-            int topTileXOffset = (int)((screenX - (int)screenX) * tileWidth);
-            int topTileYOffset = (int)((screenY - (int)screenY) * tileHeight);
+            int topTileXOffset = (int)((viewX - (int)viewX) * tileWidth);
+            int topTileYOffset = (int)((viewY - (int)viewY) * tileHeight);
 
             // Figure out how many tiles we can draw on the screen
             maxXTiles = HORIZONTAL_TILES + 1;
@@ -513,20 +513,20 @@ namespace Devious_Retention
 
             for (int i = 0; i < maxXTiles; i++)
             {
-                if (i + (int)screenX >= client.map.width) continue;
-                if (i + (int)screenX < 0) continue;
+                if (i + (int)viewX >= client.map.width) continue;
+                if (i + (int)viewX < 0) continue;
 
                 for (int j = 0; j < maxYTiles; j++)
                 {
-                    if (j + (int)screenY >= client.map.height) continue;
-                    if (j + (int)screenY < 0) continue;
+                    if (j + (int)viewY >= client.map.height) continue;
+                    if (j + (int)viewY < 0) continue;
 
                     // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
                     // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i + (int)screenX, j + (int)screenY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
+                    g.DrawImage(client.map.GetTile(i + (int)viewX, j + (int)viewY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                     // If this tile is out of line of sight, draw a light grey overlay (grey it out)
-                    if (!LOS[i + (int)screenX, j + (int)screenY])
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
+                    if (!LOS[i + (int)viewX, j + (int)viewY])
+                        g.FillRectangle(new SolidBrush(Color.FromArgb((int)(255*(1-OVERLAY_STRENGTH)), Color.LightGray)), new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                 }
             }
 
@@ -566,15 +566,15 @@ namespace Devious_Retention
             foreach(Entity e in entities)
             {
                 // First check if they're even on the screen
-                if (e.x + e.type.size < screenX || e.x > screenX + maxXTiles) continue;
-                if (e.y + e.type.size < screenY || e.y > screenY + maxYTiles) continue;
+                if (e.x + e.type.size < viewX || e.x > viewX + maxXTiles) continue;
+                if (e.y + e.type.size < viewY || e.y > viewY + maxYTiles) continue;
                 // And check if we have line of sight to them
                 if (!LOS[(int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2)]) continue;
 
                 // Since they are on the screen, figure out their bounds
                 Rectangle entityBounds = new Rectangle();
-                entityBounds.X = (int)((e.x - screenX) * tileWidth); // their distance from the left/top of the screen
-                entityBounds.Y = (int)((e.y - screenY) * tileHeight);
+                entityBounds.X = (int)((e.x - viewX) * tileWidth); // their distance from the left/top of the screen
+                entityBounds.Y = (int)((e.y - viewY) * tileHeight);
                 entityBounds.Width = (int)(e.type.size * tileWidth);
                 entityBounds.Height = (int)(e.type.size * tileHeight);
 
@@ -604,16 +604,19 @@ namespace Devious_Retention
             bounds.Y += RESOURCE_AREA_BORDER_WIDTH;
             bounds.Height -= RESOURCE_AREA_BORDER_WIDTH;
 
+            // Draw the background
             g.DrawImage(resourceDisplayAreaBackgroundImage, bounds);
 
             Font font = new Font(GameInfo.FONT_NAME, (int)(bounds.Height/1.5), FontStyle.Regular);
 
-            int resourcePadding = 5;
-            int resourceIconWidth = bounds.Height - resourcePadding * 2;
-            int resourceTextWidth = (int)(RESOURCE_WIDTH*bounds.Width - resourceIconWidth);
-            int resourceGapWidth = (int)((1 - GameInfo.RESOURCE_TYPES * RESOURCE_WIDTH) / (GameInfo.RESOURCE_TYPES+1) * bounds.Width);
+            int resourcePadding = 5; // Padding between the icons and text/sides
+            int resourceIconWidth = bounds.Height - resourcePadding * 2; // As large as they can be in the area provided while still being square
+            int resourceTextWidth = (int)(RESOURCE_WIDTH*bounds.Width - resourceIconWidth); // Take up the rest of the space
+            int resourceGapWidth = (int)((1 - GameInfo.RESOURCE_TYPES * RESOURCE_WIDTH) / (GameInfo.RESOURCE_TYPES+1) * bounds.Width); // Gap between adjacent resources
 
-            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++) {
+            // Draw the image icons using these dimensions
+            for (int i = 0; i < GameInfo.RESOURCE_TYPES; i++)
+            {
                 Rectangle imageBounds = new Rectangle();
                 imageBounds.X = (int)(resourceGapWidth * (i + 1) + (resourceIconWidth+ resourceTextWidth) * i + bounds.X);
                 imageBounds.Y = bounds.Y + resourcePadding;
@@ -624,7 +627,7 @@ namespace Devious_Retention
 
                 g.DrawImage(resourceImages[i], imageBounds);
                 g.DrawString((int)client.currentResources[i] + "", font, Brushes.Black, textPoint);
-        }
+            }
 
             // Draw the border
             g.DrawImage(resourceAreaBorderTop, new Rectangle(bounds.X, bounds.Y - RESOURCE_AREA_BORDER_WIDTH, bounds.Width, RESOURCE_AREA_BORDER_WIDTH));
@@ -678,10 +681,10 @@ namespace Devious_Retention
             g.PixelOffsetMode = PixelOffsetMode.Default;
 
             // Draw a box around where the camera is
-            double x1 = screenX / client.map.width;
-            double y1 = screenY / client.map.height;
-            double x2 = (screenX + maxXTiles) / client.map.width;
-            double y2 = (screenY + maxYTiles) / client.map.height;
+            double x1 = viewX / client.map.width;
+            double y1 = viewY / client.map.height;
+            double x2 = (viewX + maxXTiles) / client.map.width;
+            double y2 = (viewY + maxYTiles) / client.map.height;
 
             // If one of the sides would be off the side, just set it to the side
             if (x1 < 0) x1 = 0;
@@ -1006,10 +1009,10 @@ namespace Devious_Retention
                 // Figure out if technologies are greyed out or not
                 foreach (BuildingType b in client.info.buildingTypes.Values)
                 {
-                    if (!client.info.technologies.ContainsKey(b.prerequisite) || !client.info.technologies[b.prerequisite].researched)
-                        grayedBuildingList.Add(b);
-                    else
+                    if(client.CanBuild(b))
                         buildingList.Add(b);
+                    else
+                        grayedBuildingList.Add(b);
                 }
 
                 // Then draw the non-greyed ones first
@@ -1030,7 +1033,7 @@ namespace Devious_Retention
                     this.iconBounds.Add(iconBounds, b.name);
                     g.DrawImage(b.icon, iconBounds);
                     if (grayedBuildingList.Contains(b))
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
+                        g.FillRectangle(new SolidBrush(Color.FromArgb((int)(255*(1-OVERLAY_STRENGTH)), Color.LightGray)), iconBounds);
                     i++;
                 }
 
@@ -1061,6 +1064,16 @@ namespace Devious_Retention
                 foreach (Technology t in client.info.technologies.Values)
                 {
                     if (t.researched) continue; // don't draw it if it's researched
+                    // Don't draw it if a clashing technology has been researched
+                    foreach(string s in t.clashing)
+                    {
+                        Technology clashingTech = client.info.technologies[s];
+                        if (clashingTech.researched)
+                        {
+                            goto end;
+                        }
+                    }
+
                     foreach (string s in t.prerequisites)
                     {
                         if (!client.info.technologies.ContainsKey(s) || !client.info.technologies[s].researched)
@@ -1092,7 +1105,7 @@ namespace Devious_Retention
                     this.iconBounds.Add(iconBounds, t.name);
                     g.DrawImage(t.icon, iconBounds);
                     if(grayedTechList.Contains(t))
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(OVERLAY_ALPHA, Color.LightGray)), iconBounds);
+                        g.FillRectangle(new SolidBrush(Color.FromArgb((int)(255*(1-OVERLAY_STRENGTH)), Color.LightGray)), iconBounds);
                     i++;
                 }
 
@@ -1143,13 +1156,13 @@ namespace Devious_Retention
             Keys key = e.KeyCode;
 
             if (key == Keys.Up)
-                screenY -= SCREEN_Y_CHANGE;
+                viewY -= SCREEN_Y_CHANGE;
             else if (key == Keys.Down)
-                screenY += SCREEN_Y_CHANGE;
+                viewY += SCREEN_Y_CHANGE;
             else if (key == Keys.Right)
-                screenX += SCREEN_X_CHANGE;
+                viewX += SCREEN_X_CHANGE;
             else if (key == Keys.Left)
-                screenX -= SCREEN_X_CHANGE;
+                viewX -= SCREEN_X_CHANGE;
             else if (key == Keys.ShiftKey)
                 shiftKeyDown = true;
             else if (key == Keys.Delete)
@@ -1180,8 +1193,8 @@ namespace Devious_Retention
                 // If it's on the game area and there's a selected unit, move that selected unit
                 if(area.Equals("game area") && client.selected.Count > 0)
                 {
-                    double tileX = screenX + (double)e.X / tileWidth;
-                    double tileY = screenY + (double)e.Y / tileHeight;
+                    double tileX = viewX + (double)e.X / tileWidth;
+                    double tileY = viewY + (double)e.Y / tileHeight;
                     client.MoveUnits(tileX, tileY);
                 }
             }
@@ -1194,8 +1207,8 @@ namespace Devious_Retention
                 {
                     if (area.Equals("game area"))
                     {
-                        double x = (double)e.X / tileWidth - placingBuilding.size / 2 + screenX; // Shift it over as the middle of the building should be on the mouse
-                        double y = (double)e.Y / tileWidth - placingBuilding.size / 2 + screenY;
+                        double x = (double)e.X / tileWidth - placingBuilding.size / 2 + viewX; // Shift it over as the middle of the building should be on the mouse
+                        double y = (double)e.Y / tileWidth - placingBuilding.size / 2 + viewY;
                         if (x < 0) x = 0; if (x + placingBuilding.size > client.map.width) x = client.map.width - placingBuilding.size;
                         if (y < 0) y = 0; if (y + placingBuilding.size > client.map.height) y = client.map.height - placingBuilding.size;
                         client.CreateFoundation(placingBuilding, x, y);
@@ -1219,7 +1232,7 @@ namespace Devious_Retention
                         double y1 = e.Y > startY ? startY / tileHeight : (double)e.Y / tileHeight;
                         double width = Math.Abs(e.X - startX) / tileWidth;
                         double height = Math.Abs(e.Y - startY) / tileHeight;
-                        SelectEntitiesInArea(x1+screenX, y1+screenY, width, height);
+                        SelectEntitiesInArea(x1+viewX, y1+viewY, width, height);
                     }
                     // Otherwise treat it as a click
                     else
@@ -1246,11 +1259,13 @@ namespace Devious_Retention
                             if (buildingPanelOpen)
                             {
                                 BuildingType type = client.info.buildingTypes[pair.Value];
+                                if (!client.CanBuild(type)) return;
                                 placingBuilding = type;
                             }
                             else
                             {
                                 Technology tech = client.info.technologies[pair.Value];
+                                if (!client.CanResearch(tech)) return;
                                 client.ResearchTechnology(tech);
                             }
                         }
@@ -1367,8 +1382,8 @@ namespace Devious_Retention
             double proportionY = minimapY / minimapSize;
 
             // The tile of the map we should therefore center on is..
-            screenX = client.map.width * proportionX - maxXTiles / 2;
-            screenY = client.map.height * proportionY - maxYTiles / 2;
+            viewX = client.map.width * proportionX - maxXTiles / 2;
+            viewY = client.map.height * proportionY - maxYTiles / 2;
         }
 
         /// <summary>
@@ -1421,6 +1436,10 @@ namespace Devious_Retention
                 pos.X = bounds.X + ICON_GAP;
                 pos.Y += ICON_SIZE + 10;
             }
+
+            // Prerequisite
+            g.DrawString("Requires: " + type.prerequisite, miniFont, Brushes.Black, new Rectangle(bounds.X + 10, pos.Y, bounds.Width - 20, bounds.Height - (pos.Y - bounds.Y) - 10));
+            pos.Y += (int)(g.MeasureString("Requires: " + type.prerequisite, miniFont, bounds.Width - 20).Height) + 15;
 
             // Description (wrap it in the box)
             g.DrawString(type.description, miniFont, Brushes.Black, new Rectangle(bounds.X + 10, pos.Y, bounds.Width - 20, bounds.Height - (pos.Y-bounds.Y) - 10));
