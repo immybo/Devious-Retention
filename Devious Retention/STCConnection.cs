@@ -86,6 +86,9 @@ namespace Devious_Retention
                             case 3:
                                 InformServerUnitMove(splitLine);
                                 break;
+                            case 4:
+                                InformServerEntityDeletion(splitLine);
+                                break;
                             case 5:
                                 InformServerResourceGather(splitLine);
                                 break;
@@ -97,6 +100,17 @@ namespace Devious_Retention
             {
                 Console.WriteLine(e);
             }
+        }
+
+        /// <summary>
+        /// Tells the server that a player has requested that an entity be deleted.
+        /// </summary>
+        private void InformServerEntityDeletion(string[] splitLine)
+        {
+            int type = int.Parse(splitLine[1]);
+            int id = int.Parse(splitLine[2]);
+
+            server.DeleteEntity(type, id);
         }
 
         /// <summary>
@@ -214,15 +228,10 @@ namespace Devious_Retention
         /// Message format:
         /// [message type=1] [0=unit,1=building,2=resource] [id]
         /// </summary>
-        public void InformEntityDeletion(Entity entity)
+        public void InformEntityDeletion(int entityType, int entityID)
         {
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
-
-            int entityType = -1;
-            if (entity is Unit) entityType = 0;
-            else if (entity is Building) entityType = 1;
-            else if (entity is Resource) entityType = 2;
-            outgoingWriter.WriteLine("1 " + entityType + " " + entity.id);
+            outgoingWriter.WriteLine("1 " + entityType + " " + entityID);
         }
 
         /// <summary>

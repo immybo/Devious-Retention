@@ -1143,15 +1143,17 @@ namespace Devious_Retention
             Keys key = e.KeyCode;
 
             if (key == Keys.Up)
-                this.screenY -= SCREEN_Y_CHANGE;
+                screenY -= SCREEN_Y_CHANGE;
             else if (key == Keys.Down)
-                this.screenY += SCREEN_Y_CHANGE;
+                screenY += SCREEN_Y_CHANGE;
             else if (key == Keys.Right)
-                this.screenX += SCREEN_X_CHANGE;
+                screenX += SCREEN_X_CHANGE;
             else if (key == Keys.Left)
-                this.screenX -= SCREEN_X_CHANGE;
+                screenX -= SCREEN_X_CHANGE;
             else if (key == Keys.ShiftKey)
                 shiftKeyDown = true;
+            else if (key == Keys.Delete)
+                client.DeleteSelected();
         }
 
         /// <summary>
@@ -1217,7 +1219,7 @@ namespace Devious_Retention
                         double y1 = e.Y > startY ? startY / tileHeight : (double)e.Y / tileHeight;
                         double width = Math.Abs(e.X - startX) / tileWidth;
                         double height = Math.Abs(e.Y - startY) / tileHeight;
-                        SelectEntitiesInArea(x1, y1, width, height);
+                        SelectEntitiesInArea(x1+screenX, y1+screenY, width, height);
                     }
                     // Otherwise treat it as a click
                     else

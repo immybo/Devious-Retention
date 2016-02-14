@@ -184,6 +184,27 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Attempts to delete the currently selected unit or building,
+        /// or the first one in the list of selected entities.
+        /// Does nothing if no units or buildings that belong to
+        /// the player are selected.
+        /// </summary>
+        public void DeleteSelected()
+        {
+            if (selected.Count == 0) return; // Do nothing if there aren't any selected units
+            // Otherwise scroll through all the entities that are selected and find one that fits the criteria
+            foreach(Entity e in selected)
+            {
+                if ((e is Unit || e is Building) && e.playerNumber == playerNumber)
+                {
+                    connection.RequestDelete(e);
+                    return;
+                }
+            }
+            // If there aren't any do nothing
+        }
+
+        /// <summary>
         /// Adds an entity. Does nothing if the entity type isn't found.
         /// </summary>
         /// <param name="isFree">Whether or not this entity doesn't cost resources.</param>
@@ -256,22 +277,18 @@ namespace Devious_Retention
             if (entityType == 0)
             {
                 if (!units.ContainsKey(deletedEntityID)) return; // If the unit doesn't exist, do nothing
-
                 entity = units[deletedEntityID];
-                window.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
-
                 units[deletedEntityID].unitType.units.Remove(units[deletedEntityID]); // And finally remove it from both collections it appears in (in the type and in the client)
                 units.Remove(deletedEntityID);
+                window.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
             }
             else if (entityType == 1)
             {
                 if (!buildings.ContainsKey(deletedEntityID)) return;
-
                 entity = buildings[deletedEntityID];
-                window.UpdateLOSDelete(entity);
-
                 buildings[deletedEntityID].buildingType.buildings.Remove(buildings[deletedEntityID]);
                 buildings.Remove(deletedEntityID);
+                window.UpdateLOSDelete(entity);
             }
             else if (entityType == 2)
             {
@@ -282,7 +299,7 @@ namespace Devious_Retention
 
             // Remove it from the selected entities if it was in there
             if (selected.Contains(entity)) selected.Remove(entity);
-            // And from the lists of entites by tile
+            // And from the lists of entities by tile
             foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
                 entitiesBySquare[c.x, c.y].Remove(entity);
         }

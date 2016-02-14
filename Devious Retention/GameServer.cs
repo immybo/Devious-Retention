@@ -273,13 +273,37 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Removes the given entity from the list of entities.
+        /// Removes the entity of the given type with the given ID from the
+        /// list of entities, and informs the clients.
         /// Does nothing if the given entity does not exist in the server's
         /// lists of entities.
         /// </summary>
-        public void DeleteEntity(Entity entity)
+        public void DeleteEntity(int entityType, int entityID)
         {
+            Entity entity;
+            if(entityType == 0)
+            {
+                if (!units.ContainsKey(entityID)) return;
+                entity = units[entityID];
+                units.Remove(entityID);
+            }
+            else if(entityType == 1)
+            {
+                if (!buildings.ContainsKey(entityID)) return;
+                entity = buildings[entityID];
+                buildings.Remove(entityID);
+            }
+            else
+            {
+                if (!resources.ContainsKey(entityID)) return;
+                entity = resources[entityID];
+                resources.Remove(entityID);
+            }
 
+            foreach (STCConnection c in connections)
+                c.InformEntityDeletion(entityType, entityID);
+            foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
+                entitiesBySquare[c.x, c.y].Remove(entity);
         }
 
         public void GatherResource(double amount, int resourceID)

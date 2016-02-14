@@ -252,10 +252,14 @@ namespace Devious_Retention
 
         /// <summary>
         /// Sends a request for the given entity to be deleted.
+        /// 
+        /// Message format:
+        /// [message type = 4] [0=unit,1=building,2=resource] [entity id]
         /// </summary>
         public void RequestDelete(Entity entity)
         {
-
+            int entityType = entity is Unit ? 0 : entity is Building ? 1 : 2;
+            outgoingWriter.WriteLine("4 " + entityType + " " + entity.id);
         }
 
         /// <summary>
