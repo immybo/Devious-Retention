@@ -67,6 +67,26 @@ namespace Devious_Retention
 
             return coordinates;
         }
+
+        /// <summary>
+        /// Returns whether or not a new entity
+        /// at the given coordinates
+        /// would collide with any of the other given entities.
+        /// </summary>
+        /// <param name="includeResource">Whether or not to care about any resources colliding.</param>
+        public static bool Collides(double x, double y, double size, Map map, List<Entity>[,] entitiesBySquare, bool includeResource)
+        {
+            List<Coordinate> includedTiles = Map.GetIncludedTiles(map, x, y, size);
+            foreach (Coordinate c in includedTiles)
+                if (entitiesBySquare[c.x, c.y] != null)
+                    foreach (Entity e in entitiesBySquare[c.x, c.y])
+                        if (e.x + e.type.size > x && e.y + e.type.size > y
+                        && e.x < x + size && e.y < y + size) // If they collide, return true
+                            if (!(e is Resource) || includeResource)
+                                return true;
+            // If nothing collides return false
+            return false;
+        }
     }
 
     /// <summary>

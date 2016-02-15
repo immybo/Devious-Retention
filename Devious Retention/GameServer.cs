@@ -104,7 +104,7 @@ namespace Devious_Retention
             Building building = new Building(buildingType, Building.nextID, x, y, player);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
-            if (Collides(building.x, building.y, buildingType.size, false)) return;
+            if (Map.Collides(building.x, building.y, buildingType.size, map, entitiesBySquare, false)) return;
 
             buildings.Add(building.id, building);
             List<Coordinate> buildingCoordinates = Map.GetIncludedTiles(map, building);
@@ -148,22 +148,22 @@ namespace Devious_Retention
             double y = building.y - type.size - 0.1;
             // On top
             for (x = building.x - type.size - 0.1; x <= building.x + building.type.size + 0.1; x += 0.1)
-                if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
+                if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
             // On the right
             x = building.x + building.type.size + 0.1;
             if(placeX == -1)
                 for(y = building.y - type.size - 0.1; y <= building.y + building.type.size + 0.1; y += 0.1)
-                    if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
+                    if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
             // On the bottom
             y = building.y + building.type.size + 0.1;
             if(placeX == -1)
                 for(x = building.x + building.type.size + 0.1; x >= building.x - type.size - 0.1; x -= 0.1)
-                    if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
+                    if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
             // On the left
             x = building.x - type.size - 0.1;
             if(placeX == -1)
                 for(y = building.y + building.type.size + 0.1; y >= building.y - type.size - 0.1; y -= 0.1)
-                    if (!Collides(x, y, type.size, true)){ placeX = x; placeY = y; }
+                    if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
 
             // Was there a place for it?
             if (placeX == -1)
@@ -179,26 +179,6 @@ namespace Devious_Retention
             List<Coordinate> unitCoordinates = Map.GetIncludedTiles(map, unit);
             foreach (Coordinate c in unitCoordinates)
                 entitiesBySquare[c.x, c.y].Add(unit);
-        }
-
-        /// <summary>
-        /// Returns whether or not a new entity
-        /// at the given coordinates
-        /// would collide with any other.
-        /// </summary>
-        /// <param name="includeResource">Whether or not to care about any resources colliding.</param>
-        private bool Collides(double x, double y, double size, bool includeResource)
-        {
-            List<Coordinate> includedTiles = Map.GetIncludedTiles(map, x, y, size);
-            foreach (Coordinate c in includedTiles)
-                if (entitiesBySquare[c.x, c.y] != null)
-                    foreach (Entity e in entitiesBySquare[c.x, c.y])
-                        if (e.x + e.type.size > x && e.y + e.type.size > y
-                        && e.x < x + size && e.y < y + size) // If they collide, return true
-                            if(!(e is Resource) || includeResource)
-                                return true;
-            // If nothing collides return false
-            return false;
         }
 
         /// <summary>

@@ -62,6 +62,9 @@ namespace Devious_Retention
         public const string TITLE_FONT_NAME = "Arial";
         public const string FONT_NAME = "Arial";
 
+        // A factor of how red reddened buildings are
+        public const double RED_SHIFT = 50;
+
         // In milliseconds
         public const int TICK_TIME = 30;
         public const int WINDOW_REFRESH_TIME = 20;

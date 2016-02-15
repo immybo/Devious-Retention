@@ -28,7 +28,7 @@ namespace Devious_Retention
         public Dictionary<int, Unit> units { get; private set; }
         public Dictionary<int, Building> buildings { get; private set; }
         // Which entities are where; if at least part of an entity is on a square, it will be recorded in that square's list
-        private List<Entity>[,] entitiesBySquare;
+        public List<Entity>[,] entitiesBySquare { get; private set; }
 
         public List<Entity> selected;
 
