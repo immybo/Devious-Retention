@@ -50,6 +50,9 @@ namespace Devious_Retention
 
         // The faction this player belongs to
         private Faction faction;
+
+        // The player numbers of players in this player's team
+        private List<int> teammates;
         
         /// <summary>
         /// When a GameClient is created, it is assumed that entities will be
@@ -76,6 +79,8 @@ namespace Devious_Retention
             currentResources = new double[GameInfo.RESOURCE_TYPES];
             currentTick = 0;
 
+            teammates = new List<int> { playerNumber };
+
             buildingPanelOpen = true;
 
             Unit.ResetNextID();
@@ -94,6 +99,31 @@ namespace Devious_Retention
 
             for (int i = 0; i < currentResources.Length; i++)
                 currentResources[i] += 1000;
+        }
+
+        /// <summary>
+        /// Processes a right click, given that there is at least one
+        /// selected entity, at the given location; attacking or moving
+        /// the units.
+        /// </summary>
+        public void RightClick(double x, double y)
+        {
+            // If there's anything to attack on that square, check which one is under the cursor (if any)
+            if(entitiesBySquare[(int)x, (int)y] != null && entitiesBySquare[(int)x, (int)y].Count > 0)
+            {
+                foreach(Entity e in entitiesBySquare[(int)x, (int)y])
+                {
+                    // If the entity is under the mouse, attack it (just attack the first one, don't do any decision making if there's more)
+                    // (also make sure it isn't a resource & isn't allied with the player)
+                    if(e.x + e.type.size > x && e.y + e.type.size > y && e.x < x && e.y < y && !(e is Resource) && !teammates.Contains(e.playerNumber))
+                    {
+                        AttackEntity(e);
+                        return;
+                    }
+                }
+            }
+            // Otherwise, move the units
+            MoveUnits(x, y);
         }
 
         /// <summary>
@@ -119,6 +149,27 @@ namespace Devious_Retention
 
                 connection.RequestMove(unit, adjustedX, adjustedY);
             }
+        }
+
+        /// <summary>
+        /// Tells the server to attack the given entity with all available
+        /// selected entities.
+        /// Assumes that the given entity
+        /// - Isn't a resource
+        /// - Isn't allied with the player
+        /// Does, however, check which of the selected entities are available
+        /// to attack the entity.
+        /// </summary>
+        /// <param name="e"></param>
+        public void AttackEntity(Entity entityToAttack)
+        {
+            // Figure out which of the selected entities belong to the player
+            List<Entity> available = new List<Entity>();
+            foreach (Entity e in selected)
+                if (e.playerNumber == playerNumber)
+                    available.Add(e);
+
+            connection.RequestAttack(available, entityToAttack);
         }
 
         /// <summary>
@@ -228,7 +279,8 @@ namespace Devious_Retention
                 Unit unit = new Unit(unitType, id, xPos, yPos, player);
                 units.Add(unit.id, unit);
                 unitType.units.Add(unit);
-                window.UpdateLOSAdd(unit);
+                if(player == playerNumber)
+                    window.UpdateLOSAdd(unit);
                 entity = unit;
 
                 // If the unit belongs to the player, remove the resources as well
@@ -244,7 +296,8 @@ namespace Devious_Retention
                 if(resources.ContainsKey(resourceID)) building.resource = resources[resourceID];
                 buildings.Add(building.id, building);
                 buildingType.buildings.Add(building);
-                window.UpdateLOSAdd(building);
+                if (player == playerNumber)
+                    window.UpdateLOSAdd(building);
                 entity = building;
 
                 // If the building belongs to the player, remove the resources as well
@@ -332,13 +385,13 @@ namespace Devious_Retention
                 }
                 else if (propertyID == 2)
                 {
-                    if ((int)change == 1) unit.BeginBattleAnimation();
-                    else unit.StopBattleAnimation();
+                    if ((int)change == 0) unit.attackTick++;
+                    else unit.attackTick = 0;
                 }
                 else if (propertyID == 3)
                 {
-                    if ((int)change == 1) unit.BeginMovementAnimation();
-                    else unit.StopMovementAnimation();
+                    if ((int)change == 1) unit.movementTick++;
+                    else unit.movementTick = 0;
                 }
             }
             else if (entityType == 1)
@@ -347,7 +400,11 @@ namespace Devious_Retention
                 Building building = buildings[entityID];
 
                 if (propertyID == 0) building.hitpoints += (int)change;
-                else if (propertyID == 1) building.built = true;
+                else if (propertyID == 1)
+                {
+                    if ((int)change == 0) building.attackTick++;
+                    else building.attackTick = 0;
+                }
             }
             else if (entityType == 2)
             {

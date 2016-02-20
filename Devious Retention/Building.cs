@@ -45,9 +45,9 @@ namespace Devious_Retention
         public double x { get; set; }
         public double y { get; set; }
 
-        private Entity entityToAttack;
+        public Entity entityToAttack;
 
-        private int attackTick = 0;
+        public int attackTick = 0;
 
         public Image image
         {
@@ -93,10 +93,11 @@ namespace Devious_Retention
         /// Lowers this building's current hitpoints by the appropriate amount,
         /// from the given damage and damage type.
         /// </summary>
-        public void TakeDamage(int damage, int damageType)
+        public int TakeDamage(int damage, int damageType)
         {
             int realDamage = (int)(damage * (100 - buildingType.resistances[damageType]) / 100);
             hitpoints -= realDamage;
+            return realDamage;
         }
 
         /// <summary>

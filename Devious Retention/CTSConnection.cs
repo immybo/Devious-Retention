@@ -273,5 +273,38 @@ namespace Devious_Retention
         {
             outgoingWriter.WriteLine("5 " + amount + " " + resource.id);
         }
+
+        /// <summary>
+        /// Sends a request for the given attackers to attack the given
+        /// defender, moving within range if possible (and not doing anything
+        /// if they're a building and out of range).
+        /// 
+        /// Message format:
+        /// [message type = 6] [defender type (0,1)] [defender id] [attacker 1 type] [attacker 1 id] ... [attacker x type] [attacker x id]
+        /// </summary>
+        public void RequestAttack(List<Entity> attackers, Entity defender)
+        {
+            List<int> attackerTypes = new List<int>();
+            foreach(Entity e in attackers)
+            {
+                if (e is Unit)
+                    attackerTypes.Add(0);
+                else if (e is Building)
+                    attackerTypes.Add(1);
+            }
+
+            int defenderType = defender is Unit ? 0 : 1;
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("6 ");
+            builder.Append(defenderType + " ");
+            builder.Append(defender.id);
+            for(int i = 0; i < attackers.Count; i++)
+            {
+                builder.Append(" " + attackerTypes[i] + " " + attackers[i].id);
+            }
+
+            outgoingWriter.WriteLine(builder.ToString());
+        }
     }
 }

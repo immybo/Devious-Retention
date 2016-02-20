@@ -40,7 +40,7 @@ namespace Devious_Retention
         public double x { get; set; }
         public double y { get; set; }
 
-        // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will attack
+        // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will be considered ready to attack
         public int attackTick = 0;
         // " movement animation
         public int movementTick = 0;
@@ -90,10 +90,11 @@ namespace Devious_Retention
         /// </summary>
         /// <param name="damage">The integer amount of damage dealt to this unit.</param>
         /// <param name="damageType">The type of damage being dealt.</param>
-        public void TakeDamage(int damage, int damageType)
+        public int TakeDamage(int damage, int damageType)
         {
             int realDamage = (int)(damage * (100 - unitType.resistances[damageType]) / 100);
             hitpoints -= realDamage;
+            return realDamage;
         }
 
         /// <summary>
@@ -134,37 +135,6 @@ namespace Devious_Retention
         {
             double newHPMultiplier = (double)newMaxHP / unitType.hitpoints;
             hitpoints = (int)(hitpoints * newHPMultiplier);
-        }
-
-        /// <summary>
-        /// Completes another tick of whatever action this unit is performing.
-        /// Does nothing if this unit is not performing any action.
-        /// </summary>
-        /*public void Tick()
-        {
-            // Only performs one action every tick (e.g. can't move AND attack)
-            
-            if (AttackTick()) return;
-            MoveTick();
-        }*/
-
-        /// <summary>
-        /// Finds the closest path to and then travels one tick towards this unit's target
-        /// location (does nothing if this unit has no target location).
-        /// </summary>
-       // private void MoveTick()
-       // {
-       // }
-
-        /// <summary>
-        /// Produces one tick of work towards this unit's next attack.
-        /// Does nothing if this unit has no target to attack, or if this unit is not
-        /// within range of its target.
-        /// Returns whether or not it completed a tick of attacking.
-        /// </summary>
-        private bool AttackTick()
-        {
-            return false;
         }
 
         /// <summary>

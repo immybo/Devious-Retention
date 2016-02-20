@@ -85,6 +85,7 @@ namespace Devious_Retention
         private void Tick(object sender, EventArgs e)
         {
             MoveAllUnits(); // Move all the units that need moving
+            AttackAllEntities(); // Attack all the entities that need attacking
 
             foreach (STCConnection c in connections) // Inform all the clients
                 c.Tick();
@@ -104,7 +105,7 @@ namespace Devious_Retention
             Building building = new Building(buildingType, Building.nextID, x, y, player);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
-            if (Map.Collides(building.x, building.y, buildingType.size, map, entitiesBySquare, false)) return;
+            if (Map.Collides(building.x, building.y, buildingType.size, map, entitiesBySquare, false) == null) return;
 
             buildings.Add(building.id, building);
             List<Coordinate> buildingCoordinates = Map.GetIncludedTiles(map, building);
@@ -148,22 +149,22 @@ namespace Devious_Retention
             double y = building.y - type.size - 0.1;
             // On top
             for (x = building.x - type.size - 0.1; x <= building.x + building.type.size + 0.1; x += 0.1)
-                if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
+                if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the right
             x = building.x + building.type.size + 0.1;
             if(placeX == -1)
                 for(y = building.y - type.size - 0.1; y <= building.y + building.type.size + 0.1; y += 0.1)
-                    if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
+                    if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the bottom
             y = building.y + building.type.size + 0.1;
             if(placeX == -1)
                 for(x = building.x + building.type.size + 0.1; x >= building.x - type.size - 0.1; x -= 0.1)
-                    if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
+                    if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the left
             x = building.x - type.size - 0.1;
             if(placeX == -1)
                 for(y = building.y + building.type.size + 0.1; y >= building.y - type.size - 0.1; y -= 0.1)
-                    if (!Map.Collides(x, y, type.size, map, entitiesBySquare, true)){ placeX = x; placeY = y; }
+                    if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
 
             // Was there a place for it?
             if (placeX == -1)
@@ -230,23 +231,13 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Removes the appropriate amount of health from the target,
-        /// given that the source attacks the target once.
-        /// Does nothing if either entity is a resource, or if either
-        /// entity does not exist in the server's list of entities.
-        /// </summary>
-        public void DamageEntity(Entity source, Entity target)
-        {
-
-        }
-
-        /// <summary>
         /// Gives the given unit a command to move to (x,y).
         /// </summary>
         public void CommandUnitToMove(int unitID, double x, double y)
         {
             if (!units.ContainsKey(unitID)) return;
             Unit unit = units[unitID];
+            if (attackingUnits.Contains(unit)) attackingUnits.Remove(unit);
             if(!movingUnits.Contains(unit)) movingUnits.Add(unit);
             unit.xToMove = x;
             unit.yToMove = y;
@@ -295,6 +286,42 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Sets the given attackers to attack the given defender, or move towards it if they are
+        /// not in range (or do nothing if they're a building and not within range).
+        /// </summary>
+        public void AttackEntity(int defenderType, int defenderId, List<int> attackerTypes, List<int> attackerIds)
+        {
+            // First, sort them into units and buildings
+            List<Unit> attackerUnits = new List<Unit>();
+            List<Building> attackerBuildings = new List<Building>();
+            for(int i = 0; i < attackerTypes.Count; i++)
+            {
+                if (attackerTypes[i] == 0)
+                    attackerUnits.Add(units[attackerIds[i]]);
+                else
+                    attackerBuildings.Add(buildings[attackerIds[i]]);
+            }
+
+            Entity defender = defenderType == 0 ? (Entity)units[defenderId] : (Entity)buildings[defenderId];
+
+            foreach(Unit u in attackerUnits)
+            {
+                u.entityToAttack = defender;
+
+                if(movingUnits.Contains(u))
+                    movingUnits.Remove(u);
+                if(!attackingUnits.Contains(u))
+                    attackingUnits.Add(u);
+            }
+            foreach(Building b in attackerBuildings)
+            {
+                b.entityToAttack = defender;
+                if(!attackingBuildings.Contains(b))
+                    attackingBuildings.Add(b);
+            }
+        }
+
+        /// <summary>
         /// Moves all units which have been commanded to move by one tick's worth of movement.
         /// </summary>
         private void MoveAllUnits()
@@ -303,7 +330,7 @@ namespace Devious_Retention
             foreach (Unit u in movingUnits)
             {
                 if (u.xToMove == u.x && u.yToMove == u.y) { toRemove.Add(u); continue; }
-                
+
                 double dX = 0;
                 double dY = 0;
 
@@ -324,7 +351,7 @@ namespace Devious_Retention
 
                 List<Coordinate> newCoords = Map.GetIncludedTiles(map, u);
 
-                foreach(Coordinate c in previousCoords)
+                foreach (Coordinate c in previousCoords)
                     if (!newCoords.Contains(c))
                         coordsToRemove.Add(c);
                     else
@@ -340,6 +367,150 @@ namespace Devious_Retention
 
             foreach (Unit u in toRemove)
                 movingUnits.Remove(u);
+        }
+
+        /// <summary>
+        /// Moves all units which have been commanded to attack forward by one tick in the attack cycle.
+        /// </summary>
+        private void AttackAllEntities()
+        {
+            List<Entity> defenders = new List<Entity>();
+
+            List<Unit> toRemoveUnits = new List<Unit>();
+            List<Building> toRemoveBuildings = new List<Building>();
+            // Units first
+            foreach(Unit u in attackingUnits)
+            {
+                // Make sure the defender isn't dead yet
+                if((u.entityToAttack is Unit && !units.ContainsValue((Unit)u.entityToAttack)) ||
+                    (u.entityToAttack is Building && !buildings.ContainsValue((Building)u.entityToAttack)))
+                {
+                    toRemoveUnits.Add(u);
+                    continue;
+                }
+
+                if (!defenders.Contains(u.entityToAttack))
+                    defenders.Add(u.entityToAttack);
+
+                double distance = Math.Sqrt(Math.Pow(u.x - u.entityToAttack.x, 2) + Math.Pow(u.y - u.entityToAttack.y, 2));
+                // If any units have also been commanded to move, check if they're now within range
+                if (movingUnits.Contains(u))
+                {
+                    if(distance <= u.type.range)
+                    {
+                        movingUnits.Remove(u);
+                    }
+                }
+
+                // Otherwise, command units which are not within range to move to the defender's position
+                // They will stop once they get close enough due to the above command
+                if(distance > u.type.range && !movingUnits.Contains(u))
+                {
+                    u.xToMove = u.entityToAttack.x;
+                    u.yToMove = u.entityToAttack.y;
+                    movingUnits.Add(u);
+                }
+
+                // Tick the attack cycle of those which are within range
+                else
+                {
+                    // If it hasn't reached the final phase of its attack cycle, increment it by one tick
+                    if(u.attackTick < u.unitType.attackTicks)
+                    {
+                        u.attackTick++;
+                        foreach (STCConnection c in connections)
+                            c.InformEntityChange(u, 2, 0, 0);
+                    }
+                    // Otherwise, attack with it and reset the counter
+                    else
+                    {
+                        u.attackTick = 0;
+                        double damage = 0;
+
+                        // Damage it
+                        if (u.entityToAttack is Unit)
+                            damage = ((Unit)u.entityToAttack).TakeDamage(u.type.damage, u.type.damageType);
+                        else
+                            damage = ((Building)u.entityToAttack).TakeDamage(u.type.damage, u.type.damageType);
+
+                        foreach(STCConnection c in connections)
+                        {
+                            c.InformEntityChange(u.entityToAttack, 0, -damage, 0);
+                            c.InformEntityChange(u, 2, 1, 0);
+                        }
+                    }
+                }
+            }
+            // Then buildings
+            foreach (Building b in attackingBuildings)
+            {
+                // Make sure the defender isn't dead yet
+                if ((b.entityToAttack is Unit && !units.ContainsValue((Unit)b.entityToAttack)) ||
+                    (b.entityToAttack is Building && !buildings.ContainsValue((Building)b.entityToAttack)))
+                {
+                    toRemoveBuildings.Add(b);
+                    continue;
+                }
+
+                if (!defenders.Contains(b.entityToAttack))
+                    defenders.Add(b.entityToAttack);
+
+                double distance = Math.Sqrt(Math.Pow(b.x - b.entityToAttack.x, 2) + Math.Pow(b.y - b.entityToAttack.y, 2));
+                // Tick the attack cycle of those which are within range
+                if (distance <= b.type.range)
+                {
+                    // If it hasn't reached the final phase of its attack cycle, increment it by one tick
+                    if (b.attackTick < b.buildingType.attackTicks)
+                    {
+                        b.attackTick++;
+                        foreach (STCConnection c in connections)
+                            c.InformEntityChange(b, 1, 0, 0);
+                    }
+                    // Otherwise, attack with it and reset the counter
+                    else
+                    {
+                        b.attackTick = 0;
+                        double damage = 0;
+                        if (b.entityToAttack is Unit)
+                            damage = ((Unit)b.entityToAttack).TakeDamage(b.type.damage, b.type.damageType);
+                        else
+                            damage = ((Building)b.entityToAttack).TakeDamage(b.type.damage, b.type.damageType);
+
+                        foreach (STCConnection c in connections)
+                        {
+                            c.InformEntityChange(b.entityToAttack, 0, -damage, 0);
+                            c.InformEntityChange(b, 1, 1, 0);
+                        }
+                    }
+                }
+            }
+
+            // Check which defenders are dead
+            foreach(Entity e in defenders)
+            {
+                if(e is Unit && ((Unit)e).hitpoints <= 0)
+                {
+                    units.Remove(e.id);
+                    foreach(STCConnection c in connections)
+                    {
+                        c.InformEntityDeletion(0, e.id);
+                    }
+                }
+                else if(e is Building && ((Building)e).hitpoints <= 0)
+                {
+                    buildings.Remove(e.id);
+                    foreach(STCConnection c in connections)
+                    {
+                        c.InformEntityDeletion(1, e.id);
+                    }
+                }
+            }
+
+            // Stop attacking with attackers where the defender has died
+            foreach (Unit u in toRemoveUnits)
+                attackingUnits.Remove(u);
+            foreach (Building b in toRemoveBuildings)
+                attackingBuildings.Remove(b);
         }
     }
 }

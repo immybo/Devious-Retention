@@ -92,6 +92,9 @@ namespace Devious_Retention
                             case 5:
                                 InformServerResourceGather(splitLine);
                                 break;
+                            case 6:
+                                InformServerAttack(splitLine);
+                                break;
                         }
                     }
                 }
@@ -100,6 +103,24 @@ namespace Devious_Retention
             {
                 Console.WriteLine(e);
             }
+        }
+
+        /// <summary>
+        /// Tells the server that the player has request that some entities attack an entity.
+        /// </summary>
+        private void InformServerAttack(string[] splitLine)
+        {
+            int defenderType = int.Parse(splitLine[1]);
+            int defenderId = int.Parse(splitLine[2]);
+            List<int> attackerTypes = new List<int>();
+            List<int> attackerIds = new List<int>();
+            for(int i = 3; i < splitLine.Length; i += 2)
+            {
+                attackerTypes.Add(int.Parse(splitLine[i]));
+                attackerIds.Add(int.Parse(splitLine[i + 1]));
+            }
+
+            server.AttackEntity(defenderType, defenderId, attackerTypes, attackerIds);
         }
 
         /// <summary>
@@ -244,11 +265,11 @@ namespace Devious_Retention
         /// Unit:
         /// 0 = hitpoints
         /// 1 = x and y position (2 attribute changes)
-        /// 2 = play battle animation (1 = start/restart, 0 = stop)
-        /// 3 = play movement animation (1 = start/restart, 0 = stop)
+        /// 2 = tick battle animation (change: 0 = tick, 1 = reset)
+        /// 3 = tick movement animation "
         /// Building:
         /// 0 = hitpoints
-        /// 1 = built (only 1 is accepted)
+        /// 1 = tick battle animation "
         /// Resource:
         /// 0 = amount remaining
         /// </summary>

@@ -51,8 +51,8 @@ namespace Devious_Retention
         private const int RESOURCE_AREA_BORDER_WIDTH = 20;
 
         // Where the top-left of the screen is, in map co-ordinates.
-        public double viewX { get; private set; } = 0;
-        public double viewY { get; private set; } = 0;
+        public double worldX { get; private set; } = 0;
+        public double worldY { get; private set; } = 0;
         // How many tiles fit on the screen
         private double maxXTiles = 0;
         private double maxYTiles = 0;
@@ -504,8 +504,8 @@ namespace Devious_Retention
 
             // Figure out how much of the top and left tiles must be cut off the screen, due
             // to the camera position being potentially not an integer value
-            int topTileXOffset = (int)((viewX - (int)viewX) * tileWidth);
-            int topTileYOffset = (int)((viewY - (int)viewY) * tileHeight);
+            int topTileXOffset = (int)((worldX - (int)worldX) * tileWidth);
+            int topTileYOffset = (int)((worldY - (int)worldY) * tileHeight);
 
             // Figure out how many tiles we can draw on the screen
             maxXTiles = HORIZONTAL_TILES + 1;
@@ -513,19 +513,19 @@ namespace Devious_Retention
 
             for (int i = 0; i < maxXTiles; i++)
             {
-                if (i + (int)viewX >= client.map.width) continue;
-                if (i + (int)viewX < 0) continue;
+                if (i + (int)worldX >= client.map.width) continue;
+                if (i + (int)worldX < 0) continue;
 
                 for (int j = 0; j < maxYTiles; j++)
                 {
-                    if (j + (int)viewY >= client.map.height) continue;
-                    if (j + (int)viewY < 0) continue;
+                    if (j + (int)worldY >= client.map.height) continue;
+                    if (j + (int)worldY < 0) continue;
 
                     // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
                     // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i + (int)viewX, j + (int)viewY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
+                    g.DrawImage(client.map.GetTile(i + (int)worldX, j + (int)worldY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                     // If this tile is out of line of sight, draw a light grey overlay (grey it out)
-                    if (!LOS[i + (int)viewX, j + (int)viewY])
+                    if (!LOS[i + (int)worldX, j + (int)worldY])
                         g.FillRectangle(new SolidBrush(Color.FromArgb((int)(255*(1-OVERLAY_STRENGTH)), Color.LightGray)), new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                 }
             }
@@ -566,20 +566,48 @@ namespace Devious_Retention
             foreach(Entity e in entities)
             {
                 // First check if they're even on the screen
-                if (e.x + e.type.size < viewX || e.x > viewX + maxXTiles) continue;
-                if (e.y + e.type.size < viewY || e.y > viewY + maxYTiles) continue;
+                if (e.x + e.type.size < worldX || e.x > worldX + maxXTiles) continue;
+                if (e.y + e.type.size < worldY || e.y > worldY + maxYTiles) continue;
                 // And check if we have line of sight to them
                 if (!LOS[(int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2)]) continue;
 
                 // Since they are on the screen, figure out their bounds
                 Rectangle entityBounds = new Rectangle();
-                entityBounds.X = (int)((e.x - viewX) * tileWidth); // their distance from the left/top of the screen
-                entityBounds.Y = (int)((e.y - viewY) * tileHeight);
+                entityBounds.X = (int)((e.x - worldX) * tileWidth); // their distance from the left/top of the screen
+                entityBounds.Y = (int)((e.y - worldY) * tileHeight);
                 entityBounds.Width = (int)(e.type.size * tileWidth);
                 entityBounds.Height = (int)(e.type.size * tileHeight);
 
-                // And finally, draw them
+                // Draw them
                 g.DrawImage(e.image, entityBounds);
+
+                // For all units and buildings
+                if(e is Unit || e is Building)
+                {
+                    // Draw their hitpoints bars
+                    Brush brush;
+
+                    Rectangle hpBarBounds = new Rectangle();
+                    hpBarBounds.X = entityBounds.X;
+                    hpBarBounds.Y = entityBounds.Y - 35;
+                    hpBarBounds.Width = entityBounds.Width;
+                    hpBarBounds.Height = 20;
+
+                    // Determine the colour
+                    int hitpoints = e is Unit ? ((Unit)e).hitpoints : ((Building)e).hitpoints;
+                    int maxHitpoints = e is Unit ? ((Unit)e).unitType.hitpoints : ((Building)e).buildingType.hitpoints;
+                    double ratio = (double)hitpoints / maxHitpoints;
+                    int barWidth = (int)(hpBarBounds.Width * ratio);
+                    if (ratio > 0.75) brush = Brushes.Green;
+                    else if (ratio > 0.3) brush = Brushes.Yellow;
+                    else brush = Brushes.Red;
+
+                    g.FillRectangle(brush, hpBarBounds.X, hpBarBounds.Y, barWidth, hpBarBounds.Height);
+                    g.DrawRectangle(Pens.Black, hpBarBounds);
+
+                    // Draw their borders
+                    g.DrawRectangle(GameInfo.PLAYER_PENS[e.playerNumber], entityBounds);
+                }
             }
 
             // If the mouse has been dragged across an area and started on the game area, draw a rectangle around that area
@@ -681,10 +709,10 @@ namespace Devious_Retention
             g.PixelOffsetMode = PixelOffsetMode.Default;
 
             // Draw a box around where the camera is
-            double x1 = viewX / client.map.width;
-            double y1 = viewY / client.map.height;
-            double x2 = (viewX + maxXTiles) / client.map.width;
-            double y2 = (viewY + maxYTiles) / client.map.height;
+            double x1 = worldX / client.map.width;
+            double y1 = worldY / client.map.height;
+            double x2 = (worldX + maxXTiles) / client.map.width;
+            double y2 = (worldY + maxYTiles) / client.map.height;
 
             // If one of the sides would be off the side, just set it to the side
             if (x1 < 0) x1 = 0;
@@ -1183,8 +1211,8 @@ namespace Devious_Retention
             if (!GetArea(mouseX-placingBuilding.size*tileWidth/2, mouseY-placingBuilding.size*tileHeight/2).Equals("game area")
                 || !GetArea(mouseX + placingBuilding.size * tileWidth / 2, mouseY + placingBuilding.size * tileHeight / 2).Equals("game area"))
                 validPlacing = false;
-            double tileX = mouseX / tileWidth - placingBuilding.size/2;
-            double tileY = mouseY / tileHeight - placingBuilding.size/2;
+            double tileX = mouseX / tileWidth - placingBuilding.size/2 + worldX;
+            double tileY = mouseY / tileHeight - placingBuilding.size/2 + worldY;
             // It's also invalid if it would be placed outside the map
             if (tileX < 0 || tileY < 0 || tileX + placingBuilding.size > client.map.width || tileY + placingBuilding.size > client.map.height)
                 validPlacing = false;
@@ -1192,11 +1220,10 @@ namespace Devious_Retention
             else
             {
                 List<Coordinate> collidingTiles = Map.GetIncludedTiles(client.map, tileX, tileY, placingBuilding.size);
-                if (Map.Collides(tileX, tileY, placingBuilding.size, client.map, client.entitiesBySquare, false) == true)
+                if (Map.Collides(tileX, tileY, placingBuilding.size, client.map, client.entitiesBySquare, false) != null)
                     validPlacing = false;
             }
 
-            Image image = validPlacing ? placingBuilding.image : placingBuilding.redImage;
             // We want to draw it so that the mouse is in the middle
             Rectangle bounds = new Rectangle((int)(mouseX - placingBuilding.size * tileWidth / 2), (int)(mouseY - placingBuilding.size * tileHeight / 2),
                                              (int)(placingBuilding.size * tileWidth), (int)(placingBuilding.size * tileHeight));
@@ -1214,13 +1241,13 @@ namespace Devious_Retention
             Keys key = e.KeyCode;
 
             if (key == Keys.Up)
-                viewY -= SCREEN_Y_CHANGE;
+                worldY -= SCREEN_Y_CHANGE;
             else if (key == Keys.Down)
-                viewY += SCREEN_Y_CHANGE;
+                worldY += SCREEN_Y_CHANGE;
             else if (key == Keys.Right)
-                viewX += SCREEN_X_CHANGE;
+                worldX += SCREEN_X_CHANGE;
             else if (key == Keys.Left)
-                viewX -= SCREEN_X_CHANGE;
+                worldX -= SCREEN_X_CHANGE;
             else if (key == Keys.ShiftKey)
                 shiftKeyDown = true;
             else if (key == Keys.Delete)
@@ -1252,14 +1279,14 @@ namespace Devious_Retention
                 if (area.Equals("game area") && placingBuilding != null)
                     placingBuilding = null;
 
-                // If it's on the game area and there's a selected unit, move that selected unit
+                // If it's on the game area and there's a selected unit, tell the client
                 // Note that this can occur while you're also placing a building, in which case it
                 // prioritises getting rid of the building
                 else if (area.Equals("game area") && client.selected.Count > 0)
                 {
-                    double tileX = viewX + (double)e.X / tileWidth;
-                    double tileY = viewY + (double)e.Y / tileHeight;
-                    client.MoveUnits(tileX, tileY);
+                    double tileX = worldX + (double)e.X / tileWidth;
+                    double tileY = worldY + (double)e.Y / tileHeight;
+                    client.RightClick(tileX, tileY);
                 }
             }
             else if (e.Button == MouseButtons.Left)
@@ -1271,8 +1298,8 @@ namespace Devious_Retention
                 {
                     if (area.Equals("game area"))
                     {
-                        double x = (double)e.X / tileWidth - placingBuilding.size / 2 + viewX; // Shift it over as the middle of the building should be on the mouse
-                        double y = (double)e.Y / tileWidth - placingBuilding.size / 2 + viewY;
+                        double x = (double)e.X / tileWidth - placingBuilding.size / 2 + worldX; // Shift it over as the middle of the building should be on the mouse
+                        double y = (double)e.Y / tileWidth - placingBuilding.size / 2 + worldY;
                         if (x < 0) x = 0; if (x + placingBuilding.size > client.map.width) x = client.map.width - placingBuilding.size;
                         if (y < 0) y = 0; if (y + placingBuilding.size > client.map.height) y = client.map.height - placingBuilding.size;
                         client.CreateFoundation(placingBuilding, x, y);
@@ -1296,7 +1323,7 @@ namespace Devious_Retention
                         double y1 = e.Y > startY ? startY / tileHeight : (double)e.Y / tileHeight;
                         double width = Math.Abs(e.X - startX) / tileWidth;
                         double height = Math.Abs(e.Y - startY) / tileHeight;
-                        SelectEntitiesInArea(x1+viewX, y1+viewY, width, height);
+                        SelectEntitiesInArea(x1+worldX, y1+worldY, width, height);
                     }
                     // Otherwise treat it as a click
                     else
@@ -1446,8 +1473,8 @@ namespace Devious_Retention
             double proportionY = minimapY / minimapSize;
 
             // The tile of the map we should therefore center on is..
-            viewX = client.map.width * proportionX - maxXTiles / 2;
-            viewY = client.map.height * proportionY - maxYTiles / 2;
+            worldX = client.map.width * proportionX - maxXTiles / 2;
+            worldY = client.map.height * proportionY - maxYTiles / 2;
         }
 
         /// <summary>

@@ -80,6 +80,7 @@ namespace Devious_Retention
         public const double ADJACENT_DISTANCE = 1;
         // What colours each player has
         public static Color[] PLAYER_COLORS { get; private set; } = new Color[3] { Color.White, Color.Blue, Color.Red };
+        public static Pen[] PLAYER_PENS { get; private set; } = new Pen[3] { Pens.White, Pens.Blue, Pens.Red };
 
         // Arbitrary; the port used by the server-to-client connection
         public const int STC_PORT = 4983;
