@@ -40,6 +40,12 @@ namespace Devious_Retention
         public int damage { get; set; } = -1;
         public bool aggressive { get; } = false;
         public int[] resourceCosts { get; } = null;
+        public bool projectile { get; } = false;
+        public int projectileTick { get; } = -1;
+        public Image projectileImage { get; } = null;
+        public bool projectileMoving { get; } = false;
+        public int projectileSpeed { get; } = -1;
+        public int projectileTime { get; } = -1;
 
         /// <summary>
         /// Anything attempting to create a ResourceType from a file must first

@@ -53,6 +53,9 @@ namespace Devious_Retention
             }
         }
 
+        // Any projectiles this unit currently has
+        public List<Coordinate> projectiles;
+
         /// <summary>
         /// A unit will get all of its attributes from
         /// a UnitType. Its position must also be given.
@@ -70,6 +73,8 @@ namespace Devious_Retention
             xToMove = -1;
             yToMove = -1;
             hitpoints = type.hitpoints;
+
+            projectiles = new List<Coordinate>();
         }
         
         /// <summary>
@@ -151,10 +156,5 @@ namespace Devious_Retention
         {
             nextID++;
         }
-
-        public void BeginBattleAnimation() { }
-        public void StopBattleAnimation() { }
-        public void BeginMovementAnimation() { }
-        public void StopMovementAnimation() { }
     }
 }

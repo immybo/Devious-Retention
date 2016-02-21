@@ -317,10 +317,11 @@ namespace Devious_Retention
         /// <summary>
         /// Updates the player's line of sight given that the
         /// given unit has just moved by (dX,dY).
-        /// Assumes that the unit belongs to the player.
         /// </summary>
         public void UpdateLOSMove(Unit unit, double dX, double dY)
         {
+            if (unit.playerNumber != client.playerNumber) return;
+
             // The new LOS of the unit
             List<Coordinate> newTiles = new List<Coordinate>();
             // The old LOS of the unit
@@ -391,11 +392,11 @@ namespace Devious_Retention
         /// <summary>
         /// Updates the player's line of sight given that the
         /// given entity was just deleted.
-        /// Assumes that the entity belonged to the player.
         /// </summary>
         public void UpdateLOSDelete(Entity entity)
         {
             if (entity is Resource) return;
+            if (entity.playerNumber != client.playerNumber) return;
 
             int entityLOS = entity.type.lineOfSight;
             int entityX = (int)(entity.x + entity.type.size / 2);
@@ -565,6 +566,20 @@ namespace Devious_Retention
             // Render them all
             foreach(Entity e in entities)
             {
+                // Render a laser if they're attacking anything
+                if (e is Unit && client.attackingUnits.Contains((Unit)e))
+                {
+                    double x = (e.x + e.type.size / 2 - worldX) * tileWidth;
+                    double y = (e.y + e.type.size / 2 - worldY) * tileHeight;
+                    Entity entityToAttack = ((Unit)e).entityToAttack;
+                    double x2 = (entityToAttack.x + entityToAttack.type.size / 2 - worldX) * tileWidth;
+                    double y2 = (entityToAttack.y + entityToAttack.type.size / 2 - worldY) * tileHeight;
+
+                    // Only draw if at least one part is on the screen
+                    if (!(x < 0 && x2 < 0) && !(y < 0 && y2 < 0) && !(y > maxYTiles * tileHeight && y2 > maxYTiles * tileHeight) && !(x > maxXTiles * tileWidth && x2 > maxXTiles * tileWidth))
+                        g.DrawLine(GameInfo.PLAYER_PENS[e.playerNumber], (int)x, (int)y, (int)x2, (int)y2);
+                }
+
                 // First check if they're even on the screen
                 if (e.x + e.type.size < worldX || e.x > worldX + maxXTiles) continue;
                 if (e.y + e.type.size < worldY || e.y > worldY + maxYTiles) continue;

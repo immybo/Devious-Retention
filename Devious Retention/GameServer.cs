@@ -237,7 +237,8 @@ namespace Devious_Retention
         {
             if (!units.ContainsKey(unitID)) return;
             Unit unit = units[unitID];
-            if (attackingUnits.Contains(unit)) attackingUnits.Remove(unit);
+            // If we're attacking with that unit, halt the attack
+            if (attackingUnits.Contains(unit)) StopEntityAttack(unit);
             if(!movingUnits.Contains(unit)) movingUnits.Add(unit);
             unit.xToMove = x;
             unit.yToMove = y;
@@ -257,12 +258,18 @@ namespace Devious_Retention
                 if (!units.ContainsKey(entityID)) return;
                 entity = units[entityID];
                 units.Remove(entityID);
+
+                if (attackingUnits.Contains((Unit)entity)) // Stop attacking with it if necessary
+                    StopEntityAttack(entity);
             }
             else if(entityType == 1)
             {
                 if (!buildings.ContainsKey(entityID)) return;
                 entity = buildings[entityID];
                 buildings.Remove(entityID);
+
+                if (attackingBuildings.Contains((Building)entity)) // Stop attacking with it if necessary
+                    StopEntityAttack(entity);
             }
             else
             {
@@ -271,6 +278,7 @@ namespace Devious_Retention
                 resources.Remove(entityID);
             }
 
+            // Update both the clients and entities by square
             foreach (STCConnection c in connections)
                 c.InformEntityDeletion(entityType, entityID);
             foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
@@ -312,13 +320,40 @@ namespace Devious_Retention
                     movingUnits.Remove(u);
                 if(!attackingUnits.Contains(u))
                     attackingUnits.Add(u);
+
+                foreach (STCConnection c in connections)
+                    c.InformEntityAttack(u, defender, true);
             }
             foreach(Building b in attackerBuildings)
             {
                 b.entityToAttack = defender;
                 if(!attackingBuildings.Contains(b))
                     attackingBuildings.Add(b);
+
+                foreach (STCConnection c in connections)
+                    c.InformEntityAttack(b, defender, true);
             }
+        }
+
+        /// <summary>
+        /// Stops the given entity from attacking whatever defender it is attacking.
+        /// </summary>
+        private void StopEntityAttack(Entity attacker)
+        {
+            Entity defender = null;
+            if(attacker is Unit)
+            {
+                attackingUnits.Remove((Unit)attacker);
+                defender = ((Unit)attacker).entityToAttack;
+            }
+            else if(attacker is Building)
+            {
+                attackingBuildings.Remove((Building)attacker);
+                defender = ((Building)attacker).entityToAttack;
+            }
+
+            foreach (STCConnection c in connections)
+                c.InformEntityAttack(attacker, defender, false);
         }
 
         /// <summary>
@@ -418,8 +453,6 @@ namespace Devious_Retention
                     if(u.attackTick < u.unitType.attackTicks)
                     {
                         u.attackTick++;
-                        foreach (STCConnection c in connections)
-                            c.InformEntityChange(u, 2, 0, 0);
                     }
                     // Otherwise, attack with it and reset the counter
                     else
@@ -436,7 +469,6 @@ namespace Devious_Retention
                         foreach(STCConnection c in connections)
                         {
                             c.InformEntityChange(u.entityToAttack, 0, -damage, 0);
-                            c.InformEntityChange(u, 2, 1, 0);
                         }
                     }
                 }
@@ -463,8 +495,6 @@ namespace Devious_Retention
                     if (b.attackTick < b.buildingType.attackTicks)
                     {
                         b.attackTick++;
-                        foreach (STCConnection c in connections)
-                            c.InformEntityChange(b, 1, 0, 0);
                     }
                     // Otherwise, attack with it and reset the counter
                     else
@@ -479,7 +509,6 @@ namespace Devious_Retention
                         foreach (STCConnection c in connections)
                         {
                             c.InformEntityChange(b.entityToAttack, 0, -damage, 0);
-                            c.InformEntityChange(b, 1, 1, 0);
                         }
                     }
                 }

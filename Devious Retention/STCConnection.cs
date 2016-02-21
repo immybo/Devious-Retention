@@ -320,5 +320,18 @@ namespace Devious_Retention
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
             outgoingWriter.WriteLine("5");
         }
+
+        /// <summary>
+        /// Informs the client that an entity has either started (start=true)
+        /// or stopped (start=false) attacking another entity.
+        /// 
+        /// Message format:
+        /// [message type=6] [started] [attacker type] [attacker id] [defender type] [defender id]
+        /// </summary>
+        public void InformEntityAttack(Entity attacker, Entity defender, bool started)
+        {
+            if (outgoingSocket == null || !outgoingSocket.Connected) return;
+            outgoingWriter.WriteLine("6 " + started + " " + (attacker is Unit ? 0 : 1) + " " + attacker.id + " " + (defender is Unit ? 0 : 1) + " " + defender.id);
+        }
     }
 }

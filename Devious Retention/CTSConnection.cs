@@ -93,6 +93,9 @@ namespace Devious_Retention
                             case 5:
                                 client.Tick();
                                 break;
+                            case 6:
+                                Attack(splitLine);
+                                break;
                         }
                     }
                 }
@@ -204,6 +207,21 @@ namespace Devious_Retention
         {
             bool won = bool.Parse(splitLine[1]);
             client.EndGame(won);
+        }
+
+        /// <summary>
+        /// Interprets and passes on a message from the server to
+        /// the client that an entity has either started or stopped
+        /// attacking another entity.
+        /// </summary>
+        private void Attack(string[] splitLine)
+        {
+            bool started = bool.Parse(splitLine[1]);
+            int attackerType = int.Parse(splitLine[2]);
+            int attackerId = int.Parse(splitLine[3]);
+            int defenderType = started ? int.Parse(splitLine[4]) : 0;
+            int defenderId = started ? int.Parse(splitLine[5]) : 0;
+            client.AnimateAttack(started, attackerType, attackerId, defenderType, defenderId);
         }
 
         /// <summary>

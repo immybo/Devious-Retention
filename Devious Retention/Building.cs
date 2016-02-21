@@ -57,6 +57,9 @@ namespace Devious_Retention
             }
         }
 
+        // Any projectiles currently belonging to this building
+        public List<Coordinate> projectiles;
+
         /// <summary>
         /// A building will get most of its initial attributes from a BuildingType.
         /// Its position must also be given.
@@ -73,6 +76,8 @@ namespace Devious_Retention
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
             built = false;
+
+            projectiles = new List<Coordinate>();
         }
 
         /// <summary>

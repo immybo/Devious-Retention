@@ -45,6 +45,10 @@ namespace Devious_Retention
         // metal, oil, energy, science
         public double[] currentResources { get; private set; }
 
+        // Entities which are currently attacking anything, for the purposes of animation and projectiles
+        public List<Unit> attackingUnits { get; private set; }
+        public List<Building> attackingBuildings { get; private set; }
+
         // Whether the building panel or the technology panel is open
         public bool buildingPanelOpen { get; private set; }
 
@@ -86,6 +90,9 @@ namespace Devious_Retention
             Unit.ResetNextID();
             Building.ResetNextID();
             Resource.ResetNextID();
+
+            attackingUnits = new List<Unit>();
+            attackingBuildings = new List<Building>();
 
             definitions = new List<GameInfo>();
             for (int i = 0; i < numberOfPlayers; i++)
@@ -427,6 +434,46 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Either starts or stops (based on started) the attack animation between two entities
+        /// with the given types and IDs.
+        /// </summary>
+        public void AnimateAttack(bool started, int attackerType, int attackerId, int defenderType, int defenderId)
+        {
+            // First, find the actual entities
+            Entity attacker = attackerType == 0 ? (Entity)units[attackerId] : (Entity)buildings[attackerId];
+            Entity defender = started ? defenderType == 0 ? (Entity)units[defenderId] : (Entity)buildings[defenderId] : null;
+
+            // If we're starting it, add the attacker to the list of attackers and the defender correspondingly
+            if (started)
+            {
+                if(attacker is Unit)
+                {
+                    attackingUnits.Add((Unit)attacker);
+                    ((Unit)attacker).entityToAttack = defender;
+                    ((Unit)attacker).attackTick = 0;
+                }
+                else
+                {
+                    attackingBuildings.Add((Building)attacker);
+                    ((Building)attacker).entityToAttack = defender;
+                    ((Building)attacker).attackTick = 0;
+                }
+            }
+            // Otherwise remove them
+            else
+            {
+                if(attacker is Unit)
+                {
+                    attackingUnits.Remove((Unit)attacker);
+                }
+                else
+                {
+                    attackingBuildings.Remove((Building)attacker);
+                }
+            }
+        }
+
+        /// <summary>
         /// Ends the game from this client's perspective.
         /// </summary>
         /// <param name="won">Whether or not this player won the game.</param>
@@ -440,6 +487,9 @@ namespace Devious_Retention
         /// </summary>
         public void Tick()
         {
+            // Events that happen every tick
+            TickAttackAnimations();
+
             // Events that happen every second
             if (currentTick % (int)(1000 / GameInfo.TICK_TIME) == 0)
             {
@@ -476,6 +526,37 @@ namespace Devious_Retention
 
                         connection.InformResourceGather(amount, b.resource);
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ticks all currently attacking entities' animations (including projectiles).
+        /// </summary>
+        private void TickAttackAnimations()
+        {
+            // Units first
+            foreach(Unit u in attackingUnits)
+            {
+                if(u.attackTick >= u.unitType.attackTicks)
+                {
+                    u.attackTick = 0;
+                }
+                else
+                {
+                    u.attackTick++;
+                }
+            }
+            // Then buildings
+            foreach(Building b in attackingBuildings)
+            {
+                if(b.attackTick >= b.buildingType.attackTicks)
+                {
+                    b.attackTick = 0;
+                }
+                else
+                {
+                    b.attackTick++;
                 }
             }
         }
