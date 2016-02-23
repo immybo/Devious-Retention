@@ -257,30 +257,64 @@ namespace Devious_Retention
             {
                 if (!units.ContainsKey(entityID)) return;
                 entity = units[entityID];
-                units.Remove(entityID);
-
-                if (attackingUnits.Contains((Unit)entity)) // Stop attacking with it if necessary
-                    StopEntityAttack(entity);
             }
             else if(entityType == 1)
             {
                 if (!buildings.ContainsKey(entityID)) return;
                 entity = buildings[entityID];
-                buildings.Remove(entityID);
+            }
+            else
+            {
+                if (!resources.ContainsKey(entityID)) return;
+                entity = resources[entityID];
+            }
+            DeleteEntity(entity);
+        }
+        /// <summary>
+        /// Removes given entity from the
+        /// list of entities, and informs the clients.
+        /// Does nothing if the given entity does not exist in the server's
+        /// lists of entities.
+        /// </summary>
+        /// <param name="entity"></param>
+        public void DeleteEntity(Entity entity)
+        {
+            if (entity is Unit)
+            {
+                if (!units.ContainsKey(entity.id)) return;
+                units.Remove(entity.id);
+
+                if (attackingUnits.Contains((Unit)entity)) // Stop attacking with it if necessary
+                    StopEntityAttack(entity);
+            }
+            else if (entity is Building)
+            {
+                if (!buildings.ContainsKey(entity.id)) return;
+                buildings.Remove(entity.id);
 
                 if (attackingBuildings.Contains((Building)entity)) // Stop attacking with it if necessary
                     StopEntityAttack(entity);
             }
             else
             {
-                if (!resources.ContainsKey(entityID)) return;
-                entity = resources[entityID];
-                resources.Remove(entityID);
+                if (!resources.ContainsKey(entity.id)) return;
+                resources.Remove(entity.id);
             }
+
+            // Also stop whatever is attacking it from attacking it, if necessary
+            List<Entity> entitiesToStop = new List<Entity>();
+            foreach (Unit u in attackingUnits)
+                if (u.entityToAttack.Equals(entity))
+                    entitiesToStop.Add(u);
+            foreach (Building b in attackingBuildings)
+                if (b.entityToAttack.Equals(entity))
+                    entitiesToStop.Add(b);
+            foreach (Entity e in entitiesToStop)
+                StopEntityAttack(e);
 
             // Update both the clients and entities by square
             foreach (STCConnection c in connections)
-                c.InformEntityDeletion(entityType, entityID);
+                c.InformEntityDeletion(entity is Unit ? 0 : entity is Building ? 1 : 2, entity.id);
             foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
                 entitiesBySquare[c.x, c.y].Remove(entity);
         }
@@ -357,6 +391,14 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Stops the given unit from moving wherever it's moving.
+        /// </summary>
+        private void StopUnitMovement(Unit unit)
+        {
+            movingUnits.Remove(unit);
+        }
+
+        /// <summary>
         /// Moves all units which have been commanded to move by one tick's worth of movement.
         /// </summary>
         private void MoveAllUnits()
@@ -376,6 +418,29 @@ namespace Devious_Retention
                 if (u.yToMove >= u.y + u.type.speed / 1000 * GameInfo.TICK_TIME) dY = u.type.speed / 1000 * GameInfo.TICK_TIME;
                 else if (u.yToMove <= u.y - u.type.speed / 1000 * GameInfo.TICK_TIME) dY = -u.type.speed / 1000 * GameInfo.TICK_TIME;
                 else dY = u.yToMove - u.y;
+
+                // Figure out if we actually can move through there
+                // Because we want to be simple, just check the up to four squares that the unit will end up being partially in
+                Coordinate[] endSquares = new Coordinate[4];
+                endSquares[0] = new Coordinate((int)(u.x+ dX), (int)(u.y+ dY));
+                endSquares[1] = new Coordinate((int)(u.x+ dX), (int)(u.y + dY + u.type.size));
+                endSquares[2] = new Coordinate((int)(u.x + dX + u.type.size), (int)(u.y + dY));
+                endSquares[3] = new Coordinate((int)(u.x + dX + u.type.size), (int)(u.y + dY + u.type.size));
+
+                for(int i = 0; i < 4; i++)
+                {
+                    // Make sure the tile is actually on the map (movement will be blocked if it isn't anyway)
+                    if (endSquares[i].x < 0 || endSquares[i].y < 0 || endSquares[i].x >= map.width || endSquares[i].y >= map.height) continue;
+
+                    bool collides = !map.GetTile(endSquares[i].x, endSquares[i].y).unitTypePassable[u.unitType.type];
+                    // If it does collide, just stop its movement.
+                    if (collides)
+                    {
+                        toRemove.Add(u);
+                        dX = 0;
+                        dY = 0;
+                    }
+                }
 
                 // Update the list of entities by square
                 List<Coordinate> previousCoords = Map.GetIncludedTiles(map, u);
@@ -401,7 +466,7 @@ namespace Devious_Retention
             }
 
             foreach (Unit u in toRemove)
-                movingUnits.Remove(u);
+                StopUnitMovement(u);
         }
 
         /// <summary>
@@ -519,19 +584,11 @@ namespace Devious_Retention
             {
                 if(e is Unit && ((Unit)e).hitpoints <= 0)
                 {
-                    units.Remove(e.id);
-                    foreach(STCConnection c in connections)
-                    {
-                        c.InformEntityDeletion(0, e.id);
-                    }
+                    DeleteEntity(e);
                 }
                 else if(e is Building && ((Building)e).hitpoints <= 0)
                 {
-                    buildings.Remove(e.id);
-                    foreach(STCConnection c in connections)
-                    {
-                        c.InformEntityDeletion(1, e.id);
-                    }
+                    DeleteEntity(e);
                 }
             }
 

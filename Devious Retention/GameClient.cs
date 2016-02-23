@@ -115,6 +115,9 @@ namespace Devious_Retention
         /// </summary>
         public void RightClick(double x, double y)
         {
+            // If the right click is out of bounds, do nothing
+            if (x < 0 || y < 0 || x >= map.width || y >= map.height) return;
+
             // If there's anything to attack on that square, check which one is under the cursor (if any)
             if(entitiesBySquare[(int)x, (int)y] != null && entitiesBySquare[(int)x, (int)y].Count > 0)
             {

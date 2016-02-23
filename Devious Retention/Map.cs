@@ -35,7 +35,7 @@ namespace Devious_Retention
         /// </summary>
         public Tile GetTile(int x, int y)
         {
-            return possibleTiles[tiles[x,y]];
+            return possibleTiles[tiles[y,x]];
         }
 
         /// <summary>

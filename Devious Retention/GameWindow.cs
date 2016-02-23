@@ -566,8 +566,8 @@ namespace Devious_Retention
             // Render them all
             foreach(Entity e in entities)
             {
-                // Render a laser if they're attacking anything
-                if (e is Unit && client.attackingUnits.Contains((Unit)e))
+                // Render a laser if they're attacking anything and it's their frame to attack
+                if (e is Unit && client.attackingUnits.Contains((Unit)e) && ((Unit)e).attackTick == ((Unit)e).unitType.attackTicks)
                 {
                     double x = (e.x + e.type.size / 2 - worldX) * tileWidth;
                     double y = (e.y + e.type.size / 2 - worldY) * tileHeight;
@@ -575,9 +575,13 @@ namespace Devious_Retention
                     double x2 = (entityToAttack.x + entityToAttack.type.size / 2 - worldX) * tileWidth;
                     double y2 = (entityToAttack.y + entityToAttack.type.size / 2 - worldY) * tileHeight;
 
-                    // Only draw if at least one part is on the screen
+                    double xDiff = (x2 - x) / tileWidth;
+                    double yDiff = (y2 - y) / tileHeight;
+
+                    // Only draw if at least one part is on the screen and if it's within range
                     if (!(x < 0 && x2 < 0) && !(y < 0 && y2 < 0) && !(y > maxYTiles * tileHeight && y2 > maxYTiles * tileHeight) && !(x > maxXTiles * tileWidth && x2 > maxXTiles * tileWidth))
-                        g.DrawLine(GameInfo.PLAYER_PENS[e.playerNumber], (int)x, (int)y, (int)x2, (int)y2);
+                        if(e.type.range >= Math.Sqrt(xDiff*xDiff + yDiff* yDiff))
+                            g.DrawLine(GameInfo.PLAYER_PENS[e.playerNumber], (int)x, (int)y, (int)x2, (int)y2);
                 }
 
                 // First check if they're even on the screen

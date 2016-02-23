@@ -30,26 +30,15 @@ namespace Devious_Retention
 
             // CREATE MAP, WINDOW AND CLIENT
             int[,] tiles = new int[,] {
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-                { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+                { 0, 0, 0, 1, 1 },
+                { 1, 1, 0, 1, 1 },
+                { 0, 0, 0, 0, 0 },
+                { 1, 1, 1, 1, 0 },
             };
             List<Tile> tileTypes = new List<Tile>();
             foreach (Tile t in GameInfo.tiles.Values)
                 tileTypes.Add(t);
-            Map map = new Map(tileTypes, tiles, 15,15);
+            Map map = new Map(tileTypes, tiles, 5, 4);
 
             // CREATE CONNECTIONS
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"));
@@ -65,8 +54,8 @@ namespace Devious_Retention
             cts.Connect();
 
             // TESTING STUFF
-            server.SpawnEntity(client.info.unitTypes["TestUnit"], 1, 1, 1);
-            server.SpawnEntity(client.info.unitTypes["TestUnit"], 2, 5, 5);
+            server.SpawnEntity(client.info.unitTypes["TestUnit"], 1, 0, 0);
+            server.SpawnEntity(client.info.unitTypes["TestUnit"], 2, 3, 3);
 
             Application.Run(gameWindow);
         }
