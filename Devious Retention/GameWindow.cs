@@ -140,7 +140,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns the entity, if there is one, which is at
-        /// (x,y) in map coordinates.
+        /// (x,y) in world coordinates.
         /// </summary>
         public Entity GetEntityAt(double x, double y)
         {
@@ -160,7 +160,7 @@ namespace Devious_Retention
 
         /// <summary>
         /// Returns the entities, if there are any, which are contained within
-        /// the given rectangle in map coordinates.
+        /// the given rectangle in world coordinates.
         /// </summary>
         public HashSet<Entity> GetEntitiesIn(double x, double y, double width, double height)
         {
@@ -189,6 +189,9 @@ namespace Devious_Retention
 
         /// <summary>
         /// Selects the appropriate entities within the given area.
+        /// This can only select one type of entity for one player. For example,
+        /// if there is a unit belonging to player 1 and a building belonging to 
+        /// player 1, it will select only the unit.
         /// 
         /// Priority (lower priorities are only done if there are no entities
         /// fitting higher priorities):
@@ -246,7 +249,7 @@ namespace Devious_Retention
             Graphics g = e.Graphics;
 
             ResizeToFit();
-            //LoadLOS();
+            LoadLOS();
             RenderTiles(g,
                 new Rectangle(0,0,(int)(Width*GAME_AREA_WIDTH),(int)(Height* GAME_AREA_HEIGHT)));
             RenderEntities(g,
@@ -268,14 +271,6 @@ namespace Devious_Retention
         {
             Width = Screen.PrimaryScreen.WorkingArea.Width;
             Height = Screen.PrimaryScreen.WorkingArea.Height;
-        }
-
-        /// <summary>
-        /// Assuming that the client has been set, initialises the line of sight.
-        /// </summary>
-        public void InitLOS()
-        {
-            LOS = new bool[client.map.width, client.map.height];
         }
 
         /// <summary>
@@ -1483,9 +1478,9 @@ namespace Devious_Retention
         /// </summary>
         private void ScrollToMinimapPoint(double x, double y)
         {
-            double minimapX = x - Width * (GAME_AREA_WIDTH - MINIMAP_WIDTH);
-            double minimapY = y - (Height * GAME_AREA_HEIGHT - Width * MINIMAP_WIDTH);
-            double minimapSize = Width * MINIMAP_WIDTH;
+            double minimapX = x - Width * (GAME_AREA_WIDTH - MINIMAP_WIDTH) - MINIMAP_BORDER_SIZE;
+            double minimapY = y - (Height * GAME_AREA_HEIGHT - Width * MINIMAP_WIDTH) - MINIMAP_BORDER_SIZE;
+            double minimapSize = Width * MINIMAP_WIDTH - MINIMAP_BORDER_SIZE;
 
             // How far across (0-1) the point is
             double proportionX = minimapX / minimapSize;

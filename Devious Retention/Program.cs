@@ -29,16 +29,10 @@ namespace Devious_Retention
             Resource.ResetNextID();
 
             // CREATE MAP, WINDOW AND CLIENT
-            int[,] tiles = new int[,] {
-                { 0, 0, 0, 1, 1 },
-                { 1, 1, 0, 1, 1 },
-                { 0, 0, 0, 0, 0 },
-                { 1, 1, 1, 1, 0 },
-            };
             List<Tile> tileTypes = new List<Tile>();
             foreach (Tile t in GameInfo.tiles.Values)
                 tileTypes.Add(t);
-            Map map = new Map(tileTypes, tiles, 5, 4);
+            Map map = Map.GenerateMap(tileTypes, 20, 20);
 
             // CREATE CONNECTIONS
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"));

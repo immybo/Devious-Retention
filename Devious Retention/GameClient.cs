@@ -67,7 +67,6 @@ namespace Devious_Retention
             this.map = map;
             this.window = window;
             window.client = this;
-            window.InitLOS();
             // this.faction = faction;
             this.connection = connection;
             this.playerNumber = playerNumber;

@@ -16,18 +16,20 @@ namespace Devious_Retention
         public int height { get; private set; }
         public int[,] tiles { get; private set; }
         private List<Tile> possibleTiles;
+        private List<Coordinate> startingPositions { get; private set; }
 
         /// <summary>
         /// When a map is constructed, a list of all possible tiles must be
         /// provided in order. Then, the actual tiles on the map are given
         /// as integers; indices in the list of possible tiles.
         /// </summary>
-        public Map(List<Tile> possibleTiles, int[,] tiles, int width, int height)
+        public Map(List<Tile> possibleTiles, int[,] tiles, int width, int height, List<Coordinate> startingPositions)
         {
             this.possibleTiles = possibleTiles;
             this.tiles = tiles;
             this.width = width;
             this.height = height;
+            this.startingPositions = startingPositions;
         }
 
         /// <summary>
@@ -86,6 +88,43 @@ namespace Devious_Retention
                                 return e;
             // If nothing collides return false
             return null;
+        }
+
+        /// <summary>
+        /// Generates and returns a map with the specified width,
+        /// height, number of players (for generating starting 
+        /// coordinates) and list of possible tiles.
+        /// </summary>
+        public static Map GenerateMap(List<Tile> possibleTiles, int width, int height, int numPlayers)
+        {
+            int[,] tiles = new int[height, width];
+            Random random = new Random();
+            
+            for(int i = 0; i < height; i++)
+            {
+                for(int j = 0; j < width; j++)
+                {
+                    // Just generate it randomly from now
+                    if (random.Next(10) >= 9)
+                        tiles[i,j] = possibleTiles.Count - 1;
+                    else
+                        tiles[i,j] = 0;
+                }
+            }
+
+            // We want starting positions to be out from the center, and evenly spaced
+            List<Coordinate> startingPositions = new List<Coordinate>();
+            Coordinate center = new Coordinate(width / 2, height / 2);
+            Coordinate distances = new Coordinate(width / 4, height / 4);
+            for (int i = 0; i < numPlayers; i++)
+            {
+                // Keep them the same angle apart
+                double angle = Math.PI * 2 * (i / numPlayers);
+
+                startingPositions.Add(new Coordinate((int)(center.x + Math.Cos(angle) * distances.x), (int)(center.y + Math.Sin(angle) * distances.y)));
+            }
+
+            return new Map(possibleTiles, tiles, width, height);
         }
     }
 
