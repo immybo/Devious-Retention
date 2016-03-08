@@ -105,10 +105,10 @@ namespace Devious_Retention
             Building building = new Building(buildingType, Building.nextID, x, y, player);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
-            if (Map.Collides(building.x, building.y, buildingType.size, map, entitiesBySquare, false) == null) return;
+            if (map.Collides(building.x, building.y, buildingType.size, entitiesBySquare, false) == null) return;
 
             buildings.Add(building.id, building);
-            List<Coordinate> buildingCoordinates = Map.GetIncludedTiles(map, building);
+            List<Coordinate> buildingCoordinates = map.GetIncludedTiles(building);
             foreach (Coordinate c in buildingCoordinates)
             {
                 if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { building };
@@ -149,22 +149,22 @@ namespace Devious_Retention
             double y = building.y - type.size - 0.1;
             // On top
             for (x = building.x - type.size - 0.1; x <= building.x + building.type.size + 0.1; x += 0.1)
-                if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the right
             x = building.x + building.type.size + 0.1;
             if(placeX == -1)
                 for(y = building.y - type.size - 0.1; y <= building.y + building.type.size + 0.1; y += 0.1)
-                    if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                    if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the bottom
             y = building.y + building.type.size + 0.1;
             if(placeX == -1)
                 for(x = building.x + building.type.size + 0.1; x >= building.x - type.size - 0.1; x -= 0.1)
-                    if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                    if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the left
             x = building.x - type.size - 0.1;
             if(placeX == -1)
                 for(y = building.y + building.type.size + 0.1; y >= building.y - type.size - 0.1; y -= 0.1)
-                    if (Map.Collides(x, y, type.size, map, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                    if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
 
             // Was there a place for it?
             if (placeX == -1)
@@ -177,7 +177,7 @@ namespace Devious_Retention
                 c.InformEntityAdd(unit, false);
 
             units.Add(unit.id, unit);
-            List<Coordinate> unitCoordinates = Map.GetIncludedTiles(map, unit);
+            List<Coordinate> unitCoordinates = map.GetIncludedTiles(unit);
             foreach (Coordinate c in unitCoordinates)
                 entitiesBySquare[c.x, c.y].Add(unit);
         }
@@ -209,7 +209,7 @@ namespace Devious_Retention
             }
 
             // Make sure to add it to the list of entities by coordinate as well as the regular entity dictionaries
-            List<Coordinate> entityCoordinates = Map.GetIncludedTiles(map, entity);
+            List<Coordinate> entityCoordinates = map.GetIncludedTiles(entity);
             foreach (Coordinate c in entityCoordinates)
                 entitiesBySquare[c.x, c.y].Add(entity);
 
@@ -315,7 +315,7 @@ namespace Devious_Retention
             // Update both the clients and entities by square
             foreach (STCConnection c in connections)
                 c.InformEntityDeletion(entity is Unit ? 0 : entity is Building ? 1 : 2, entity.id);
-            foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
+            foreach (Coordinate c in map.GetIncludedTiles(entity))
                 entitiesBySquare[c.x, c.y].Remove(entity);
         }
 
@@ -443,13 +443,13 @@ namespace Devious_Retention
                 }
 
                 // Update the list of entities by square
-                List<Coordinate> previousCoords = Map.GetIncludedTiles(map, u);
+                List<Coordinate> previousCoords = map.GetIncludedTiles(u);
                 List<Coordinate> coordsToRemove = new List<Coordinate>();
 
                 u.x += dX;
                 u.y += dY;
 
-                List<Coordinate> newCoords = Map.GetIncludedTiles(map, u);
+                List<Coordinate> newCoords = map.GetIncludedTiles(u);
 
                 foreach (Coordinate c in previousCoords)
                     if (!newCoords.Contains(c))

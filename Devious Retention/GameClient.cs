@@ -324,7 +324,7 @@ namespace Devious_Retention
             }
 
             // Check which tiles it at least partially occupies
-            foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
+            foreach (Coordinate c in map.GetIncludedTiles(entity))
             {
                 if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { entity };
                 else entitiesBySquare[c.x, c.y].Add(entity);
@@ -366,7 +366,7 @@ namespace Devious_Retention
             // Remove it from the selected entities if it was in there
             if (selected.Contains(entity)) selected.Remove(entity);
             // And from the lists of entities by tile
-            foreach (Coordinate c in Map.GetIncludedTiles(map, entity))
+            foreach (Coordinate c in map.GetIncludedTiles(entity))
                 entitiesBySquare[c.x, c.y].Remove(entity);
         }
 

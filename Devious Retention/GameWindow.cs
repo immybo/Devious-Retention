@@ -1233,8 +1233,8 @@ namespace Devious_Retention
             // Otherwise, find collisions
             else
             {
-                List<Coordinate> collidingTiles = Map.GetIncludedTiles(client.map, tileX, tileY, placingBuilding.size);
-                if (Map.Collides(tileX, tileY, placingBuilding.size, client.map, client.entitiesBySquare, false) != null)
+                List<Coordinate> collidingTiles = client.map.GetIncludedTiles(tileX, tileY, placingBuilding.size);
+                if (client.map.Collides(tileX, tileY, placingBuilding.size, client.entitiesBySquare, false) != null)
                     validPlacing = false;
             }
 

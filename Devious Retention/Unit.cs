@@ -77,22 +77,6 @@ namespace Devious_Retention
             projectiles = new List<Coordinate>();
         }
         
-        /// <summary>
-        /// Begins this unit's movement towards the given location.
-        /// If the unit can't find a path to the location (e.g. the location
-        /// is within immoveable terrain), it will move as as close as it can
-        /// to it.
-        /// </summary>
-       /* public void Move(double x, double y)
-        {
-            xToMove = x;
-            yToMove = y;
-        }*/
-
-        /// <summary>
-        /// Lowers this unit's hitpoints by the appropriate amount.
-        /// Also declares this unit as dead if its new amount of hitpoints is below 0.
-        /// </summary>
         /// <param name="damage">The integer amount of damage dealt to this unit.</param>
         /// <param name="damageType">The type of damage being dealt.</param>
         public int TakeDamage(int damage, int damageType)

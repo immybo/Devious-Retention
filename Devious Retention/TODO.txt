@@ -24,4 +24,8 @@
 	- Menu sounds
 
 Optimisation and Fixes
-- Optimise LOS calculations
+- Can't select or move units when they're on the top left tile
+- Optimise LOS calculations (with quad tree?)
+- Pathfinding with A*
+- Finding units with quad trees
+- Collision with quad trees (replace entities by square)

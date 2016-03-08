@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Devious_Retention
         public int height { get; private set; }
         public int[,] tiles { get; private set; }
         private List<Tile> possibleTiles;
-        private List<Coordinate> startingPositions { get; private set; }
+        public List<Coordinate> startingPositions { get; private set; }
 
         /// <summary>
         /// When a map is constructed, a list of all possible tiles must be
@@ -37,7 +38,7 @@ namespace Devious_Retention
         /// </summary>
         public Tile GetTile(int x, int y)
         {
-            return possibleTiles[tiles[y,x]];
+            return possibleTiles[tiles[x,y]];
         }
 
         /// <summary>
@@ -45,17 +46,17 @@ namespace Devious_Retention
         /// is at least partially on.
         /// Uses the given map to make sure none of them are out of bounds.
         /// </summary>
-        public static List<Coordinate> GetIncludedTiles(Map map, Entity entity)
+        public List<Coordinate> GetIncludedTiles(Entity entity)
         {
-            return GetIncludedTiles(map, entity.x, entity.y, entity.type.size);
+            return GetIncludedTiles(entity.x, entity.y, entity.type.size);
         }
 
         /// <summary>
         /// Returns the list of coordinates which an entity with the given
         /// x, y and size would be at least partially on.
-        /// Uses the given map to make sure none of them are out of bounds.
+        /// Also makes sure none of them are out of bounds.
         /// </summary>
-        public static List<Coordinate> GetIncludedTiles(Map map, double x, double y, double size)
+        public List<Coordinate> GetIncludedTiles(double x, double y, double size)
         {
             List<Coordinate> coordinates = new List<Coordinate>();
 
@@ -64,7 +65,7 @@ namespace Devious_Retention
             // However, checking one extra row/column of tiles isn't a big deal in the rare case that this happens.
             for (int i = 0; i <= size; i++)
                 for (int j = 0; j < size; j++)
-                    if ((int)x + i < map.width && (int)y + j < map.height)
+                    if ((int)x + i < this.width && (int)y + j < this.height)
                         coordinates.Add(new Coordinate((int)x + i, (int)y + j));
 
             return coordinates;
@@ -76,9 +77,9 @@ namespace Devious_Retention
         /// would collide with any of the other given entities.
         /// </summary>
         /// <param name="includeResource">Whether or not to care about any resources colliding.</param>
-        public static Entity Collides(double x, double y, double size, Map map, List<Entity>[,] entitiesBySquare, bool includeResource)
+        public Entity Collides(double x, double y, double size, List<Entity>[,] entitiesBySquare, bool includeResource)
         {
-            List<Coordinate> includedTiles = Map.GetIncludedTiles(map, x, y, size);
+            List<Coordinate> includedTiles = GetIncludedTiles(x, y, size);
             foreach (Coordinate c in includedTiles)
                 if (entitiesBySquare[c.x, c.y] != null)
                     foreach (Entity e in entitiesBySquare[c.x, c.y])
@@ -121,10 +122,10 @@ namespace Devious_Retention
                 // Keep them the same angle apart
                 double angle = Math.PI * 2 * (i / numPlayers);
 
-                startingPositions.Add(new Coordinate((int)(center.x + Math.Cos(angle) * distances.x), (int)(center.y + Math.Sin(angle) * distances.y)));
+                startingPositions.Add(new Coordinate((int)(center.x + Math.Sin(angle) * distances.x), (int)(center.y - Math.Cos(angle) * distances.y)));
             }
 
-            return new Map(possibleTiles, tiles, width, height);
+            return new Map(possibleTiles, tiles, width, height, startingPositions);
         }
     }
 
@@ -155,7 +156,14 @@ namespace Devious_Retention
         {
             this.name = name;
             this.imageName = imageName;
-            image = Image.FromFile(GameInfo.TILE_IMAGE_BASE + imageName);
+            try
+            {
+                image = Image.FromFile(GameInfo.TILE_IMAGE_BASE + imageName);
+            }
+            catch(IOException)
+            {
+                image = null;
+            }
             this.buildable = buildable;
             this.unitTypePassable = unitTypePassable;
             this.colorRGB = colorRGB;
