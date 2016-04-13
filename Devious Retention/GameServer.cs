@@ -105,9 +105,9 @@ namespace Devious_Retention
             Building building = new Building(buildingType, Building.nextID, x, y, player);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
-            if (map.Collides(building.x, building.y, buildingType.size, entitiesBySquare, false) == null) return;
+            if (map.Collides(building.X, building.Y, buildingType.size, entitiesBySquare, false) == null) return;
 
-            buildings.Add(building.id, building);
+            buildings.Add(building.ID, building);
             List<Coordinate> buildingCoordinates = map.GetIncludedTiles(building);
             foreach (Coordinate c in buildingCoordinates)
             {
@@ -145,38 +145,38 @@ namespace Devious_Retention
             double placeX = -1;
             double placeY = -1;
             // Try and see if there's space anywhere around the building
-            double x = building.x - type.size;
-            double y = building.y - type.size - 0.1;
+            double x = building.X - type.size;
+            double y = building.Y - type.size - 0.1;
             // On top
-            for (x = building.x - type.size - 0.1; x <= building.x + building.type.size + 0.1; x += 0.1)
+            for (x = building.X - type.size - 0.1; x <= building.X + building.Type.size + 0.1; x += 0.1)
                 if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the right
-            x = building.x + building.type.size + 0.1;
+            x = building.X + building.Type.size + 0.1;
             if(placeX == -1)
-                for(y = building.y - type.size - 0.1; y <= building.y + building.type.size + 0.1; y += 0.1)
+                for(y = building.Y - type.size - 0.1; y <= building.Y + building.Type.size + 0.1; y += 0.1)
                     if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the bottom
-            y = building.y + building.type.size + 0.1;
+            y = building.Y + building.Type.size + 0.1;
             if(placeX == -1)
-                for(x = building.x + building.type.size + 0.1; x >= building.x - type.size - 0.1; x -= 0.1)
+                for(x = building.X + building.Type.size + 0.1; x >= building.X - type.size - 0.1; x -= 0.1)
                     if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
             // On the left
-            x = building.x - type.size - 0.1;
+            x = building.X - type.size - 0.1;
             if(placeX == -1)
-                for(y = building.y + building.type.size + 0.1; y >= building.y - type.size - 0.1; y -= 0.1)
+                for(y = building.Y + building.Type.size + 0.1; y >= building.Y - type.size - 0.1; y -= 0.1)
                     if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
 
             // Was there a place for it?
             if (placeX == -1)
                 return;
             // Now place it
-            Unit unit = new Unit(type, Unit.nextID, placeX, placeY, building.playerNumber);
+            Unit unit = new Unit(type, Unit.nextID, placeX, placeY, building.PlayerNumber);
             Unit.IncrementNextID();
 
             foreach (STCConnection c in connections)
                 c.InformEntityAdd(unit, false);
 
-            units.Add(unit.id, unit);
+            units.Add(unit.ID, unit);
             List<Coordinate> unitCoordinates = map.GetIncludedTiles(unit);
             foreach (Coordinate c in unitCoordinates)
                 entitiesBySquare[c.x, c.y].Add(unit);
@@ -193,19 +193,19 @@ namespace Devious_Retention
             {
                 entity = new Unit((UnitType)type, Unit.nextID, x, y, player);
                 Unit.IncrementNextID();
-                units.Add(entity.id, (Unit)entity);
+                units.Add(entity.ID, (Unit)entity);
             }
             else if(type is BuildingType)
             {
                 entity = new Building((BuildingType)type, Building.nextID, x, y, player);
                 Building.IncrementNextID();
-                buildings.Add(entity.id, (Building)entity);
+                buildings.Add(entity.ID, (Building)entity);
             }
             else if(type is ResourceType)
             {
                 entity = new Resource((ResourceType)type, Resource.nextID, x, y);
                 Resource.IncrementNextID();
-                resources.Add(entity.id, (Resource)entity);
+                resources.Add(entity.ID, (Resource)entity);
             }
 
             // Make sure to add it to the list of entities by coordinate as well as the regular entity dictionaries
@@ -281,24 +281,24 @@ namespace Devious_Retention
         {
             if (entity is Unit)
             {
-                if (!units.ContainsKey(entity.id)) return;
-                units.Remove(entity.id);
+                if (!units.ContainsKey(entity.ID)) return;
+                units.Remove(entity.ID);
 
                 if (attackingUnits.Contains((Unit)entity)) // Stop attacking with it if necessary
                     StopEntityAttack(entity);
             }
             else if (entity is Building)
             {
-                if (!buildings.ContainsKey(entity.id)) return;
-                buildings.Remove(entity.id);
+                if (!buildings.ContainsKey(entity.ID)) return;
+                buildings.Remove(entity.ID);
 
                 if (attackingBuildings.Contains((Building)entity)) // Stop attacking with it if necessary
                     StopEntityAttack(entity);
             }
             else
             {
-                if (!resources.ContainsKey(entity.id)) return;
-                resources.Remove(entity.id);
+                if (!resources.ContainsKey(entity.ID)) return;
+                resources.Remove(entity.ID);
             }
 
             // Also stop whatever is attacking it from attacking it, if necessary
@@ -314,7 +314,7 @@ namespace Devious_Retention
 
             // Update both the clients and entities by square
             foreach (STCConnection c in connections)
-                c.InformEntityDeletion(entity is Unit ? 0 : entity is Building ? 1 : 2, entity.id);
+                c.InformEntityDeletion(entity is Unit ? 0 : entity is Building ? 1 : 2, entity.ID);
             foreach (Coordinate c in map.GetIncludedTiles(entity))
                 entitiesBySquare[c.x, c.y].Remove(entity);
         }
@@ -406,26 +406,26 @@ namespace Devious_Retention
             List<Unit> toRemove = new List<Unit>();
             foreach (Unit u in movingUnits)
             {
-                if (u.xToMove == u.x && u.yToMove == u.y) { toRemove.Add(u); continue; }
+                if (u.xToMove == u.X && u.yToMove == u.Y) { toRemove.Add(u); continue; }
 
                 double dX = 0;
                 double dY = 0;
 
-                if (u.xToMove >= u.x + u.type.speed / 1000 * GameInfo.TICK_TIME) dX = u.type.speed / 1000 * GameInfo.TICK_TIME;
-                else if (u.xToMove <= u.x - u.type.speed / 1000 * GameInfo.TICK_TIME) dX = -u.type.speed / 1000 * GameInfo.TICK_TIME;
-                else dX = u.xToMove - u.x;
+                if (u.xToMove >= u.X + u.Type.speed / 1000 * GameInfo.TICK_TIME) dX = u.Type.speed / 1000 * GameInfo.TICK_TIME;
+                else if (u.xToMove <= u.X - u.Type.speed / 1000 * GameInfo.TICK_TIME) dX = -u.Type.speed / 1000 * GameInfo.TICK_TIME;
+                else dX = u.xToMove - u.X;
 
-                if (u.yToMove >= u.y + u.type.speed / 1000 * GameInfo.TICK_TIME) dY = u.type.speed / 1000 * GameInfo.TICK_TIME;
-                else if (u.yToMove <= u.y - u.type.speed / 1000 * GameInfo.TICK_TIME) dY = -u.type.speed / 1000 * GameInfo.TICK_TIME;
-                else dY = u.yToMove - u.y;
+                if (u.yToMove >= u.Y + u.Type.speed / 1000 * GameInfo.TICK_TIME) dY = u.Type.speed / 1000 * GameInfo.TICK_TIME;
+                else if (u.yToMove <= u.Y - u.Type.speed / 1000 * GameInfo.TICK_TIME) dY = -u.Type.speed / 1000 * GameInfo.TICK_TIME;
+                else dY = u.yToMove - u.Y;
 
                 // Figure out if we actually can move through there
                 // Because we want to be simple, just check the up to four squares that the unit will end up being partially in
                 Coordinate[] endSquares = new Coordinate[4];
-                endSquares[0] = new Coordinate((int)(u.x+ dX), (int)(u.y+ dY));
-                endSquares[1] = new Coordinate((int)(u.x+ dX), (int)(u.y + dY + u.type.size));
-                endSquares[2] = new Coordinate((int)(u.x + dX + u.type.size), (int)(u.y + dY));
-                endSquares[3] = new Coordinate((int)(u.x + dX + u.type.size), (int)(u.y + dY + u.type.size));
+                endSquares[0] = new Coordinate((int)(u.X+ dX), (int)(u.Y+ dY));
+                endSquares[1] = new Coordinate((int)(u.X+ dX), (int)(u.Y + dY + u.Type.size));
+                endSquares[2] = new Coordinate((int)(u.X + dX + u.Type.size), (int)(u.Y + dY));
+                endSquares[3] = new Coordinate((int)(u.X + dX + u.Type.size), (int)(u.Y + dY + u.Type.size));
 
                 for(int i = 0; i < 4; i++)
                 {
@@ -446,8 +446,7 @@ namespace Devious_Retention
                 List<Coordinate> previousCoords = map.GetIncludedTiles(u);
                 List<Coordinate> coordsToRemove = new List<Coordinate>();
 
-                u.x += dX;
-                u.y += dY;
+                u.ChangePosition(dX, dY);
 
                 List<Coordinate> newCoords = map.GetIncludedTiles(u);
 
@@ -492,11 +491,11 @@ namespace Devious_Retention
                 if (!defenders.Contains(u.entityToAttack))
                     defenders.Add(u.entityToAttack);
 
-                double distance = Math.Sqrt(Math.Pow(u.x - u.entityToAttack.x, 2) + Math.Pow(u.y - u.entityToAttack.y, 2));
+                double distance = Math.Sqrt(Math.Pow(u.X - u.entityToAttack.X, 2) + Math.Pow(u.Y - u.entityToAttack.Y, 2));
                 // If any units have also been commanded to move, check if they're now within range
                 if (movingUnits.Contains(u))
                 {
-                    if(distance <= u.type.range)
+                    if(distance <= u.Type.range)
                     {
                         movingUnits.Remove(u);
                     }
@@ -504,10 +503,10 @@ namespace Devious_Retention
 
                 // Otherwise, command units which are not within range to move to the defender's position
                 // They will stop once they get close enough due to the above command
-                if(distance > u.type.range && !movingUnits.Contains(u))
+                if(distance > u.Type.range && !movingUnits.Contains(u))
                 {
-                    u.xToMove = u.entityToAttack.x;
-                    u.yToMove = u.entityToAttack.y;
+                    u.xToMove = u.entityToAttack.X;
+                    u.yToMove = u.entityToAttack.Y;
                     movingUnits.Add(u);
                 }
 
@@ -527,9 +526,9 @@ namespace Devious_Retention
 
                         // Damage it
                         if (u.entityToAttack is Unit)
-                            damage = ((Unit)u.entityToAttack).TakeDamage(u.type.damage, u.type.damageType);
+                            damage = ((Unit)u.entityToAttack).TakeDamage(u.Type.damage, u.Type.damageType);
                         else
-                            damage = ((Building)u.entityToAttack).TakeDamage(u.type.damage, u.type.damageType);
+                            damage = ((Building)u.entityToAttack).TakeDamage(u.Type.damage, u.Type.damageType);
 
                         foreach(STCConnection c in connections)
                         {
@@ -552,9 +551,9 @@ namespace Devious_Retention
                 if (!defenders.Contains(b.entityToAttack))
                     defenders.Add(b.entityToAttack);
 
-                double distance = Math.Sqrt(Math.Pow(b.x - b.entityToAttack.x, 2) + Math.Pow(b.y - b.entityToAttack.y, 2));
+                double distance = Math.Sqrt(Math.Pow(b.X - b.entityToAttack.X, 2) + Math.Pow(b.Y - b.entityToAttack.Y, 2));
                 // Tick the attack cycle of those which are within range
-                if (distance <= b.type.range)
+                if (distance <= b.Type.range)
                 {
                     // If it hasn't reached the final phase of its attack cycle, increment it by one tick
                     if (b.attackTick < b.buildingType.attackTicks)
@@ -567,9 +566,9 @@ namespace Devious_Retention
                         b.attackTick = 0;
                         double damage = 0;
                         if (b.entityToAttack is Unit)
-                            damage = ((Unit)b.entityToAttack).TakeDamage(b.type.damage, b.type.damageType);
+                            damage = ((Unit)b.entityToAttack).TakeDamage(b.Type.damage, b.Type.damageType);
                         else
-                            damage = ((Building)b.entityToAttack).TakeDamage(b.type.damage, b.type.damageType);
+                            damage = ((Building)b.entityToAttack).TakeDamage(b.Type.damage, b.Type.damageType);
 
                         foreach (STCConnection c in connections)
                         {

@@ -48,7 +48,7 @@ namespace Devious_Retention
         /// </summary>
         public List<Coordinate> GetIncludedTiles(Entity entity)
         {
-            return GetIncludedTiles(entity.x, entity.y, entity.type.size);
+            return GetIncludedTiles(entity.X, entity.Y, entity.Type.size);
         }
 
         /// <summary>
@@ -83,8 +83,8 @@ namespace Devious_Retention
             foreach (Coordinate c in includedTiles)
                 if (entitiesBySquare[c.x, c.y] != null)
                     foreach (Entity e in entitiesBySquare[c.x, c.y])
-                        if (e.x + e.type.size > x && e.y + e.type.size > y
-                        && e.x < x + size && e.y < y + size) // If they collide, return true
+                        if (e.X + e.Type.size > x && e.Y + e.Type.size > y
+                        && e.X < x + size && e.Y < y + size) // If they collide, return true
                             if (!(e is Resource) || includeResource)
                                 return e;
             // If nothing collides return false

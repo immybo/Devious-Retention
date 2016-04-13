@@ -14,15 +14,11 @@ namespace Devious_Retention
     public class Unit : Entity
     {
         public static int nextID { get; private set; }
-        // Unique
-        public int id { get; private set; }
-
-        public int playerNumber { get; private set; }
+        
         // As most attributes will change only under circumstances where
         // the UnitType will change as well, this provides most attributes
         // so not many fields are needed.
         public UnitType unitType { get; private set; }
-        public EntityType type { get; private set; }
         // In addition to the maximum hitpoints provided by the type,
         // a unit must keep track of its current hitpoints.
         public int hitpoints;
@@ -35,10 +31,6 @@ namespace Devious_Retention
         public double xToMove;
         public double yToMove;
         private int direction;
-
-        // The co-ordinates of the top-left corner of this unit
-        public double x { get; set; }
-        public double y { get; set; }
 
         // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will be considered ready to attack
         public int attackTick = 0;
@@ -63,11 +55,11 @@ namespace Devious_Retention
         public Unit(UnitType type, int id, double x, double y, int player)
         {
             this.unitType = type;
-            this.type = type;
-            this.id = id;
-            this.x = x;
-            this.y = y;
-            this.playerNumber = player;
+            this.Type = type;
+            this.ID = id;
+            this.X = x;
+            this.Y = y;
+            this.PlayerNumber = player;
 
             direction = 0;
             xToMove = -1;
@@ -84,34 +76,6 @@ namespace Devious_Retention
             int realDamage = (int)(damage * (100 - unitType.resistances[damageType]) / 100);
             hitpoints -= realDamage;
             return realDamage;
-        }
-
-        /// <summary>
-        /// Attempts to move within range of and then attack the given entity,
-        /// until the entity dies or this unit is commanded to do something else.
-        /// Does nothing if the target is a resource.
-        /// </summary>
-        public void Attack(Entity entity)
-        {
-            if (entity is Resource) return;
-
-            // the distance to the target
-            double distance = Math.Sqrt(Math.Pow(x - entity.x, 2) + Math.Pow(y - entity.y, 2));
-            entityToAttack = entity;
-
-            // If it's out of range, move towards it
-            if(distance > unitType.range)
-            {
-                // Figure out what angle (radians) we are from the unit (-y=0, +y=pi)
-                double adjacentLength = entity.y - y; // positive if the entity is higher than this
-                double oppositeLength = entity.x - x; // positive if the entity is to the right of this
-
-                double angle = Math.Atan2(oppositeLength,adjacentLength);
-
-                // Figure out the target position, which is [range] distance from the entity on that angle
-                xToMove = entity.x + Math.Cos(angle) * unitType.range;
-                yToMove = entity.y + Math.Sin(angle) * unitType.range;
-            }
         }
 
         /// <summary>
@@ -139,6 +103,29 @@ namespace Devious_Retention
         public static void IncrementNextID()
         {
             nextID++;
+        }
+
+        public override Image GetImage()
+        {
+            return unitType.image;
+        }
+
+        public override void RenderHPBar(Graphics g, Rectangle bounds)
+        {
+            Brush brush;
+
+            // Determine the colour
+            double ratio = (double)hitpoints / Type.hitpoints;
+            int barWidth = (int)(bounds.Width * ratio);
+            if (ratio > 0.75) brush = Brushes.Green;
+            else if (ratio > 0.3) brush = Brushes.Yellow;
+            else brush = Brushes.Red;
+
+            g.FillRectangle(brush, bounds.X, bounds.Y, barWidth, bounds.Height);
+            g.DrawRectangle(Pens.Black, bounds);
+
+            // Draw the border
+            g.DrawRectangle(GameInfo.PLAYER_PENS[PlayerNumber], bounds);
         }
     }
 }

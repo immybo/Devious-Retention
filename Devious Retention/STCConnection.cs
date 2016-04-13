@@ -237,9 +237,9 @@ namespace Devious_Retention
             int resourceID = -1;
             string typeName = "";
             if (entity is Unit) { entityType = 0; typeName = ((Unit)entity).unitType.name; }
-            else if (entity is Building) { entityType = 1; typeName = ((Building)entity).buildingType.name; resourceID = ((Building)entity).resource == null ? -1 : ((Building)entity).resource.id; }
+            else if (entity is Building) { entityType = 1; typeName = ((Building)entity).buildingType.name; resourceID = ((Building)entity).resource == null ? -1 : ((Building)entity).resource.ID; }
             else if (entity is Resource) { entityType = 2; typeName = ((Resource)entity).resourceType.name; }
-            outgoingWriter.WriteLine("0 " + isFree + " " + entityType + " " + typeName + " " + entity.id + " " + entity.x + " " + entity.y + " " + entity.playerNumber + " " + resourceID);
+            outgoingWriter.WriteLine("0 " + isFree + " " + entityType + " " + typeName + " " + entity.ID + " " + entity.X + " " + entity.Y + " " + entity.PlayerNumber + " " + resourceID);
         }
 
         /// <summary>
@@ -280,7 +280,7 @@ namespace Devious_Retention
             if (entity is Unit) entityType = 0;
             else if (entity is Building) entityType = 1;
             else if (entity is Resource) entityType = 2;
-            outgoingWriter.WriteLine("2 " + entityType + " " + entity.id + " " + attributeID + " " + attributeChange + " " + attributeChange2);
+            outgoingWriter.WriteLine("2 " + entityType + " " + entity.ID + " " + attributeID + " " + attributeChange + " " + attributeChange2);
         }
 
         /// <summary>
@@ -331,7 +331,7 @@ namespace Devious_Retention
         public void InformEntityAttack(Entity attacker, Entity defender, bool started)
         {
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
-            outgoingWriter.WriteLine("6 " + started + " " + (attacker is Unit ? 0 : 1) + " " + attacker.id + " " + (defender is Unit ? 0 : 1) + " " + defender.id);
+            outgoingWriter.WriteLine("6 " + started + " " + (attacker is Unit ? 0 : 1) + " " + attacker.ID + " " + (defender is Unit ? 0 : 1) + " " + defender.ID);
         }
     }
 }

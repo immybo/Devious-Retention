@@ -243,7 +243,7 @@ namespace Devious_Retention
         /// </summary>
         public void RequestUnit(Building sourceBuilding, UnitType unit)
         {
-            outgoingWriter.WriteLine("1 " + sourceBuilding.id + " " + unit.name);
+            outgoingWriter.WriteLine("1 " + sourceBuilding.ID + " " + unit.name);
         }
 
         /// <summary>
@@ -265,7 +265,7 @@ namespace Devious_Retention
         /// </summary>
         public void RequestMove(Unit unit, double x, double y)
         {
-            outgoingWriter.WriteLine("3 " + unit.id + " " + x + " " + y);
+            outgoingWriter.WriteLine("3 " + unit.ID + " " + x + " " + y);
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace Devious_Retention
         public void RequestDelete(Entity entity)
         {
             int entityType = entity is Unit ? 0 : entity is Building ? 1 : 2;
-            outgoingWriter.WriteLine("4 " + entityType + " " + entity.id);
+            outgoingWriter.WriteLine("4 " + entityType + " " + entity.ID);
         }
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace Devious_Retention
         /// </summary>
         public void InformResourceGather(double amount, Resource resource)
         {
-            outgoingWriter.WriteLine("5 " + amount + " " + resource.id);
+            outgoingWriter.WriteLine("5 " + amount + " " + resource.ID);
         }
 
         /// <summary>
@@ -316,10 +316,10 @@ namespace Devious_Retention
             StringBuilder builder = new StringBuilder();
             builder.Append("6 ");
             builder.Append(defenderType + " ");
-            builder.Append(defender.id);
+            builder.Append(defender.ID);
             for(int i = 0; i < attackers.Count; i++)
             {
-                builder.Append(" " + attackerTypes[i] + " " + attackers[i].id);
+                builder.Append(" " + attackerTypes[i] + " " + attackers[i].ID);
             }
 
             outgoingWriter.WriteLine(builder.ToString());

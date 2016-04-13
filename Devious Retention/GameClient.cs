@@ -67,7 +67,7 @@ namespace Devious_Retention
             this.map = map;
             this.window = window;
             window.client = this;
-            // this.faction = faction;
+            //this.faction = faction;
             this.connection = connection;
             this.playerNumber = playerNumber;
             playerColor = GameInfo.PLAYER_COLORS[playerNumber];
@@ -124,7 +124,7 @@ namespace Devious_Retention
                 {
                     // If the entity is under the mouse, attack it (just attack the first one, don't do any decision making if there's more)
                     // (also make sure it isn't a resource & isn't allied with the player)
-                    if(e.x + e.type.size > x && e.y + e.type.size > y && e.x < x && e.y < y && !(e is Resource) && !teammates.Contains(e.playerNumber))
+                    if(e.X + e.Type.size > x && e.Y + e.Type.size > y && e.X < x && e.Y < y && !(e is Resource) && !teammates.Contains(e.PlayerNumber))
                     {
                         AttackEntity(e);
                         return;
@@ -148,13 +148,13 @@ namespace Devious_Retention
             // We can check here if it would go off the map
             foreach (Unit unit in selectedUnits)
             {
-                double adjustedX = x - unit.type.size / 2;
-                double adjustedY = y - unit.type.size / 2;
+                double adjustedX = x - unit.Type.size / 2;
+                double adjustedY = y - unit.Type.size / 2;
                 if (adjustedX < 0) adjustedX = 0;
                 if (adjustedY < 0) adjustedY = 0;
 
-                if (x + unit.type.size >= map.width) adjustedX = map.width - unit.type.size;
-                if (y + unit.type.size >= map.height) adjustedY = map.height - unit.type.size;
+                if (x + unit.Type.size >= map.width) adjustedX = map.width - unit.Type.size;
+                if (y + unit.Type.size >= map.height) adjustedY = map.height - unit.Type.size;
 
                 connection.RequestMove(unit, adjustedX, adjustedY);
             }
@@ -175,7 +175,7 @@ namespace Devious_Retention
             // Figure out which of the selected entities belong to the player
             List<Entity> available = new List<Entity>();
             foreach (Entity e in selected)
-                if (e.playerNumber == playerNumber)
+                if (e.PlayerNumber == playerNumber)
                     available.Add(e);
 
             connection.RequestAttack(available, entityToAttack);
@@ -259,7 +259,7 @@ namespace Devious_Retention
             // Otherwise scroll through all the entities that are selected and find one that fits the criteria
             foreach(Entity e in selected)
             {
-                if ((e is Unit || e is Building) && e.playerNumber == playerNumber)
+                if ((e is Unit || e is Building) && e.PlayerNumber == playerNumber)
                 {
                     connection.RequestDelete(e);
                     return;
@@ -286,14 +286,14 @@ namespace Devious_Retention
                 if (!definitions[playerNumber].unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
                 UnitType unitType = definitions[playerNumber].unitTypes[type];
                 Unit unit = new Unit(unitType, id, xPos, yPos, player);
-                units.Add(unit.id, unit);
+                units.Add(unit.ID, unit);
                 unitType.units.Add(unit);
                 if(player == playerNumber)
                     window.UpdateLOSAdd(unit);
                 entity = unit;
 
                 // If the unit belongs to the player, remove the resources as well
-                if (unit.playerNumber == playerNumber && !isFree)
+                if (unit.PlayerNumber == playerNumber && !isFree)
                     for (int i = 0; i < currentResources.Length; i++)
                         currentResources[i] -= unit.unitType.resourceCosts[i];
             }
@@ -303,14 +303,14 @@ namespace Devious_Retention
                 BuildingType buildingType = definitions[playerNumber].buildingTypes[type];
                 Building building = new Building(buildingType, id, xPos, yPos, player);
                 if(resources.ContainsKey(resourceID)) building.resource = resources[resourceID];
-                buildings.Add(building.id, building);
+                buildings.Add(building.ID, building);
                 buildingType.buildings.Add(building);
                 if (player == playerNumber)
                     window.UpdateLOSAdd(building);
                 entity = building;
 
                 // If the building belongs to the player, remove the resources as well
-                if (building.playerNumber == playerNumber && !isFree)
+                if (building.PlayerNumber == playerNumber && !isFree)
                     for (int i = 0; i < currentResources.Length; i++)
                         currentResources[i] -= building.buildingType.resourceCosts[i];
             }
@@ -319,7 +319,7 @@ namespace Devious_Retention
                 if (!definitions[playerNumber].resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
                 ResourceType resourceType = definitions[playerNumber].resourceTypes[type];
                 Resource resource = new Resource(resourceType, id, xPos, yPos);
-                resources.Add(resource.id, resource);
+                resources.Add(resource.ID, resource);
                 entity = resource;
             }
 
@@ -388,9 +388,8 @@ namespace Devious_Retention
                 if (propertyID == 0) unit.hitpoints += (int)change;
                 else if (propertyID == 1)
                 {
-                    unit.x += change;
-                    unit.y += change2;
-                    if (unit.playerNumber == playerNumber) window.UpdateLOSMove(unit, change, change2);
+                    unit.ChangePosition(change, change2);
+                    if (unit.PlayerNumber == playerNumber) window.UpdateLOSMove(unit, change, change2);
                 }
                 else if (propertyID == 2)
                 {

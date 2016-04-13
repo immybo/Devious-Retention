@@ -16,29 +16,14 @@ namespace Devious_Retention
     public class Resource : Entity
     {
         public static int nextID { get; private set; }
-        // Unique
-        public int id { get; private set; }
 
         // Every resource belongs to a type, which gives most of its statistics
         public ResourceType resourceType { get; private set; }
-        public EntityType type { get; private set; }
 
         // The current amount of the given resource in this resource
         public double amount;
 
-        // The position of the top-left of this resource
-        public double x { get; set; }
-        public double y { get; set; }
-
-        public Image image
-        {
-            get
-            {
-                return resourceType.image;
-            }
-        }
-
-        public int playerNumber { get; } = 0;
+        private Image image;
 
         /// <summary>
         /// Most of a resource's statistics are gathered from its type,
@@ -48,10 +33,15 @@ namespace Devious_Retention
         {
             this.resourceType = type;
             this.amount = type.resourceAmount;
-            this.type = type;
-            this.id = id;
-            this.x = x;
-            this.y = y;
+            this.Type = type;
+            this.ID = id;
+            this.X = x;
+            this.Y = y;
+        }
+
+        public override Image GetImage()
+        {
+            return resourceType.image;
         }
 
         /// <summary>
@@ -76,6 +66,11 @@ namespace Devious_Retention
         public static void IncrementNextID()
         {
             nextID++;
+        }
+
+        public override void RenderHPBar(Graphics g, Rectangle bounds)
+        {
+            return; // not applicable
         }
     }
 }

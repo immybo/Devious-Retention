@@ -146,13 +146,13 @@ namespace Devious_Retention
         {
             // Units > buildings > resources
             foreach (Entity e in client.units.Values)
-                if (e.x + e.type.size > x && e.x < x && e.y + e.type.size > y && e.y < y)
+                if (e.X + e.Type.size > x && e.X < x && e.Y + e.Type.size > y && e.Y < y)
                     return e;
             foreach (Entity e in client.buildings.Values)
-                if (e.x + e.type.size > x && e.x < x && e.y + e.type.size > y && e.y < y)
+                if (e.X + e.Type.size > x && e.X < x && e.Y + e.Type.size > y && e.Y < y)
                     return e;
             foreach (Entity e in client.resources.Values)
-                if (e.x + e.type.size > x && e.x < x && e.y + e.type.size > y && e.y < y)
+                if (e.X + e.Type.size > x && e.X < x && e.Y + e.Type.size > y && e.Y < y)
                     return e;
 
             return null;
@@ -176,10 +176,10 @@ namespace Devious_Retention
             HashSet<Entity> enclosedEntities = new HashSet<Entity>();
             foreach (Entity e in entities)
             {
-                if(e.x+e.type.size > x
-                 &&e.y+e.type.size > y
-                 &&e.x < x + width
-                 &&e.y < y + height)
+                if(e.X+e.Type.size > x
+                 &&e.Y+e.Type.size > y
+                 &&e.X < x + width
+                 &&e.Y < y + height)
                 {
                     enclosedEntities.Add(e);
                 }
@@ -220,11 +220,11 @@ namespace Devious_Retention
             // 1. Select all of the player's units within the area
             if(units.Count != 0)
                 foreach (Unit u in units)
-                    if (u.playerNumber == client.playerNumber) entitiesToAdd.Add(u);
+                    if (u.PlayerNumber == client.playerNumber) entitiesToAdd.Add(u);
             // 2. Select all of the player's buildings within the area
             if (entitiesToAdd.Count == 0 && buildings.Count != 0)
                 foreach (Building b in buildings)
-                    if (b.playerNumber == client.playerNumber) entitiesToAdd.Add(b);
+                    if (b.PlayerNumber == client.playerNumber) entitiesToAdd.Add(b);
             // 3. Select all other players' units within the area
             if (entitiesToAdd.Count == 0 && units.Count != 0)
                 foreach (Unit u in units)
@@ -284,10 +284,10 @@ namespace Devious_Retention
             // Resources don't have LOS
             if (e is Resource) return;
 
-            int entityLOS = e.type.lineOfSight;
+            int entityLOS = e.Type.lineOfSight;
             // Just round it down for simplicity
-            int entityX = (int)(e.x + e.type.size / 2);
-            int entityY = (int)(e.y + e.type.size / 2);
+            int entityX = (int)(e.X + e.Type.size / 2);
+            int entityY = (int)(e.Y + e.Type.size / 2);
 
             // Simple way of figuring out a circle
             for (int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
@@ -315,7 +315,7 @@ namespace Devious_Retention
         /// </summary>
         public void UpdateLOSMove(Unit unit, double dX, double dY)
         {
-            if (unit.playerNumber != client.playerNumber) return;
+            if (unit.PlayerNumber != client.playerNumber) return;
 
             // The new LOS of the unit
             List<Coordinate> newTiles = new List<Coordinate>();
@@ -323,8 +323,8 @@ namespace Devious_Retention
             List<Coordinate> oldTiles = new List<Coordinate>();
 
             // Figure out the old circle
-            int oldUnitX = (int)(unit.x + unit.unitType.size / 2 - dX);
-            int oldUnitY = (int)(unit.y + unit.unitType.size / 2 - dY);
+            int oldUnitX = (int)(unit.X + unit.unitType.size / 2 - dX);
+            int oldUnitY = (int)(unit.Y + unit.unitType.size / 2 - dY);
 
             for (int x = oldUnitX - unit.unitType.lineOfSight; x <= oldUnitX + unit.unitType.lineOfSight; x++)
             {
@@ -341,8 +341,8 @@ namespace Devious_Retention
             }
 
             // Figure out the new circle
-            int newUnitX = (int)(unit.x + unit.unitType.size / 2);
-            int newUnitY = (int)(unit.y + unit.unitType.size / 2);
+            int newUnitX = (int)(unit.X + unit.unitType.size / 2);
+            int newUnitY = (int)(unit.Y + unit.unitType.size / 2);
             for (int x = newUnitX - unit.unitType.lineOfSight; x <= newUnitX + unit.unitType.lineOfSight; x++)
             {
                 for (int y = newUnitY - unit.unitType.lineOfSight; y <= newUnitY + unit.unitType.lineOfSight; y++)
@@ -391,11 +391,11 @@ namespace Devious_Retention
         public void UpdateLOSDelete(Entity entity)
         {
             if (entity is Resource) return;
-            if (entity.playerNumber != client.playerNumber) return;
+            if (entity.PlayerNumber != client.playerNumber) return;
 
-            int entityLOS = entity.type.lineOfSight;
-            int entityX = (int)(entity.x + entity.type.size / 2);
-            int entityY = (int)(entity.y + entity.type.size / 2);
+            int entityLOS = entity.Type.lineOfSight;
+            int entityX = (int)(entity.X + entity.Type.size / 2);
+            int entityY = (int)(entity.Y + entity.Type.size / 2);
             // Go through all the tiles the entity could see and recheck if we can still see them
             for (int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
             {
@@ -422,18 +422,18 @@ namespace Devious_Retention
             // Stop if we find one that is
             HashSet<Entity> entities = new HashSet<Entity>();
             foreach (Unit u in client.units.Values)
-                if (u.playerNumber == client.playerNumber)
+                if (u.PlayerNumber == client.playerNumber)
                     entities.Add(u);
                     
             foreach (Building b in client.buildings.Values)
-                if (b.playerNumber == client.playerNumber)
+                if (b.PlayerNumber == client.playerNumber)
                     entities.Add(b);
 
             foreach(Entity e in entities)
             {
                 // Distance between the entity and the tile
-                double distance = Math.Sqrt(Math.Pow(e.x - c.x, 2) + Math.Pow(e.y - c.y, 2));
-                if (distance <= e.type.lineOfSight) return true;
+                double distance = Math.Sqrt(Math.Pow(e.X - c.x, 2) + Math.Pow(e.Y - c.y, 2));
+                if (distance <= e.Type.lineOfSight) return true;
             }
 
             return false;
@@ -449,18 +449,18 @@ namespace Devious_Retention
 
             List<Entity> entities = new List<Entity>();
             foreach (Unit u in client.units.Values)
-                if (u.playerNumber == client.playerNumber)
+                if (u.PlayerNumber == client.playerNumber)
                     entities.Add(u);
             foreach (Building b in client.buildings.Values)
-                if (b.playerNumber == client.playerNumber)
+                if (b.PlayerNumber == client.playerNumber)
                     entities.Add(b);
 
             foreach(Entity e in entities)
             {
-                int entityLOS = e.type.lineOfSight;
+                int entityLOS = e.Type.lineOfSight;
                 // Just round it down for simplicity
-                int entityX = (int)(e.x+e.type.size/2);
-                int entityY = (int)(e.y+e.type.size/2);
+                int entityX = (int)(e.X+e.Type.size/2);
+                int entityY = (int)(e.Y+e.Type.size/2);
 
                 // Simple way of figuring out a circle
                 for(int x = entityX - entityLOS; x <= entityX + entityLOS; x++)
@@ -564,64 +564,35 @@ namespace Devious_Retention
                 // Render a laser if they're attacking anything and it's their frame to attack
                 if (e is Unit && client.attackingUnits.Contains((Unit)e) && ((Unit)e).attackTick == ((Unit)e).unitType.attackTicks)
                 {
-                    double x = (e.x + e.type.size / 2 - worldX) * tileWidth;
-                    double y = (e.y + e.type.size / 2 - worldY) * tileHeight;
+                    double x = (e.X + e.Type.size / 2 - worldX) * tileWidth;
+                    double y = (e.Y + e.Type.size / 2 - worldY) * tileHeight;
                     Entity entityToAttack = ((Unit)e).entityToAttack;
-                    double x2 = (entityToAttack.x + entityToAttack.type.size / 2 - worldX) * tileWidth;
-                    double y2 = (entityToAttack.y + entityToAttack.type.size / 2 - worldY) * tileHeight;
+                    double x2 = (entityToAttack.X + entityToAttack.Type.size / 2 - worldX) * tileWidth;
+                    double y2 = (entityToAttack.Y + entityToAttack.Type.size / 2 - worldY) * tileHeight;
 
                     double xDiff = (x2 - x) / tileWidth;
                     double yDiff = (y2 - y) / tileHeight;
 
                     // Only draw if at least one part is on the screen and if it's within range
                     if (!(x < 0 && x2 < 0) && !(y < 0 && y2 < 0) && !(y > maxYTiles * tileHeight && y2 > maxYTiles * tileHeight) && !(x > maxXTiles * tileWidth && x2 > maxXTiles * tileWidth))
-                        if(e.type.range >= Math.Sqrt(xDiff*xDiff + yDiff* yDiff))
-                            g.DrawLine(GameInfo.PLAYER_PENS[e.playerNumber], (int)x, (int)y, (int)x2, (int)y2);
+                        if(e.Type.range >= Math.Sqrt(xDiff*xDiff + yDiff* yDiff))
+                            g.DrawLine(GameInfo.PLAYER_PENS[e.PlayerNumber], (int)x, (int)y, (int)x2, (int)y2);
                 }
 
                 // First check if they're even on the screen
-                if (e.x + e.type.size < worldX || e.x > worldX + maxXTiles) continue;
-                if (e.y + e.type.size < worldY || e.y > worldY + maxYTiles) continue;
+                if (e.X + e.Type.size < worldX || e.X > worldX + maxXTiles) continue;
+                if (e.Y + e.Type.size < worldY || e.Y > worldY + maxYTiles) continue;
                 // And check if we have line of sight to them
-                if (!LOS[(int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2)]) continue;
+                if (!LOS[(int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2)]) continue;
 
                 // Since they are on the screen, figure out their bounds
                 Rectangle entityBounds = new Rectangle();
-                entityBounds.X = (int)((e.x - worldX) * tileWidth); // their distance from the left/top of the screen
-                entityBounds.Y = (int)((e.y - worldY) * tileHeight);
-                entityBounds.Width = (int)(e.type.size * tileWidth);
-                entityBounds.Height = (int)(e.type.size * tileHeight);
+                entityBounds.X = (int)((e.X - worldX) * tileWidth); // their distance from the left/top of the screen
+                entityBounds.Y = (int)((e.Y - worldY) * tileHeight);
+                entityBounds.Width = (int)(e.Type.size * tileWidth);
+                entityBounds.Height = (int)(e.Type.size * tileHeight);
 
-                // Draw them
-                g.DrawImage(e.image, entityBounds);
-
-                // For all units and buildings
-                if(e is Unit || e is Building)
-                {
-                    // Draw their hitpoints bars
-                    Brush brush;
-
-                    Rectangle hpBarBounds = new Rectangle();
-                    hpBarBounds.X = entityBounds.X;
-                    hpBarBounds.Y = entityBounds.Y - 35;
-                    hpBarBounds.Width = entityBounds.Width;
-                    hpBarBounds.Height = 20;
-
-                    // Determine the colour
-                    int hitpoints = e is Unit ? ((Unit)e).hitpoints : ((Building)e).hitpoints;
-                    int maxHitpoints = e is Unit ? ((Unit)e).unitType.hitpoints : ((Building)e).buildingType.hitpoints;
-                    double ratio = (double)hitpoints / maxHitpoints;
-                    int barWidth = (int)(hpBarBounds.Width * ratio);
-                    if (ratio > 0.75) brush = Brushes.Green;
-                    else if (ratio > 0.3) brush = Brushes.Yellow;
-                    else brush = Brushes.Red;
-
-                    g.FillRectangle(brush, hpBarBounds.X, hpBarBounds.Y, barWidth, hpBarBounds.Height);
-                    g.DrawRectangle(Pens.Black, hpBarBounds);
-
-                    // Draw their borders
-                    g.DrawRectangle(GameInfo.PLAYER_PENS[e.playerNumber], entityBounds);
-                }
+                e.Render(g, entityBounds);
             }
 
             // If the mouse has been dragged across an area and started on the game area, draw a rectangle around that area
@@ -704,9 +675,9 @@ namespace Devious_Retention
             foreach (Entity e in entities)
             {
                 // Do nothing if we don't have line of sight there
-                if (!LOS[(int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2)]) continue;
+                if (!LOS[(int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2)]) continue;
                 // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
-                tileImage.SetPixel((int)(e.x + e.type.size / 2), (int)(e.y + e.type.size / 2), GameInfo.PLAYER_COLORS[e.playerNumber]);
+                tileImage.SetPixel((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2), GameInfo.PLAYER_COLORS[e.PlayerNumber]);
             }
 
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp

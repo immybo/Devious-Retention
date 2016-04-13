@@ -18,14 +18,9 @@ namespace Devious_Retention
     public class Building : Entity
     {
         public static int nextID { get; private set; }
-        // Unique
-        public int id { get; private set; }
-
-        public int playerNumber { get; private set; }
 
         // Each building belongs to a BuildingType, from which most of its attributes can be gotten
         public BuildingType buildingType { get; private set; }
-        public EntityType type { get; private set; }
 
         // The current amount of hitpoints must, however, be stored in each individual building
         public int hitpoints;
@@ -40,10 +35,6 @@ namespace Devious_Retention
 
         // The resource that this building is on, if any
         public Resource resource { get; set; }
-
-        // The co-ordinates of the top-left corner of this building
-        public double x { get; set; }
-        public double y { get; set; }
 
         public Entity entityToAttack;
 
@@ -67,11 +58,11 @@ namespace Devious_Retention
         public Building(BuildingType type, int id, double x, double y, int player)
         {
             this.buildingType = type;
-            this.type = type;
-            this.id = id;
-            this.x = x;
-            this.y = y;
-            this.playerNumber = player;
+            this.Type = type;
+            this.ID = id;
+            this.X = x;
+            this.Y = y;
+            this.PlayerNumber = player;
 
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
@@ -130,15 +121,6 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Completes another tick of whatever action this building is performing.
-        /// Does nothing if this building is not currently performing any actions.
-        /// </summary>
-        public void Tick()
-        {
-
-        }
-
-        /// <summary>
         /// Resets the next ID to 0.
         /// </summary>
         public static void ResetNextID()
@@ -151,6 +133,29 @@ namespace Devious_Retention
         public static void IncrementNextID()
         {
             nextID++;
+        }
+
+        public override Image GetImage()
+        {
+            return buildingType.image;
+        }
+
+        public override void RenderHPBar(Graphics g, Rectangle bounds)
+        {
+            Brush brush;
+
+            // Determine the colour
+            double ratio = (double)hitpoints / Type.hitpoints;
+            int barWidth = (int)(bounds.Width * ratio);
+            if (ratio > 0.75) brush = Brushes.Green;
+            else if (ratio > 0.3) brush = Brushes.Yellow;
+            else brush = Brushes.Red;
+
+            g.FillRectangle(brush, bounds.X, bounds.Y, barWidth, bounds.Height);
+            g.DrawRectangle(Pens.Black, bounds);
+
+            // Draw the border
+            g.DrawRectangle(GameInfo.PLAYER_PENS[PlayerNumber], bounds);
         }
     }
 }
