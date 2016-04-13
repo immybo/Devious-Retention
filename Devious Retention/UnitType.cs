@@ -84,6 +84,7 @@ namespace Devious_Retention
             this.attackTicks = (int)(attackSpeedMilliseconds / GameInfo.TICK_TIME);
             if (attackTicks <= 0) attackTicks = 1;
             this.resourceCosts = resourceCosts;
+            this.iconName = iconName;
 
             try
             {

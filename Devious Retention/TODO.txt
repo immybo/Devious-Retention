@@ -9,6 +9,7 @@
 
 - More entities/technologies/factions
 - Better graphics
+	- Menu screen title, buttons & background
 	- Units + icons
 	- Buildings + icons
 	- Resources + icons
