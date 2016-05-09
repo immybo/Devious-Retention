@@ -20,11 +20,8 @@ namespace Devious_Retention
         [STAThread]
         static void Main()
         {
-            /*Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new GameMenu());
-            */
             
+            /*
             
             GameInfo.ReadDefinitions();
             Unit.ResetNextID();
@@ -54,7 +51,7 @@ namespace Devious_Retention
             server.SpawnEntity(client.info.unitTypes["TestUnit"], 2, 3, 3);
 
             Application.Run(client.GetWindow());
-            
+            */
         }
     }
 }

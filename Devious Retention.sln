@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Devious Retention", "Devious Retention\Devious Retention.csproj", "{52AAA915-37F7-4BBC-94AD-90AF45299FD8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviousRetentionTests", "DeviousRetentionTests\DeviousRetentionTests.csproj", "{40D5A062-FD06-4039-9EE2-561BCDA8F68D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Devious Retention Menu", "Devious Retention Menu\Devious Retention Menu.csproj", "{6A60B548-6C4A-4A8A-A4FF-A753CEC7CDCA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{40D5A062-FD06-4039-9EE2-561BCDA8F68D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40D5A062-FD06-4039-9EE2-561BCDA8F68D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40D5A062-FD06-4039-9EE2-561BCDA8F68D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A60B548-6C4A-4A8A-A4FF-A753CEC7CDCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A60B548-6C4A-4A8A-A4FF-A753CEC7CDCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A60B548-6C4A-4A8A-A4FF-A753CEC7CDCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A60B548-6C4A-4A8A-A4FF-A753CEC7CDCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

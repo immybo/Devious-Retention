@@ -86,10 +86,6 @@ namespace Devious_Retention
         public const int STC_PORT = 4983;
         // Arbitrary; the port used by the client-to-server connection
         public const int CTS_PORT = 4984;
-        // Arbitrary; the port that the lobby host listens on
-        public const int LOBBY_PORT = 4985;
-        // Arbitrary; the port that the lobby clients listen on
-        public const int LOBBY_CLIENT_PORT = 4986;
 
         // Default values, read directly from files
         private static SortedDictionary<string, UnitType> baseUnitTypes;
