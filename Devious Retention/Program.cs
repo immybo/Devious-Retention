@@ -40,9 +40,8 @@ namespace Devious_Retention
             // CREATE CONNECTIONS
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"));
             CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"));
-
-            GameWindow gameWindow = new GameWindow();
-            GameClient client = new GameClient(1, 8, map, gameWindow, cts, null);
+            
+            GameClient client = new GameClient(1, 8, map, cts, null);
             GameServer server = new GameServer(new List<STCConnection> { stc }, map);
 
             stc.SetServer(server);
@@ -54,7 +53,7 @@ namespace Devious_Retention
             server.SpawnEntity(client.info.unitTypes["TestUnit"], 1, 0, 0);
             server.SpawnEntity(client.info.unitTypes["TestUnit"], 2, 3, 3);
 
-            Application.Run(gameWindow);
+            Application.Run(client.GetWindow());
             
         }
     }

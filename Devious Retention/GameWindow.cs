@@ -108,9 +108,12 @@ namespace Devious_Retention
         private Image resourceAreaBorderTop;
         private Image rightAreaBorderLeft;
 
-        public GameWindow()
+        public GameWindow(GameClient client)
         {
+            this.client = client;
+
             InitializeComponent();
+            LoadLOS();
 
             // Load all the images
             resourceImages = new Image[GameInfo.RESOURCE_TYPES];
@@ -249,7 +252,6 @@ namespace Devious_Retention
             Graphics g = e.Graphics;
 
             ResizeToFit();
-            LoadLOS();
             RenderTiles(g,
                 new Rectangle(0,0,(int)(Width*GAME_AREA_WIDTH),(int)(Height* GAME_AREA_HEIGHT)));
             RenderEntities(g,

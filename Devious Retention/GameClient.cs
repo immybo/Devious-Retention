@@ -62,11 +62,9 @@ namespace Devious_Retention
         /// When a GameClient is created, it is assumed that entities will be
         /// sent from the CTSConnection before the first tick.
         /// </summary>
-        public GameClient(int playerNumber, int numberOfPlayers, Map map, GameWindow window, CTSConnection connection, List<Faction> factions)
+        public GameClient(int playerNumber, int numberOfPlayers, Map map, CTSConnection connection, List<Faction> factions)
         {
             this.map = map;
-            this.window = window;
-            window.client = this;
             //this.faction = faction;
             this.connection = connection;
             this.playerNumber = playerNumber;
@@ -97,6 +95,8 @@ namespace Devious_Retention
             for (int i = 0; i < numberOfPlayers; i++)
                 definitions.Add(new GameInfo());
             info = definitions[playerNumber];
+            
+            window = new GameWindow(this);
 
             Timer windowRefreshTimer = new Timer();
             windowRefreshTimer.Interval = GameInfo.WINDOW_REFRESH_TIME;
@@ -105,6 +105,12 @@ namespace Devious_Retention
 
             for (int i = 0; i < currentResources.Length; i++)
                 currentResources[i] += 1000;
+        }
+        
+        /// <returns>The main window of the game.</returns>
+        public Form GetWindow()
+        {
+            return window;
         }
 
         /// <summary>
