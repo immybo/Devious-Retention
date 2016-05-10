@@ -20,6 +20,8 @@ namespace Devious_Retention_Menu
         private IPAddress ip;
         private int port;
 
+        private TcpListener listener;
+
         private Socket socket;
         private NetworkStream stream;
 
@@ -44,39 +46,23 @@ namespace Devious_Retention_Menu
                 socket.Connect(ip, port);
                 SetUpFromSocket();
             }
-            catch(SocketException)
+            catch(Exception e)
             {
-                throw new InvalidOperationException("Couldn't connect to IP " + ip + ".");
+                throw new InvalidOperationException("Couldn't connect to IP " + ip + ".\n" + e);
             }
         }
-
+        
         /// <summary>
         /// Listens for a connection to this machine.
-        /// Throws an exception if it is unable to do so within the specified timeout.
         /// Begins listening to the connection if it is able to do so.
+        /// Throws an exception once the timeout is reached without a connection.
         /// </summary>
-        public void ListenForConnection(int msTimeout)
+        public void ListenForConnection()
         {
-            DateTime endTime = DateTime.Now.AddMilliseconds(msTimeout);
-            
-            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+            listener = new TcpListener(ip, port);
             listener.Start();
-
-            while (true)
-            {
-                if (DateTime.Now.CompareTo(endTime) >= 0)
-                {
-                    listener.Stop();
-                    throw new TimeoutException();
-                }
-
-                if (listener.Pending())
-                {
-                    socket = listener.AcceptSocket();
-                    SetUpFromSocket();
-                    return;
-                }
-            }
+            socket = listener.AcceptSocket();
+            SetUpFromSocket();
         }
 
         private void SetUpFromSocket()
@@ -116,6 +102,7 @@ namespace Devious_Retention_Menu
         /// </summary>
         public void Close()
         {
+            if (listener != null) listener.Stop();
             if (socket != null) socket.Close();
         }
     }
