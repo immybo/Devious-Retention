@@ -19,8 +19,6 @@ namespace Devious_Retention_Menu
     {
         private IPEndPoint endPoint;
 
-        private TcpListener listener;
-
         private TcpClient client;
         private NetworkStream stream;
 
@@ -32,6 +30,12 @@ namespace Devious_Retention_Menu
             endPoint = new IPEndPoint(ip, port);
         }
 
+        public Connection(TcpClient client)
+        {
+            this.client = client;
+            SetUpFromClient();
+        }
+
         /// <summary>
         /// Attempts to connect to the IP address associated with this connection.
         /// Throws an exception if it is unable to do so.
@@ -39,6 +43,8 @@ namespace Devious_Retention_Menu
         /// </summary>
         public void Connect()
         {
+            if (client != null) throw new InvalidOperationException("Attempting to connect a connection when already connected.");
+
             try {
                 client = new TcpClient();
                 client.Connect(endPoint);
@@ -48,18 +54,6 @@ namespace Devious_Retention_Menu
             {
                 throw new InvalidOperationException("Couldn't connect to IP " + endPoint.Address + ".\n" + e);
             }
-        }
-        
-        /// <summary>
-        /// Listens for a connection to this machine.
-        /// Begins listening to the connection if it is able to do so.
-        /// </summary>
-        public void ListenForConnection()
-        {
-            listener = new TcpListener(endPoint);
-            listener.Start();
-            client = listener.AcceptTcpClient();
-            SetUpFromClient();
         }
 
         private void SetUpFromClient()
@@ -99,8 +93,12 @@ namespace Devious_Retention_Menu
         /// </summary>
         public void Close()
         {
-            if (listener != null) listener.Stop();
-            if (client != null) client.Close();
+            if (client != null)
+            {
+                client.Close();
+
+                client = null; stream = null; outgoingWriter = null; incomingReader = null;
+            }
         }
 
         /// <summary>
@@ -109,6 +107,14 @@ namespace Devious_Retention_Menu
         public int GetPort()
         {
             return endPoint.Port;
+        }
+
+        /// <summary>
+        /// Returns whether or not this connection is currently open.
+        /// </summary>
+        public bool IsOpen()
+        {
+            return client != null;
         }
     }
 }

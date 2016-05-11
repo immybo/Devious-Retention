@@ -20,8 +20,6 @@ namespace Devious_Retention_Tests
         [TestCleanup]
         public void CloseConnections()
         {
-            if (host != null)
-                host.Close();
             if (clients != null)
                 foreach (MultiplayerLobbyHandler client in clients)
                     if(client != null)

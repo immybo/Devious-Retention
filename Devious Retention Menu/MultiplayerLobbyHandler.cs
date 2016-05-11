@@ -35,24 +35,11 @@ namespace Devious_Retention_Menu
         {
             clients = new Dictionary<int, LobbyHost.ClientData>();
 
-            // 1. Attempt to connect to the host
+            // Attempt to connect to the host
             connection = new Connection(hostIP, LobbyHost.HOST_CONNECTION_PORT);
             connection.Connect();
 
-            // 2. Get the port to connect properly on
-            string port;
-            while((port = connection.ReadLine()) == null)
-                Thread.Sleep(10);
-            connection.Close();
-
-            // 3. Connect over the new port OR fail if there was no available room
-            if (port.Equals("full"))
-                throw new InvalidOperationException("Lobby was full.");
-
-            connection = new Connection(hostIP, int.Parse(port));
-            connection.Connect();
-
-            // 4. Listen to this connection
+            // Listen to this connection
             connectionListenThread = new Thread(new ThreadStart(ListenService));
             connectionListenThread.Start();
         }
@@ -115,13 +102,12 @@ namespace Devious_Retention_Menu
 
         public void Close()
         {
+            if (connectionListenThread != null)
+                connectionListenThread.Abort();
             if (connection != null)
             {
                 connection.WriteLine("terminate");
-                connection.Close();
             }
-            if (connectionListenThread != null)
-                connectionListenThread.Abort();
         }
 
         public override string ToString()

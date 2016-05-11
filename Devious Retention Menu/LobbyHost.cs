@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.IO;
 using System.Collections;
+using System.Collections.Concurrent;
 
 namespace Devious_Retention_Menu
 {
@@ -16,16 +17,20 @@ namespace Devious_Retention_Menu
     /// A lobby host communicates with all lobby clients and allows for
     /// new clients to connect through it.
     /// </summary>
-    public class LobbyHost : MenuItemHandler
+    public class LobbyHost : MenuItemHandler, IReceiverFunction
     {
         public const int HOST_CONNECTION_PORT = 4985; // The port which a lobby host will listen for new connections on
-        public const int MIN_CLIENT_PORT = 4986; // The port for the first player to connect; ports between this and this+maxPlayers will be used
 
-        private int currentUniqueID; // Could well introduce a race condition... I'm not really sure what to do about it, though
-        private Dictionary<Connection, ClientData> clients;
+        private int currentUniqueID;
+        private ConcurrentDictionary<Connection, ClientData> clients;
+        private Dictionary<Connection, ClientData> toAddClients; // since we add clients on another thread, we have to make sure that the listening thread adds them at an okay time
+        private bool toAddClientsBeingModified;
+
+        private bool listenThreadToAbort;
 
         private Thread listenThread;
-        private Thread connectionListenThread;
+
+        private ConnectionListener connectionListener;
 
         private int maxPlayers;
 
@@ -35,93 +40,18 @@ namespace Devious_Retention_Menu
             currentUniqueID = 0;
 
             clients = new Dictionary<Connection, ClientData>();
+            toAddClients = new Dictionary<Connection, ClientData>();
+            toAddClientsBeingModified = false;
 
-            connectionListenThread = new Thread(new ThreadStart(ConnectionListenService));
-            connectionListenThread.Start();
-
+            listenThreadToAbort = false;
+            
             listenThread = new Thread(new ThreadStart(ListenService));
             listenThread.Start();
-        }
 
-        /// <summary>
-        /// Returns how many player slots are currently free in the lobby.
-        /// </summary>
-        public int GetRemainingSlots()
-        {
-            return maxPlayers - clients.Count;
-        }
-
-        /// <summary>
-        /// Returns the first available port for this host within the range of available
-        /// ports. Throws an exception if there are no ports available.
-        /// </summary>
-        private int GetAvailablePort()
-        {
-            HashSet<int> usedPorts = new HashSet<int>();
-            foreach (Connection c in clients.Keys)
-                usedPorts.Add(c.GetPort());
-
-            for (int i = 0; i < maxPlayers; i++)
-                if (!usedPorts.Contains(MIN_CLIENT_PORT + i))
-                    return MIN_CLIENT_PORT + i;
-
-            throw new InvalidOperationException();
-        }
-
-        /// <summary>
-        /// Begins listening for incoming connections
-        /// </summary>
-        private void ConnectionListenService()
-        {
-            while (true)
-            {
-                // If we've got the maximum amount of players now, pause until we don't
-                while (clients.Count == maxPlayers)
-                {
-                    // Another way to do this would be a flag and resuming the thread, but this would
-                    // add a bit of complexity and the underlying system is probably smart enough to
-                    // allocate these resources somewhere else.
-                    Thread.Sleep(50);
-                }
-
-                // Acknowledge them and send a port to connect to
-                Connection listener = new Connection(IPAddress.Parse("127.0.0.1"), HOST_CONNECTION_PORT);
-                listener.ListenForConnection();
-                
-                try {
-                    int port = GetAvailablePort();
-
-                    listener.WriteLine(port + "");
-                    new Thread(new ThreadStart(() => ListenForPlayer(port))).Start();
-                }
-                catch (InvalidOperationException) // There were no ports available
-                {
-                    listener.WriteLine("full");
-                }
-                finally
-                {
-                    listener.Close();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Waits for a connection from the given port. When it is created,
-        /// adds it as a player.
-        /// </summary>
-        private void ListenForPlayer(int port)
-        {
-            // Establish the connection
-            Connection connection = new Connection(IPAddress.Parse("127.0.0.1"), port);
-            connection.ListenForConnection();
-
-            // Update this after connecting, and tell the client its unique ID
-            clients.Add(connection, new ClientData(currentUniqueID, "", 0, Color.Black, ""));
-            connection.WriteLine("inform " + currentUniqueID);
-
-            currentUniqueID++;
-
-            UpdateClientsAll();
+            // Build the connection listener
+            connectionListener = new ConnectionListener(HOST_CONNECTION_PORT);
+            connectionListener.AddReceiverFunction(this);
+            connectionListener.BeginListening();
         }
 
         /// <summary>
@@ -136,6 +66,12 @@ namespace Devious_Retention_Menu
                 foreach (KeyValuePair<Connection, ClientData> entry in clients)
                 {
                     Connection connection = entry.Key;
+
+                    if (!connection.IsOpen())
+                    {
+                        continue;
+                    }
+
                     ClientData client = entry.Value;
 
                     // When we read anything, figure out what it is and adjust the appropriate piece of data
@@ -149,9 +85,6 @@ namespace Devious_Retention_Menu
                         if (identifier.Equals("terminate"))
                         {
                             toRemoveClients.Add(connection);
-
-                            connection.Close();
-
                             UpdateClientsClose(client);
                         }
 
@@ -172,7 +105,19 @@ namespace Devious_Retention_Menu
                 }
 
                 foreach (Connection c in toRemoveClients)
+                {
                     clients.Remove(c);
+                    c.Close();
+                }
+
+                while (toAddClientsBeingModified) Thread.Sleep(10);
+                toAddClientsBeingModified = true;
+                foreach (KeyValuePair<Connection, ClientData> c in toAddClients)
+                    clients.Add(c.Key, c.Value);
+                toAddClients.Clear();
+                toAddClientsBeingModified = false;
+
+                if (listenThreadToAbort) Thread.CurrentThread.Abort();
             }
         }
 
@@ -217,10 +162,12 @@ namespace Devious_Retention_Menu
         /// </summary>
         public void Close()
         {
-            if (connectionListenThread != null)
-                connectionListenThread.Abort();
-            if (listenThread != null)
-                listenThread.Abort();
+            if (connectionListener != null)
+                connectionListener.StopListening();
+            if (listenThread != null) { 
+
+                listenThreadToAbort = true;
+            while (listenThreadToAbort) Thread.Sleep(10); }
             foreach (Connection c in clients.Keys)
                 c.Close();
         }
@@ -259,6 +206,18 @@ namespace Devious_Retention_Menu
                 b.Append(client.ToString() + "\n");
             }
             return b.ToString();
+        }
+
+        /// <summary>
+        /// Called when a new client connects.
+        /// </summary>
+        public void OnConnection(Connection newClient)
+        {
+            while (toAddClientsBeingModified) Thread.Sleep(10);
+            toAddClientsBeingModified = true;
+            toAddClients.Add(newClient, new ClientData(currentUniqueID, "", 0, Color.Black, ""));
+            currentUniqueID++;
+            toAddClientsBeingModified = false;
         }
     }
 }
