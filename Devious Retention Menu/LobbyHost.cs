@@ -16,25 +16,56 @@ namespace Devious_Retention_Menu
     /// A lobby host communicates with all lobby clients and allows for
     /// new clients to connect through it.
     /// </summary>
-    class LobbyHost : MenuItemHandler
+    public class LobbyHost : MenuItemHandler
     {
         public const int HOST_CONNECTION_PORT = 4985; // The port which a lobby host will listen for new connections on
-        public const int HOST_TALK_PORT = 4986; // The port which a lobby host will send data to all clients on
-        public const int HOST_LISTEN_PORT = 4987; // The port which a lobby host will listen for new data from clients on
-        
-        private Dictionary<Socket, ClientData> clients;
-        private Dictionary<Socket, StreamWriter> clientWriters;
-        private Thread connectionListenThread;
-        private List<Thread> listenThreads;
+        public const int MIN_CLIENT_PORT = 4986; // The port for the first player to connect; ports between this and this+maxPlayers will be used
 
-        public LobbyHost()
+        private int currentUniqueID; // Could well introduce a race condition... I'm not really sure what to do about it, though
+        private Dictionary<Connection, ClientData> clients;
+
+        private Thread listenThread;
+        private Thread connectionListenThread;
+
+        private int maxPlayers;
+
+        public LobbyHost(int maxPlayers)
         {
-            clients = new Dictionary<Socket, ClientData>();
-            clientWriters = new Dictionary<Socket, StreamWriter>();
-            listenThreads = new List<Thread>();
+            this.maxPlayers = maxPlayers;
+            currentUniqueID = 0;
+
+            clients = new Dictionary<Connection, ClientData>();
 
             connectionListenThread = new Thread(new ThreadStart(ConnectionListenService));
             connectionListenThread.Start();
+
+            listenThread = new Thread(new ThreadStart(ListenService));
+            listenThread.Start();
+        }
+
+        /// <summary>
+        /// Returns how many player slots are currently free in the lobby.
+        /// </summary>
+        public int GetRemainingSlots()
+        {
+            return maxPlayers - clients.Count;
+        }
+
+        /// <summary>
+        /// Returns the first available port for this host within the range of available
+        /// ports. Throws an exception if there are no ports available.
+        /// </summary>
+        private int GetAvailablePort()
+        {
+            HashSet<int> usedPorts = new HashSet<int>();
+            foreach (Connection c in clients.Keys)
+                usedPorts.Add(c.GetPort());
+
+            for (int i = 0; i < maxPlayers; i++)
+                if (!usedPorts.Contains(MIN_CLIENT_PORT + i))
+                    return MIN_CLIENT_PORT + i;
+
+            throw new InvalidOperationException();
         }
 
         /// <summary>
@@ -42,60 +73,106 @@ namespace Devious_Retention_Menu
         /// </summary>
         private void ConnectionListenService()
         {
-            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), HOST_CONNECTION_PORT);
-            listener.Start();
-
             while (true)
             {
-                Socket incomingSocket = listener.AcceptSocket();
-                clientWriters.Add(incomingSocket, new StreamWriter(new NetworkStream(incomingSocket)));
-                clientWriters[incomingSocket].AutoFlush = true;
+                // If we've got the maximum amount of players now, pause until we don't
+                while (clients.Count == maxPlayers)
+                {
+                    // Another way to do this would be a flag and resuming the thread, but this would
+                    // add a bit of complexity and the underlying system is probably smart enough to
+                    // allocate these resources somewhere else.
+                    Thread.Sleep(50);
+                }
 
-                ClientData data = new ClientData("default", 0, Color.Black, "");
-                clients.Add(incomingSocket, data);
-                listenThreads.Add(new Thread(() => ListenService(incomingSocket, data)));
+                // Acknowledge them and send a port to connect to
+                Connection listener = new Connection(IPAddress.Parse("127.0.0.1"), HOST_CONNECTION_PORT);
+                listener.ListenForConnection();
+                
+                try {
+                    int port = GetAvailablePort();
+
+                    listener.WriteLine(port + "");
+                    new Thread(new ThreadStart(() => ListenForPlayer(port))).Start();
+                }
+                catch (InvalidOperationException) // There were no ports available
+                {
+                    listener.WriteLine("full");
+                }
+                finally
+                {
+                    listener.Close();
+                }
             }
         }
 
         /// <summary>
-        /// Begins listening for incoming data and writing it to the specified client
+        /// Waits for a connection from the given port. When it is created,
+        /// adds it as a player.
         /// </summary>
-        private void ListenService(Socket socket, ClientData client)
+        private void ListenForPlayer(int port)
         {
-            NetworkStream s = new NetworkStream(socket);
-            StreamReader reader = new StreamReader(s);
+            // Establish the connection
+            Connection connection = new Connection(IPAddress.Parse("127.0.0.1"), port);
+            connection.ListenForConnection();
 
+            // Update this after connecting, and tell the client its unique ID
+            clients.Add(connection, new ClientData(currentUniqueID, "", 0, Color.Black, ""));
+            connection.WriteLine("inform " + currentUniqueID);
+
+            currentUniqueID++;
+
+            UpdateClientsAll();
+        }
+
+        /// <summary>
+        /// Continuously listens to all clients and takes appropriate actions.
+        /// </summary>
+        private void ListenService()
+        {
             while (true)
             {
-                // When we read anything, figure out what it is and adjust the appropriate piece of data
-                string line = reader.ReadLine();
-                if(line != null)
+                List<Connection> toRemoveClients = new List<Connection>();
+
+                foreach (KeyValuePair<Connection, ClientData> entry in clients)
                 {
-                    string[] splitLine = line.Split(new char[] { ' ' });
-                    string identifier = splitLine[0];
+                    Connection connection = entry.Key;
+                    ClientData client = entry.Value;
 
-                    // End the connection and thread
-                    if (identifier.Equals("terminate"))
+                    // When we read anything, figure out what it is and adjust the appropriate piece of data
+                    string line = connection.ReadLine();
+                    if (line != null)
                     {
-                        clients.Remove(socket);
-                        clientWriters.Remove(socket);
-                        socket.Close();
-                        Thread.CurrentThread.Abort();
+                        string[] splitLine = line.Split(new char[] { ' ' });
+                        string identifier = splitLine[0];
+
+                        // End the connection
+                        if (identifier.Equals("terminate"))
+                        {
+                            toRemoveClients.Add(connection);
+
+                            connection.Close();
+
+                            UpdateClientsClose(client);
+                        }
+
+                        else {
+                            string result = splitLine[1];
+
+                            if (identifier.Equals("username"))
+                                client.username = result;
+                            else if (identifier.Equals("number"))
+                                client.playerNumber = int.Parse(result);
+                            else if (identifier.Equals("color"))
+                                client.color = Color.FromName(result);
+                            else if (identifier.Equals("faction"))
+                                client.factionName = result;
+                            UpdateClients(client);
+                        }
                     }
-
-                    string result = splitLine[1];
-
-                    if (identifier.Equals("username"))
-                        client.username = result;
-                    else if (identifier.Equals("number"))
-                        client.playerNumber = int.Parse(result);
-                    else if (identifier.Equals("color"))
-                        client.color = Color.FromName(result);
-                    else if (identifier.Equals("faction"))
-                        client.factionName = result;
-
-                    UpdateClients(client);
                 }
+
+                foreach (Connection c in toRemoveClients)
+                    clients.Remove(c);
             }
         }
 
@@ -104,9 +181,34 @@ namespace Devious_Retention_Menu
         /// </summary>
         private void UpdateClients(ClientData client)
         {
-            foreach(StreamWriter s in clientWriters.Values)
+            foreach(Connection c in clients.Keys)
             {
-                s.WriteLine(client.ToString());
+                c.WriteLine("update " + client.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Refreshes each client's knowledge of all client data.
+        /// </summary>
+        private void UpdateClientsAll()
+        {
+            foreach(ClientData data in clients.Values)
+            {
+                foreach(Connection c in clients.Keys)
+                {
+                    c.WriteLine(data.ToString());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tells each client that a client has left the lobby.
+        /// </summary>
+        private void UpdateClientsClose(ClientData data)
+        {
+            foreach(Connection connection in clients.Keys)
+            {
+                connection.WriteLine("terminate " + data.uniqueID);
             }
         }
 
@@ -117,10 +219,10 @@ namespace Devious_Retention_Menu
         {
             if (connectionListenThread != null)
                 connectionListenThread.Abort();
-            foreach (Socket s in clients.Keys)
-                s.Close();
-            foreach (Thread t in listenThreads)
-                t.Abort();
+            if (listenThread != null)
+                listenThread.Abort();
+            foreach (Connection c in clients.Keys)
+                c.Close();
         }
 
         /// <summary>
@@ -128,13 +230,14 @@ namespace Devious_Retention_Menu
         /// </summary>
         public class ClientData
         {
+            public int uniqueID;
             public string username;
             public int playerNumber;
             public Color color;
             
             public string factionName; // Kept as a primitive type and synced up on launch
 
-            public ClientData(string username, int playerNumber, Color color, string factionName)
+            public ClientData(int uniqueID, string username, int playerNumber, Color color, string factionName)
             {
                 this.username = username;
                 this.playerNumber = playerNumber;
@@ -144,14 +247,13 @@ namespace Devious_Retention_Menu
 
             public override string ToString()
             {
-                return playerNumber + " " + username + " " + color + " " + factionName;
+                return uniqueID + " " + playerNumber + " " + username + " " + color.Name + " " + factionName;
             }
         }
 
         public override string ToString()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("Player Number | Username | Color | Faction Name\n");
             foreach (ClientData client in clients.Values)
             {
                 b.Append(client.ToString() + "\n");

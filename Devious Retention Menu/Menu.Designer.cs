@@ -90,7 +90,7 @@
             // 
             this.title2.AutoSize = true;
             this.title2.Font = new System.Drawing.Font("Cambria", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.title2.Location = new System.Drawing.Point(46, 52);
+            this.title2.Location = new System.Drawing.Point(51, 52);
             this.title2.Name = "title2";
             this.title2.Size = new System.Drawing.Size(175, 43);
             this.title2.TabIndex = 1;

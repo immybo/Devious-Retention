@@ -15,15 +15,16 @@ namespace Devious_Retention_Menu
     /// A multiplayer lobby allows a player to connect with other players
     /// before starting a game.
     /// </summary>
-    class MultiplayerLobbyHandler : MenuItemHandler
-    {
-        private Socket outgoingSocket;
-        private StreamWriter outgoingWriter;
-        private Socket incomingSocket;
-        private StreamReader incomingReader;
+    public class MultiplayerLobbyHandler : MenuItemHandler
+    { 
+        private Connection connection;
         private Thread connectionListenThread;
 
-        private Dictionary<int, LobbyHost.ClientData> clients; // identifier is player numbers
+        private Dictionary<int, LobbyHost.ClientData> clients; // identifier is unique player ID
+        public int PlayerID
+        {
+            get; private set;
+        }
 
         /// <summary>
         /// Creates the multiplayer lobby handler assuming a host
@@ -34,67 +35,91 @@ namespace Devious_Retention_Menu
         {
             clients = new Dictionary<int, LobbyHost.ClientData>();
 
-            Connect(hostIP);
+            // 1. Attempt to connect to the host
+            connection = new Connection(hostIP, LobbyHost.HOST_CONNECTION_PORT);
+            connection.Connect();
+
+            // 2. Get the port to connect properly on
+            string port;
+            while((port = connection.ReadLine()) == null)
+                Thread.Sleep(10);
+            connection.Close();
+
+            // 3. Connect over the new port OR fail if there was no available room
+            if (port.Equals("full"))
+                throw new InvalidOperationException("Lobby was full.");
+
+            connection = new Connection(hostIP, int.Parse(port));
+            connection.Connect();
+
+            // 4. Listen to this connection
             connectionListenThread = new Thread(new ThreadStart(ListenService));
             connectionListenThread.Start();
         }
 
         /// <summary>
-        /// Attempts to connect to a lobby host at the given
-        /// IP address; may through an exception if there is
-        /// no valid host there.
-        /// </summary>
-        private void Connect(IPAddress hostIP)
-        {
-            outgoingSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            outgoingSocket.Connect(hostIP, LobbyHost.HOST_CONNECTION_PORT);
-            NetworkStream outgoingStream = new NetworkStream(outgoingSocket);
-            outgoingWriter = new StreamWriter(outgoingStream);
-            outgoingWriter.AutoFlush = true;
-        }
-
-        /// <summary>
-        /// Writes the specified line to the host (assumes the host exists and is open).
-        /// </summary>
-        public void WriteLine(string line)
-        {
-            outgoingWriter.WriteLine(line);
-        }
-
-        /// <summary>
-        /// Listens to the incoming reader (assumes it exists and
-        /// will be open for the lifetime of this method) and interprets
-        /// its information.
+        /// Continuously listens for data from the connection,
+        /// and performs the appropriate actions with that data if necessary.
+        /// Assumes that the connection exists.
         /// </summary>
         private void ListenService()
         {
-            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), LobbyHost.HOST_TALK_PORT);
-            listener.Start();
-            incomingSocket = listener.AcceptSocket();
-            incomingReader = new StreamReader(new NetworkStream(incomingSocket));
-
             while (true)
             {
-                string line = incomingReader.ReadLine();
+                string line = connection.ReadLine();
                 if (line != null)
                 {
                     string[] splitLine = line.Split(new char[] { ' ' });
-                    int playerNumber = int.Parse(splitLine[0]);
-                    string username = splitLine[1];
-                    Color color = Color.FromName(splitLine[2]);
-                    string factionName = splitLine[3];
 
-                    clients[playerNumber] = new LobbyHost.ClientData(username, playerNumber, color, factionName);
+                    // Update information about one client
+                    if (splitLine[0].Equals("update"))
+                    {
+                        int uniqueID = int.Parse(splitLine[1]);
+                        int playerNumber = int.Parse(splitLine[2]);
+                        string username = splitLine[3];
+                        Color color = Color.FromName(splitLine[4]);
+                        string factionName = splitLine[5];
+
+                        clients[playerNumber] = new LobbyHost.ClientData(uniqueID, username, playerNumber, color, factionName);
+                    }
+                    // Inform this client's ID
+                    else if (splitLine[0].Equals("inform"))
+                    {
+                        PlayerID = int.Parse(splitLine[1]);
+                    }
+                    // A client has left
+                    else if (splitLine[0].Equals("terminate"))
+                    {
+                        clients.Remove(int.Parse(splitLine[1]));
+                    }
                 }
             }
         }
 
+        public void UpdateUsername(string newUsername)
+        {
+            connection.WriteLine("username " + newUsername);
+        }
+        public void UpdatePlayerNumber(int newPlayerNumber)
+        {
+            connection.WriteLine("number " + newPlayerNumber);
+        }
+        public void UpdateColor(string newColorName)
+        {
+            connection.WriteLine("color " + newColorName);
+        }
+        public void UpdateFactionName(string newFactionName)
+        {
+            connection.WriteLine("faction " + newFactionName);
+        }
+
         public void Close()
         {
-            if(outgoingSocket != null)
-                outgoingSocket.Close();
-            if (incomingSocket != null)
-                incomingSocket.Close();
+            if (connection != null)
+            {
+                connection.WriteLine("terminate");
+                connection.Close();
+            }
             if (connectionListenThread != null)
                 connectionListenThread.Abort();
         }
@@ -102,7 +127,6 @@ namespace Devious_Retention_Menu
         public override string ToString()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("Player Number | Username | Color | Faction Name\n");
             foreach (LobbyHost.ClientData client in clients.Values)
             {
                 b.Append(client.ToString() + "\n");

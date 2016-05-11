@@ -17,12 +17,11 @@ namespace Devious_Retention_Menu
     /// </summary>
     public class Connection
     {
-        private IPAddress ip;
-        private int port;
+        private IPEndPoint endPoint;
 
         private TcpListener listener;
 
-        private Socket socket;
+        private TcpClient client;
         private NetworkStream stream;
 
         private StreamWriter outgoingWriter;
@@ -30,8 +29,7 @@ namespace Devious_Retention_Menu
         
         public Connection(IPAddress ip, int port)
         {
-            this.ip = ip;
-            this.port = port;
+            endPoint = new IPEndPoint(ip, port);
         }
 
         /// <summary>
@@ -42,32 +40,31 @@ namespace Devious_Retention_Menu
         public void Connect()
         {
             try {
-                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect(ip, port);
-                SetUpFromSocket();
+                client = new TcpClient();
+                client.Connect(endPoint);
+                SetUpFromClient();
             }
             catch(Exception e)
             {
-                throw new InvalidOperationException("Couldn't connect to IP " + ip + ".\n" + e);
+                throw new InvalidOperationException("Couldn't connect to IP " + endPoint.Address + ".\n" + e);
             }
         }
         
         /// <summary>
         /// Listens for a connection to this machine.
         /// Begins listening to the connection if it is able to do so.
-        /// Throws an exception once the timeout is reached without a connection.
         /// </summary>
         public void ListenForConnection()
         {
-            listener = new TcpListener(ip, port);
+            listener = new TcpListener(endPoint);
             listener.Start();
-            socket = listener.AcceptSocket();
-            SetUpFromSocket();
+            client = listener.AcceptTcpClient();
+            SetUpFromClient();
         }
 
-        private void SetUpFromSocket()
+        private void SetUpFromClient()
         {
-            stream = new NetworkStream(socket);
+            stream = client.GetStream();
 
             incomingReader = new StreamReader(stream);
             outgoingWriter = new StreamWriter(stream);
@@ -103,7 +100,15 @@ namespace Devious_Retention_Menu
         public void Close()
         {
             if (listener != null) listener.Stop();
-            if (socket != null) socket.Close();
+            if (client != null) client.Close();
+        }
+
+        /// <summary>
+        /// Returns the end point of this connection's port.
+        /// </summary>
+        public int GetPort()
+        {
+            return endPoint.Port;
         }
     }
 }

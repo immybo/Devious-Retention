@@ -42,7 +42,7 @@ namespace Devious_Retention_Menu
         private void multiplayerHostButton_Click(object sender, EventArgs e)
         {
             // Create a lobby and then attempt to join it at this IP
-            LobbyHost lobbyHost = new LobbyHost();
+            LobbyHost lobbyHost = new LobbyHost(8);
             if (!JoinLobby(IPAddress.Parse("127.0.0.1")))
             {
                 lobbyHost.Close();
