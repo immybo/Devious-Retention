@@ -17,6 +17,8 @@ namespace Devious_Retention_Menu
     /// </summary>
     public class Connection
     {
+        private bool isListening = false;
+
         private IPEndPoint endPoint;
 
         private TcpClient client;
@@ -24,15 +26,19 @@ namespace Devious_Retention_Menu
 
         private StreamWriter outgoingWriter;
         private StreamReader incomingReader;
+
+        private List<IConnectionDataListener> listeners;
         
         public Connection(IPAddress ip, int port)
         {
             endPoint = new IPEndPoint(ip, port);
+            listeners = new List<IConnectionDataListener>();
         }
 
         public Connection(TcpClient client)
         {
             this.client = client;
+            listeners = new List<IConnectionDataListener>();
             SetUpFromClient();
         }
 
@@ -66,14 +72,58 @@ namespace Devious_Retention_Menu
         }
 
         /// <summary>
-        /// Attempts to read a line from the connection.
+        /// Adds a listener which will be notified whenever a line can read, if this
+        /// connection is asynchronously receiving data at the time.
+        /// Listeners may not be added while the connection is currently listening.
         /// </summary>
-        /// <returns>The line that was read, or null if no line could be read.</returns>
-        public string ReadLine()
+        public void AddConnectionDataListener(IConnectionDataListener listener)
         {
-            if (incomingReader == null) throw new InvalidOperationException();
+            if (isListening) throw new InvalidOperationException("Can't add a data connection listener to a connection while it is currently listening.");
+            listeners.Add(listener);
+        }
 
-            return incomingReader.ReadLine();
+        /// <summary>
+        /// Begins listening asynchronously to all data from the connection.
+        /// Notifies all connection data listeners when any data is received.
+        /// </summary>
+        public async void BeginListening()
+        {
+            isListening = true;
+            try
+            {
+                await ReadLinesAsync();
+            }
+            // Could throw either of these exceptions and just mean that the connection has been closed.
+            // We can't catch them further up, though, because this is async and returns void.
+            // If we didn't return void, we'd have to wait for it to finish in a method, and eventually
+            // we'd either have to explicitly create a thread, return void, or call a new throw function
+            // outside of this method.
+            catch (ObjectDisposedException){}
+            catch(IOException){}
+            isListening = false;
+        }
+
+        /// <summary>
+        /// Begins awaiting lines from the reader until the tcpclient is closed.
+        /// </summary>
+        private async Task ReadLinesAsync()
+        {
+            string line;
+            while((line = await incomingReader.ReadLineAsync()) != null)
+            {
+                ProcessLine(line);
+            }
+        }
+
+        /// <summary>
+        /// Informs all listeners that the given line has been read.
+        /// </summary>
+        private void ProcessLine(string line)
+        {
+            foreach(IConnectionDataListener listener in listeners)
+            {
+                listener.OnLineRead(this, line);
+            }
         }
 
         /// <summary>
@@ -116,5 +166,14 @@ namespace Devious_Retention_Menu
         {
             return client != null;
         }
+    }
+
+    /// <summary>
+    /// A class which can await for lines read from a connection,
+    /// and respond appropriately when given them.
+    /// </summary>
+    public interface IConnectionDataListener
+    {
+        void OnLineRead(Connection connection, string line);
     }
 }

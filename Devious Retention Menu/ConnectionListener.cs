@@ -16,6 +16,7 @@ namespace Devious_Retention_Menu
     {
         private int port;
         private TcpListener listener;
+        private bool listenerGoing = false;
 
         private List<IReceiverFunction> receivers;
 
@@ -31,12 +32,13 @@ namespace Devious_Retention_Menu
 
             listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
+            listenerGoing = true;
             listener.BeginAcceptTcpClient(Callback, null);
         }
 
         private void Callback(IAsyncResult result)
         {
-            if (listener == null) return; // after stopped, possible due to async
+            if (!listenerGoing) return; // after stopped, possible due to async
 
             TcpClient newClient = listener.EndAcceptTcpClient(result);
 
@@ -50,10 +52,10 @@ namespace Devious_Retention_Menu
 
         public void StopListening()
         {
-            if (listener == null) throw new InvalidOperationException("Attempting to end listening operation when not listening.");
-            
+            if (!listenerGoing) throw new InvalidOperationException("Attempting to end listening operation when not listening.");
+
+            listenerGoing = false;
             listener.Stop();
-            listener = null;
         }
 
         public void AddReceiverFunction(IReceiverFunction receiver)
@@ -62,6 +64,10 @@ namespace Devious_Retention_Menu
         }
     }
 
+    /// <summary>
+    /// Defines a class's ability to handle clients being
+    /// connected from a ConnectionListener.
+    /// </summary>
     public interface IReceiverFunction
     {
         void OnConnection(Connection newClient);

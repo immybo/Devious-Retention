@@ -20,10 +20,8 @@ namespace Devious_Retention_Tests
         [TestCleanup]
         public void CloseConnections()
         {
-            if (clients != null)
-                foreach (MultiplayerLobbyHandler client in clients)
-                    if(client != null)
-                        client.Close();
+            if(host!= null)
+                host.Close();
         }
 
         /// <summary>
@@ -60,13 +58,19 @@ namespace Devious_Retention_Tests
         /// than lobby slots it has.
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
         public void TestInvalidConnection()
         {
             host = new LobbyHost(3);
             clients = new MultiplayerLobbyHandler[4];
             for (int i = 0; i < 4; i++)
                 clients[i] = new MultiplayerLobbyHandler(IPAddress.Parse("127.0.0.1"));
+
+            Thread.Sleep(500); // Give it some time... the connected thing is handled async, so we can't wait for it in another way
+
+            Assert.IsTrue(clients[0].Connected);
+            Assert.IsTrue(clients[1].Connected);
+            Assert.IsTrue(clients[2].Connected);
+            Assert.IsFalse(clients[3].Connected);
         }
 
         [TestMethod]

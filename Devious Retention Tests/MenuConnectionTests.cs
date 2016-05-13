@@ -6,6 +6,8 @@ using System.Net;
 using System.Threading;
 using System.Net.Sockets;
 using Devious_Retention_Menu;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Devious_Retention_Tests
 {
@@ -14,17 +16,18 @@ namespace Devious_Retention_Tests
     /// Summary description for MenuConnectionTests
     /// </summary>
     [TestClass]
-    public class MenuConnectionTests : IReceiverFunction
+    public class MenuConnectionTests : IReceiverFunction, IConnectionDataListener
     {
         public Connection sender;
         public Connection receiverConnection;
         public ConnectionListener receiver;
 
-    
+        private BlockingCollection<string> readLinesBuffer = new BlockingCollection<string>();
 
         [TestCleanup]
         public void CloseConnections()
         {
+            readLinesBuffer = new BlockingCollection<string>();
             if (sender != null) sender.Close();
             if (receiver != null)
             {
@@ -37,7 +40,7 @@ namespace Devious_Retention_Tests
         /// on the local machine.
         /// </summary>
         [TestMethod]
-        public void TestLocalConnection()
+        public async Task TestLocalConnection()
         {
             sender = new Connection(IPAddress.Parse("127.0.0.1"), 2942);
             receiver = new ConnectionListener(2942);
@@ -45,15 +48,24 @@ namespace Devious_Retention_Tests
             receiver.BeginListening();
             sender.Connect();
 
-            Thread.Sleep(500);
+            Thread.Sleep(500); // wait for the connection to be established
+
+            sender.AddConnectionDataListener(this);
+            receiverConnection.AddConnectionDataListener(this);
+            sender.BeginListening();
+            receiverConnection.BeginListening();
             
             sender.WriteLine("sender to receiver");
 
-            Assert.AreEqual("sender to receiver", receiverConnection.ReadLine());
+            string line = await GetRecentLine();
+
+            Assert.AreEqual("sender to receiver", line);
 
             receiverConnection.WriteLine("receiver to sender");
 
-            Assert.AreEqual("receiver to sender", sender.ReadLine());
+            line = await GetRecentLine();
+
+            Assert.AreEqual("receiver to sender", line);
         }
 
         /// <summary>
@@ -81,19 +93,33 @@ namespace Devious_Retention_Tests
         }
 
         /// <summary>
-        /// Makes sure that no lines can be read when a connection isn't connected.
+        /// Makes sure that a connection remains closed when it is not connected.
         /// </summary>
         [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
-        public void TestInvalidRead()
+        public void TestConnectionClosed()
         {
             sender = new Connection(IPAddress.Parse("127.0.0.1"), 2942);
-            sender.ReadLine();
+            sender.AddConnectionDataListener(this);
+            Assert.IsFalse(sender.IsOpen());
         }
 
         public void OnConnection(Connection newClient)
         {
             receiverConnection = newClient;
+        }
+
+        public void OnLineRead(Connection connection, string line)
+        {
+            readLinesBuffer.TryAdd(line);
+        }
+
+        /// <summary>
+        /// Asynchronously waits for a line to be available
+        /// and then returns it.
+        /// </summary>
+        private async Task<string> GetRecentLine()
+        {
+            return await Task.Run(() => readLinesBuffer.Take());
         }
     }
 }
