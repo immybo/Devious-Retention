@@ -403,6 +403,7 @@ namespace Devious_Retention
         /// </summary>
         private void MoveAllUnits()
         {
+            // TODO Collision using quad-trees
             List<Unit> toRemove = new List<Unit>();
             foreach (Unit u in movingUnits)
             {

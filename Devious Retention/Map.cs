@@ -31,14 +31,14 @@ namespace Devious_Retention
             this.width = width;
             this.height = height;
             this.startingPositions = startingPositions;
-        }
+        } 
 
         /// <summary>
-        /// Returns the tile in this map at the given co-ordinates.
+        /// Returns the type of tile at the specified coordinate.
         /// </summary>
         public Tile GetTile(int x, int y)
         {
-            return possibleTiles[tiles[x,y]];
+            return possibleTiles[tiles[x, y]];
         }
 
         /// <summary>
@@ -98,6 +98,7 @@ namespace Devious_Retention
         /// </summary>
         public static Map GenerateMap(List<Tile> possibleTiles, int width, int height, int numPlayers)
         {
+            // TODO Good map generation
             int[,] tiles = new int[height, width];
             Random random = new Random();
             
