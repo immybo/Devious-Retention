@@ -38,13 +38,13 @@ namespace Devious_Retention
         /// "[name] [effects]"
         /// </summary>
         /// <returns></returns>
-        public override string Tostring()
+        public override string ToString()
         {
-            stringBuilder builder = new stringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.Append(name + " ");
             foreach (string e in effects)
                 builder.Append(e + " ");
-            return builder.Tostring();
+            return builder.ToString();
         }
 
         /// <summary>

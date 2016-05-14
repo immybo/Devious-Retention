@@ -107,6 +107,8 @@ namespace Devious_Retention_Menu
             
             public string factionName; // Kept as a primitive type and synced up on launch
 
+            public bool isReady = false;
+
             public ClientData(int uniqueID, string username, int playerNumber, Color color, string factionName)
             {
                 this.username = username;
@@ -115,9 +117,26 @@ namespace Devious_Retention_Menu
                 this.factionName = factionName;
             }
 
+            /// <summary>
+            /// The opposite of the toString method for a clientdata.
+            /// </summary>
+            public static ClientData FromString(string inputString)
+            {
+                // We need to split it with "!!"
+                string[] splitLine = inputString.Split(new string[] { "!!" }, StringSplitOptions.None);
+
+                int uniqueID = int.Parse(splitLine[0]);
+                int playerNumber = int.Parse(splitLine[1]);
+                string username = splitLine[2];
+                Color color = ColorTranslator.FromHtml(splitLine[3]);
+                string factionName = splitLine[4];
+
+                return new ClientData(uniqueID, username, playerNumber, color, factionName);
+            }
+
             public override string ToString()
             {
-                return uniqueID + " " + playerNumber + " " + username + " " + color.Name + " " + factionName;
+                return uniqueID + "!!" + playerNumber + "!!" + username + "!!" + ColorTranslator.ToHtml(color) + "!!" + factionName;
             }
         }
 
@@ -142,7 +161,7 @@ namespace Devious_Retention_Menu
                 newClient.WriteLine("full");
             }
 
-            clients.Add(newClient, new ClientData(currentUniqueID, "", 0, Color.Black, ""));
+            clients.Add(newClient, new ClientData(currentUniqueID, "Default", GetFreePlayerNumber(), Color.Black, "Default Faction"));
             currentUniqueID++;
 
             newClient.AddConnectionDataListener(this);
@@ -181,18 +200,73 @@ namespace Devious_Retention_Menu
             // Edit the client data
             else
             {
-                string result = splitLine[1];
+                StringBuilder resultBuilder = new StringBuilder();
+                for (int i = 1; i < splitLine.Length; i++)
+                    resultBuilder.Append(splitLine[i]+" ");
+                string result = resultBuilder.ToString(); // in case it's more than one word
 
                 if (identifier.Equals("username"))
                     client.username = result;
                 else if (identifier.Equals("number"))
                     client.playerNumber = int.Parse(result);
                 else if (identifier.Equals("color"))
-                    client.color = Color.FromName(result);
+                    client.color = ColorTranslator.FromHtml(result);
                 else if (identifier.Equals("faction"))
                     client.factionName = result;
+                else if (identifier.Equals("ready"))
+                {
+                    client.isReady = bool.Parse(result);
+                    CheckAllReady();
+                }
                 UpdateClients(client);
             }
+        }
+
+        /// <summary>
+        /// Returns an appropriate player number for a new player connecting
+        /// to use.
+        /// </summary>
+        private int GetFreePlayerNumber()
+        {
+            int num = 0;
+            while (num < 100000)
+            {
+                num++;
+                foreach (ClientData c in clients.Values)
+                    if (c.playerNumber == num)
+                        continue;
+                return num;
+            }
+            throw new InvalidOperationException("Can't get a free player number from the server!");
+        }
+
+        /// <summary>
+        /// Shuffles player numbers of connected clients down given that the 
+        /// client with the given player number just quit.
+        /// </summary>
+        private void ShufflePlayerNumbersOnQuit(int quitNumber)
+        {
+            foreach(ClientData c in clients.Values)
+                if (c.playerNumber > quitNumber)
+                    c.playerNumber--;
+        }
+
+        /// <summary>
+        /// Checks if all clients are ready, and begins the game if they are.
+        /// </summary>
+        private void CheckAllReady()
+        {
+            if (clients.Count == 0) return;
+            
+            foreach(ClientData c in clients.Values)
+                if (!c.isReady) return;
+
+            StartGame();
+        }
+
+        private void StartGame()
+        {
+            Console.WriteLine("Game starting (unimplemented)");
         }
     }
 }

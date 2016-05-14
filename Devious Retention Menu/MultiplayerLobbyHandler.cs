@@ -15,10 +15,11 @@ namespace Devious_Retention_Menu
     /// A multiplayer lobby allows a player to connect with other players
     /// before starting a game.
     /// </summary>
-    public class MultiplayerLobbyHandler : MenuItemHandler, IConnectionDataListener
+    public class MultiplayerLobbyHandler : MenuItemHandler, IConnectionDataListener, IPlayerChangeListener
     { 
         private Connection connection;
         private Dictionary<int, LobbyHost.ClientData> clients; // identifier is unique player ID
+        private MultiplayerLobby gui;
         
         public bool Connected
         {
@@ -48,23 +49,43 @@ namespace Devious_Retention_Menu
             connection.AddConnectionDataListener(this);
             connection.BeginListening();
             Connected = true;
+
+            // Give the connection initial values for this client
+            UpdateClientUsername("Default");
+            UpdateClientColor("#000000");
+            UpdateClientFactionName("Default Faction");
         }
 
-        public void UpdateUsername(string newUsername)
+        public void BeginGUI(bool isHost, LobbyHost host)
+        {
+            if (isHost)
+                gui = new MultiplayerLobby(host, this);
+            else
+                gui = new MultiplayerLobby(this);
+            gui.SetPlayers(clients.Values, PlayerID);
+            gui.Visible = true;
+            gui.Refresh();
+        }
+
+        public void UpdateClientUsername(string newUsername)
         {
             connection.WriteLine("username " + newUsername);
         }
-        public void UpdatePlayerNumber(int newPlayerNumber)
+        public void UpdateClientPlayerNumber(int newPlayerNumber)
         {
             connection.WriteLine("number " + newPlayerNumber);
         }
-        public void UpdateColor(string newColorName)
+        public void UpdateClientColor(string newColorHex)
         {
-            connection.WriteLine("color " + newColorName);
+            connection.WriteLine("color " + newColorHex);
         }
-        public void UpdateFactionName(string newFactionName)
+        public void UpdateClientFactionName(string newFactionName)
         {
             connection.WriteLine("faction " + newFactionName);
+        }
+        public void IsReady(bool newValue)
+        {
+            connection.WriteLine("ready " + newValue);
         }
 
         public void Close()
@@ -96,13 +117,11 @@ namespace Devious_Retention_Menu
             // Update information about one client
             if (splitLine[0].Equals("update"))
             {
-                int uniqueID = int.Parse(splitLine[1]);
-                int playerNumber = int.Parse(splitLine[2]);
-                string username = splitLine[3];
-                Color color = Color.FromName(splitLine[4]);
-                string factionName = splitLine[5];
-
-                clients[playerNumber] = new LobbyHost.ClientData(uniqueID, username, playerNumber, color, factionName);
+                StringBuilder b = new StringBuilder();
+                for (int i = 1; i < splitLine.Length; i++)
+                    b.Append(splitLine[i]+" ");
+                LobbyHost.ClientData newData = LobbyHost.ClientData.FromString(b.ToString());
+                clients[newData.playerNumber] = newData;
             }
             // Inform this client's ID
             else if (splitLine[0].Equals("inform"))
@@ -125,6 +144,9 @@ namespace Devious_Retention_Menu
             {
                 Connected = false;
             }
+
+            gui.SetPlayers(clients.Values, PlayerID);
+            gui.Refresh();
         }
     }
 }

@@ -37,10 +37,10 @@ namespace Devious_Retention_Tests
             clients = new MultiplayerLobbyHandler[1];
             clients[0] = new MultiplayerLobbyHandler(IPAddress.Parse("127.0.0.1"));
 
-            clients[0].UpdatePlayerNumber(1);
-            clients[0].UpdateUsername("test");
-            clients[0].UpdateColor("Red");
-            clients[0].UpdateFactionName("testfaction");
+            clients[0].UpdateClientPlayerNumber(1);
+            clients[0].UpdateClientUsername("test");
+            clients[0].UpdateClientColor("Red");
+            clients[0].UpdateClientFactionName("testfaction");
 
             Thread.Sleep(50);
 

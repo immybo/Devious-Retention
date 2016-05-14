@@ -20,6 +20,7 @@ namespace Devious_Retention_Menu
     public partial class Menu : Form
     {
         private MenuItemHandler openMenu = null;
+        private bool tryingToConnect = false;
 
         public Menu()
         {
@@ -41,12 +42,18 @@ namespace Devious_Retention_Menu
         /// </summary>
         private void multiplayerHostButton_Click(object sender, EventArgs e)
         {
+            tryingToConnect = true;
             // Create a lobby and then attempt to join it at this IP
             LobbyHost lobbyHost = new LobbyHost(8);
             if (!JoinLobby(IPAddress.Parse("127.0.0.1")))
             {
                 lobbyHost.Close();
             }
+            else
+            {
+                ((MultiplayerLobbyHandler)openMenu).BeginGUI(true, lobbyHost);
+            }
+            tryingToConnect = false;
         }
 
         /// <summary>
@@ -57,6 +64,8 @@ namespace Devious_Retention_Menu
         /// </summary>
         private void multiplayerJoinButton_Click(object sender, EventArgs e)
         {
+            tryingToConnect = true;
+
             // Try to grab the IP
             IPAddress ip;
 
@@ -68,6 +77,9 @@ namespace Devious_Retention_Menu
 
             // Otherwise, we attempt to join a lobby at that address
             JoinLobby(ip);
+            ((MultiplayerLobbyHandler)openMenu).BeginGUI(false, null);
+
+            tryingToConnect = false;
         }
 
         /// <summary>
@@ -78,6 +90,10 @@ namespace Devious_Retention_Menu
         private bool JoinLobby(IPAddress ip)
         {
             try {
+                // Close the currently open lobby and make a new one
+                if(openMenu != null)
+                    openMenu.Close();
+
                 MultiplayerLobbyHandler lobby = new MultiplayerLobbyHandler(ip);
                 openMenu = lobby;
                 return true;
