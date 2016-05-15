@@ -43,7 +43,7 @@ namespace Devious_Retention_Menu
 
             // Attempt to connect to the host
             connection = new Connection(hostIP, LobbyHost.HOST_CONNECTION_PORT);
-            connection.Connect();
+            connection.Connect(1000);
 
             // Listen to this connection
             connection.AddConnectionDataListener(this);
@@ -83,9 +83,9 @@ namespace Devious_Retention_Menu
         {
             connection.WriteLine("faction " + newFactionName);
         }
-        public void IsReady(bool newValue)
+        public void StartGame()
         {
-            connection.WriteLine("ready " + newValue);
+            connection.WriteLine("start");
         }
 
         public void Close()
@@ -93,6 +93,10 @@ namespace Devious_Retention_Menu
             if (connection != null)
             {
                 connection.WriteLine("terminate");
+            }
+            if(gui != null)
+            {
+                gui.Close();
             }
         }
 

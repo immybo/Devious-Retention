@@ -46,7 +46,7 @@ namespace Devious_Retention_Tests
             receiver = new ConnectionListener(2942);
             receiver.AddReceiverFunction(this);
             receiver.BeginListening();
-            sender.Connect();
+            sender.Connect(2000);
 
             Thread.Sleep(500); // wait for the connection to be established
 
@@ -78,7 +78,7 @@ namespace Devious_Retention_Tests
         {
             sender = new Connection(IPAddress.Parse("127.0.0.1"), 2942);
 
-            sender.Connect();
+            sender.Connect(2000);
         }
 
         /// <summary>

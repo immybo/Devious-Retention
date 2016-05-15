@@ -44,16 +44,20 @@ namespace Devious_Retention_Menu
 
         /// <summary>
         /// Attempts to connect to the IP address associated with this connection.
-        /// Throws an exception if it is unable to do so.
+        /// Throws an exception if it is unable to do so within the specified time,
+        /// or if the connection is refused.
         /// Begins listening to the connection if it is able to do so.
         /// </summary>
-        public void Connect()
+        public void Connect(int timeoutMs)
         {
             if (client != null) throw new InvalidOperationException("Attempting to connect a connection when already connected.");
 
             try {
                 client = new TcpClient();
-                client.Connect(endPoint);
+                if (!client.ConnectAsync(endPoint.Address, endPoint.Port).Wait(timeoutMs)) // Executes if it fails to do so within this time 
+                {
+                    throw new Exception();
+                }
                 SetUpFromClient();
             }
             catch(Exception e)

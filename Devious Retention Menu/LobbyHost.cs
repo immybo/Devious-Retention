@@ -107,8 +107,6 @@ namespace Devious_Retention_Menu
             
             public string factionName; // Kept as a primitive type and synced up on launch
 
-            public bool isReady = false;
-
             public ClientData(int uniqueID, string username, int playerNumber, Color color, string factionName)
             {
                 this.username = username;
@@ -196,6 +194,9 @@ namespace Devious_Retention_Menu
                 clients.Remove(connection);
                 UpdateClientsClose(client);
             }
+            // Start the game
+            else if (identifier.Equals("start"))
+                StartGame();
 
             // Edit the client data
             else
@@ -213,11 +214,6 @@ namespace Devious_Retention_Menu
                     client.color = ColorTranslator.FromHtml(result);
                 else if (identifier.Equals("faction"))
                     client.factionName = result;
-                else if (identifier.Equals("ready"))
-                {
-                    client.isReady = bool.Parse(result);
-                    CheckAllReady();
-                }
                 UpdateClients(client);
             }
         }
@@ -249,19 +245,6 @@ namespace Devious_Retention_Menu
             foreach(ClientData c in clients.Values)
                 if (c.playerNumber > quitNumber)
                     c.playerNumber--;
-        }
-
-        /// <summary>
-        /// Checks if all clients are ready, and begins the game if they are.
-        /// </summary>
-        private void CheckAllReady()
-        {
-            if (clients.Count == 0) return;
-            
-            foreach(ClientData c in clients.Values)
-                if (!c.isReady) return;
-
-            StartGame();
         }
 
         private void StartGame()
