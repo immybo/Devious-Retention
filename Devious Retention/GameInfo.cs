@@ -127,6 +127,7 @@ namespace Devious_Retention
         /// </summary>
         public static void ReadDefinitions()
         {
+            // TODO Add more types.
             ReadUnits(UNIT_FNAME);
             ReadBuildings(BUILDING_FNAME);
             ReadResources(RESOURCE_FNAME);

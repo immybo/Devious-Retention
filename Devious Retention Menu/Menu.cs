@@ -5,7 +5,9 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -20,6 +22,8 @@ namespace Devious_Retention_Menu
     public partial class Menu : Form
     {
         private MenuItemHandler openMenu = null;
+        private LobbyHost openLobbyHost = null;
+        private bool tryingToConnect = false;
 
         public Menu()
         {
@@ -41,12 +45,22 @@ namespace Devious_Retention_Menu
         /// </summary>
         private void multiplayerHostButton_Click(object sender, EventArgs e)
         {
+            if (tryingToConnect) return;
+
+            tryingToConnect = true;
+            CloseAllWindows();
             // Create a lobby and then attempt to join it at this IP
-            LobbyHost lobbyHost = new LobbyHost(8);
-            if (!JoinLobby(IPAddress.Parse("127.0.0.1")))
+            openLobbyHost = new LobbyHost(8);
+
+            if (!JoinLobby(IPAddress.Parse("127.0.0.1"), true))
             {
-                lobbyHost.Close();
+                CloseAllWindows();
             }
+            else
+            {
+                ((MultiplayerLobbyHandler)openMenu).BeginGUI(true, openLobbyHost);
+            }
+            tryingToConnect = false;
         }
 
         /// <summary>
@@ -57,6 +71,10 @@ namespace Devious_Retention_Menu
         /// </summary>
         private void multiplayerJoinButton_Click(object sender, EventArgs e)
         {
+            if (tryingToConnect) return;
+
+            tryingToConnect = true;
+
             // Try to grab the IP
             IPAddress ip;
 
@@ -67,7 +85,12 @@ namespace Devious_Retention_Menu
             }
 
             // Otherwise, we attempt to join a lobby at that address
-            JoinLobby(ip);
+            if (JoinLobby(ip, false))
+            {
+                ((MultiplayerLobbyHandler)openMenu).BeginGUI(false, null);
+            }
+
+            tryingToConnect = false;
         }
 
         /// <summary>
@@ -75,14 +98,20 @@ namespace Devious_Retention_Menu
         /// If there is no lobby at that IP, displays an error.
         /// Returns whether or not joining the lobby succeeded.
         /// </summary>
-        private bool JoinLobby(IPAddress ip)
+        private bool JoinLobby(IPAddress ip, bool joiningSelf)
         {
             try {
+                // Close the currently open lobby and make a new one
+                if (joiningSelf) // If we're joining this computer, we don't want
+                    CloseOpenMenu(); // to close the host at this computer.
+                else
+                    CloseAllWindows();
+
                 MultiplayerLobbyHandler lobby = new MultiplayerLobbyHandler(ip);
                 openMenu = lobby;
                 return true;
             }
-            catch(ApplicationException)
+            catch(InvalidOperationException) // Couldn't find lobby at the IP
             {
                 DisplayError("Could not connect to lobby at " + ip.ToString() + ".");
                 return false;
@@ -96,6 +125,24 @@ namespace Devious_Retention_Menu
         private void DisplayError(string errorText)
         {
             MessageBox.Show(errorText);
+        }
+
+        private void CloseAllWindows()
+        {
+            CloseOpenMenu();
+            if (openLobbyHost != null)
+            {
+                openLobbyHost.Close();
+                openLobbyHost = null;
+            }
+        }
+        private void CloseOpenMenu()
+        {
+            if (openMenu != null)
+            {
+                openMenu.Close();
+                openMenu = null;
+            }
         }
     }
 }

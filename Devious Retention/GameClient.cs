@@ -15,6 +15,8 @@ namespace Devious_Retention
     /// </summary>
     public class GameClient
     {
+        // TODO Music/sounds
+
         public CTSConnection connection { get; set; }
         // Each player's GameInfo is changed over time due to technologies, factions, etc
         public List<GameInfo> definitions { get; private set; }
@@ -30,6 +32,7 @@ namespace Devious_Retention
         // Which entities are where; if at least part of an entity is on a square, it will be recorded in that square's list
         public List<Entity>[,] entitiesBySquare { get; private set; }
 
+        // TODO Possibly migrate selected to window
         public List<Entity> selected;
 
         public Map map { get; private set; }
@@ -120,6 +123,8 @@ namespace Devious_Retention
         /// </summary>
         public void RightClick(double x, double y)
         {
+            // TODO Possibly migrate to window
+
             // If the right click is out of bounds, do nothing
             if (x < 0 || y < 0 || x >= map.width || y >= map.height) return;
 
@@ -486,7 +491,7 @@ namespace Devious_Retention
         /// <param name="won">Whether or not this player won the game.</param>
         public void EndGame(bool won)
         {
-
+            // TODO Game ending
         }
 
         /// <summary>

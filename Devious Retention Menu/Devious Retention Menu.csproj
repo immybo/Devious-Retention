@@ -47,11 +47,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection.cs" />
-    <Compile Include="Lobby.cs">
+    <Compile Include="ConnectionListener.cs" />
+    <Compile Include="MultiplayerLobby.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Lobby.Designer.cs">
-      <DependentUpon>Lobby.cs</DependentUpon>
+    <Compile Include="MultiplayerLobby.Designer.cs">
+      <DependentUpon>MultiplayerLobby.cs</DependentUpon>
     </Compile>
     <Compile Include="LobbyHost.cs" />
     <Compile Include="Menu.cs">
@@ -64,8 +65,8 @@
     <Compile Include="MultiplayerLobbyHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Lobby.resx">
-      <DependentUpon>Lobby.cs</DependentUpon>
+    <EmbeddedResource Include="MultiplayerLobby.resx">
+      <DependentUpon>MultiplayerLobby.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Menu.resx">
       <DependentUpon>Menu.cs</DependentUpon>

@@ -12,7 +12,9 @@ namespace Devious_Retention
     /// </summary>
     public class Faction
     {
-        public String name { get; private set; }
+        // TODO Implement factions everywhere necessary
+
+        public string name { get; private set; }
 
         // Each string has a few components, seperated by spaces:
         // - an identifier for whether it affects a unit, a building or a technology
@@ -20,12 +22,12 @@ namespace Devious_Retention
         // - an identifier for the statistic of that unit, building or technology that it affects
         // - a modifier for that statistic 
         // structure same as for technology
-        private HashSet<String> effects;
+        private HashSet<string> effects;
 
         /// <summary>
         /// A faction must have its name and all its effects given to be created.
         /// </summary>
-        public Faction(String name, HashSet<String> effects)
+        public Faction(string name, HashSet<string> effects)
         {
             this.name = name;
             this.effects = effects;
@@ -50,9 +52,9 @@ namespace Devious_Retention
         /// </summary>
         public void ApplyEffects(GameInfo types)
         {
-            foreach (String s in effects)
+            foreach (string s in effects)
             {
-                String[] change = s.Split(new char[] { ' ' });
+                string[] change = s.Split(new char[] { ' ' });
                 // change a unit
                 if (int.Parse(change[0]) == 1)
                 {

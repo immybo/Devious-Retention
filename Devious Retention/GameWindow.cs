@@ -14,6 +14,7 @@ namespace Devious_Retention
 {
     public partial class GameWindow : Form
     {
+        // TODO Better graphics/sprites.
         public GameClient client;
 
         // 1 = entire screen width/height, 0 = nothing
@@ -206,6 +207,7 @@ namespace Devious_Retention
         /// </summary>
         private void SelectEntitiesInArea(double x1, double y1, double width, double height)
         {
+            // TODO Possibly use a quad tree for optimising selecting entities
             HashSet<Entity> entities = GetEntitiesIn(x1, y1, width, height);
             if (entities.Count == 0) return;
 
@@ -249,6 +251,7 @@ namespace Devious_Retention
         /// </summary>
         private void Render(object sender, PaintEventArgs e)
         {
+            // TODO Renderable interface, so render can be called on a large list of things
             Graphics g = e.Graphics;
 
             ResizeToFit();
@@ -283,6 +286,8 @@ namespace Devious_Retention
         /// </summary>
         public void UpdateLOSAdd(Entity e)
         {
+            // TODO Optimise LOS calculations
+
             // Resources don't have LOS
             if (e is Resource) return;
 
