@@ -15,7 +15,9 @@ namespace Devious_Retention
     public partial class GameWindow : Form
     {
         // TODO Better graphics/sprites.
-        public GameClient client;
+        private World world;
+
+        private GameClient client; // TODO remove client from gamewindow
 
         // 1 = entire screen width/height, 0 = nothing
         private const double GAME_AREA_WIDTH = 0.75;
@@ -109,8 +111,9 @@ namespace Devious_Retention
         private Image resourceAreaBorderTop;
         private Image rightAreaBorderLeft;
 
-        public GameWindow(GameClient client)
+        public GameWindow(World world, GameClient client)
         {
+            this.world = world;
             this.client = client;
 
             InitializeComponent();
@@ -143,55 +146,6 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Returns the entity, if there is one, which is at
-        /// (x,y) in world coordinates.
-        /// </summary>
-        public Entity GetEntityAt(double x, double y)
-        {
-            // Units > buildings > resources
-            foreach (Entity e in client.units.Values)
-                if (e.X + e.Type.size > x && e.X < x && e.Y + e.Type.size > y && e.Y < y)
-                    return e;
-            foreach (Entity e in client.buildings.Values)
-                if (e.X + e.Type.size > x && e.X < x && e.Y + e.Type.size > y && e.Y < y)
-                    return e;
-            foreach (Entity e in client.resources.Values)
-                if (e.X + e.Type.size > x && e.X < x && e.Y + e.Type.size > y && e.Y < y)
-                    return e;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Returns the entities, if there are any, which are contained within
-        /// the given rectangle in world coordinates.
-        /// </summary>
-        public HashSet<Entity> GetEntitiesIn(double x, double y, double width, double height)
-        {
-            HashSet<Entity> entities = new HashSet<Entity>();
-
-            foreach (Entity e in client.units.Values)
-                entities.Add(e);
-            foreach (Entity e in client.buildings.Values)
-                entities.Add(e);
-            foreach (Entity e in client.resources.Values)
-                entities.Add(e);
-            
-            HashSet<Entity> enclosedEntities = new HashSet<Entity>();
-            foreach (Entity e in entities)
-            {
-                if(e.X+e.Type.size > x
-                 &&e.Y+e.Type.size > y
-                 &&e.X < x + width
-                 &&e.Y < y + height)
-                {
-                    enclosedEntities.Add(e);
-                }
-            }
-            return enclosedEntities;
-        }
-
-        /// <summary>
         /// Selects the appropriate entities within the given area.
         /// This can only select one type of entity for one player. For example,
         /// if there is a unit belonging to player 1 and a building belonging to 
@@ -208,8 +162,8 @@ namespace Devious_Retention
         private void SelectEntitiesInArea(double x1, double y1, double width, double height)
         {
             // TODO Possibly use a quad tree for optimising selecting entities
-            HashSet<Entity> entities = GetEntitiesIn(x1, y1, width, height);
-            if (entities.Count == 0) return;
+            Entity[] entities = world.GetEntitiesIn(x1, y1, width, height);
+            if (entities.Length == 0) return;
 
             List<Unit> units = new List<Unit>();
             List<Building> buildings = new List<Building>();
@@ -287,6 +241,7 @@ namespace Devious_Retention
         public void UpdateLOSAdd(Entity e)
         {
             // TODO Optimise LOS calculations
+            // TODO move LOS to world
 
             // Resources don't have LOS
             if (e is Resource) return;
@@ -302,8 +257,7 @@ namespace Devious_Retention
                 for (int y = entityY - entityLOS; y <= entityY + entityLOS; y++)
                 {
                     // Are we even on the map?
-                    if (x < 0 || y < 0) continue;
-                    if (x >= client.map.width || y >= client.map.height) continue;
+                    if (world.OutOfBounds(x, y)) continue;
 
                     // Find the distance from the entity (pythagoras)
                     int distance = (int)(Math.Sqrt(Math.Pow(entityX - x, 2) + Math.Pow(entityY - y, 2)));
@@ -337,8 +291,7 @@ namespace Devious_Retention
             {
                 for (int y = oldUnitY - unit.unitType.lineOfSight; y <= oldUnitY + unit.unitType.lineOfSight; y++)
                 {
-                    if (x < 0 || y < 0) continue;
-                    if (x >= client.map.width || y >= client.map.height) continue;
+                    if (world.OutOfBounds(x, y)) continue;
                     int distance = (int)(Math.Sqrt(Math.Pow(oldUnitX - x, 2) + Math.Pow(oldUnitY - y, 2)));
                     if (distance > unit.unitType.lineOfSight) continue;
 
@@ -354,8 +307,7 @@ namespace Devious_Retention
             {
                 for (int y = newUnitY - unit.unitType.lineOfSight; y <= newUnitY + unit.unitType.lineOfSight; y++)
                 {
-                    if (x < 0 || y < 0) continue;
-                    if (x >= client.map.width || y >= client.map.height) continue;
+                    if (world.OutOfBounds(x, y)) continue;
                     int distance = (int)(Math.Sqrt(Math.Pow(newUnitX - x, 2) + Math.Pow(newUnitY - y, 2)));
                     if (distance > unit.unitType.lineOfSight) continue;
 
@@ -381,8 +333,7 @@ namespace Devious_Retention
             // Set all the newly visible tiles to be within LOS
             foreach(Coordinate c in nowVisibleTiles)
             {
-                if (c.x >= client.map.width || c.y >= client.map.height) continue;
-                if (c.x < 0 || c.y < 0) continue;
+                if (world.OutOfBounds(c)) continue;
                 LOS[c.x, c.y] = true;
             }
 
@@ -408,8 +359,7 @@ namespace Devious_Retention
             {
                 for (int y = entityY - entityLOS; y <= entityY + entityLOS; y++)
                 {
-                    if (x < 0 || y < 0) continue;
-                    if (x >= client.map.width || y >= client.map.height) continue;
+                    if (world.OutOfBounds(x, y)) continue;
                     int distance = (int)(Math.Sqrt(Math.Pow(entityX - x, 2) + Math.Pow(entityY - y, 2)));
                     if (distance > entityLOS) continue;
 
@@ -428,11 +378,11 @@ namespace Devious_Retention
             // Scroll through units and buildings that belong to the player, and figure out which are within range
             // Stop if we find one that is
             HashSet<Entity> entities = new HashSet<Entity>();
-            foreach (Unit u in client.units.Values)
+            foreach (Unit u in world.GetUnits())
                 if (u.PlayerNumber == client.playerNumber)
                     entities.Add(u);
                     
-            foreach (Building b in client.buildings.Values)
+            foreach (Building b in world.GetBuildings())
                 if (b.PlayerNumber == client.playerNumber)
                     entities.Add(b);
 
@@ -452,13 +402,13 @@ namespace Devious_Retention
         private void LoadLOS()
         {
             // Clear the current LOS
-            LOS = new bool[client.map.width, client.map.height];
+            LOS = new bool[world.MapSize().x, world.MapSize().y];
 
             List<Entity> entities = new List<Entity>();
-            foreach (Unit u in client.units.Values)
+            foreach (Unit u in world.GetUnits())
                 if (u.PlayerNumber == client.playerNumber)
                     entities.Add(u);
-            foreach (Building b in client.buildings.Values)
+            foreach (Building b in world.GetBuildings())
                 if (b.PlayerNumber == client.playerNumber)
                     entities.Add(b);
 
@@ -476,7 +426,7 @@ namespace Devious_Retention
                     {
                         // Are we even on the map?
                         if (x < 0 || y < 0) continue;
-                        if (x >= client.map.width || y >= client.map.height) continue;
+                        if (x >= world.MapSize().x || y >= world.MapSize().y) continue;
 
                         // Find the distance from the entity (pythagoras)
                         int distance = (int)(Math.Sqrt(Math.Pow(entityX-x,2) + Math.Pow(entityY-y,2)));
@@ -516,17 +466,17 @@ namespace Devious_Retention
 
             for (int i = 0; i < maxXTiles; i++)
             {
-                if (i + (int)worldX >= client.map.width) continue;
+                if (i + (int)worldX >= world.MapSize().x) continue;
                 if (i + (int)worldX < 0) continue;
 
                 for (int j = 0; j < maxYTiles; j++)
                 {
-                    if (j + (int)worldY >= client.map.height) continue;
+                    if (j + (int)worldY >= world.MapSize().y) continue;
                     if (j + (int)worldY < 0) continue;
 
                     // We allow tiles to go slightly off the side, under the assumption that the GUI will be painted in front of them
                     // We draw tiles from the floor value of the screen position, and then position them off the screen so that the appropriate amount is displayed
-                    g.DrawImage(client.map.GetTile(i + (int)worldX, j + (int)worldY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
+                    g.DrawImage(world.GetTile(i + (int)worldX, j + (int)worldY).image, new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
                     // If this tile is out of line of sight, draw a light grey overlay (grey it out)
                     if (!LOS[i + (int)worldX, j + (int)worldY])
                         g.FillRectangle(new SolidBrush(Color.FromArgb((int)(255*(1-OVERLAY_STRENGTH)), Color.LightGray)), new Rectangle(i * tileWidth - topTileXOffset, j * tileHeight - topTileYOffset, tileWidth, tileHeight));
@@ -558,11 +508,11 @@ namespace Devious_Retention
 
             // Collect all entities into a big list : resources first, then buildings, then units. This means that resources are on the bottom and units on the top
             List<Entity> entities = new List<Entity>();
-            foreach (Resource r in client.resources.Values)
+            foreach (Resource r in world.GetResources())
                 entities.Add(r);
-            foreach (Building b in client.buildings.Values)
+            foreach (Building b in world.GetBuildings())
                 entities.Add(b);
-            foreach (Unit u in client.units.Values)
+            foreach (Unit u in world.GetUnits())
                 entities.Add(u);
 
             // Render them all
@@ -660,22 +610,22 @@ namespace Devious_Retention
         {
             // Figure out how many pixels each square should occupy 
             // (not an integer for accuracy of figuring out coordinates)
-            double pixelsPerSquareX = (double)bounds.Width / client.map.width;
-            double pixelsPerSquareY = (double)bounds.Height / client.map.height;
+            double pixelsPerSquareX = (double)bounds.Width / world.MapSize().x;
+            double pixelsPerSquareY = (double)bounds.Height / world.MapSize().y;
 
             // Draw the tiles first
-            Bitmap tileImage = new Bitmap(client.map.width, client.map.height);
+            Bitmap tileImage = new Bitmap(world.MapSize().x, world.MapSize().y);
 
             // Set the appropriate colours for tiles
-            for (int i = 0; i < client.map.width; i++)
-                for (int j = 0; j < client.map.height; j++)
-                    tileImage.SetPixel(i, j, client.map.GetTile(i, j).color);
+            for (int i = 0; i < world.MapSize().x; i++)
+                for (int j = 0; j < world.MapSize().y; j++)
+                    tileImage.SetPixel(i, j, world.GetTile(i, j).color);
 
             // Draw the entities next
             List<Entity> entities = new List<Entity>();
-            foreach (Unit u in client.units.Values)
+            foreach (Unit u in world.GetUnits())
                 entities.Add(u);
-            foreach (Building b in client.buildings.Values)
+            foreach (Building b in world.GetBuildings())
                 entities.Add(b);
 
             // Draw on top of the tile image
@@ -701,10 +651,10 @@ namespace Devious_Retention
             g.PixelOffsetMode = PixelOffsetMode.Default;
 
             // Draw a box around where the camera is
-            double x1 = worldX / client.map.width;
-            double y1 = worldY / client.map.height;
-            double x2 = (worldX + maxXTiles) / client.map.width;
-            double y2 = (worldY + maxYTiles) / client.map.height;
+            double x1 = worldX / world.MapSize().x;
+            double y1 = worldY / world.MapSize().y;
+            double x2 = (worldX + maxXTiles) / world.MapSize().x;
+            double y2 = (worldY + maxYTiles) / world.MapSize().y;
 
             // If one of the sides would be off the side, just set it to the side
             if (x1 < 0) x1 = 0;
@@ -1193,34 +1143,24 @@ namespace Devious_Retention
         /// <summary>
         /// Renders the icon of the building that is currently being placed on the mouse cursor.
         /// Turns the building red if that building type would not be able to be placed there 
-        /// (or if the cursor is off of the game area).
+        /// (or does not draw it at all if the cursor is off the game area).
         /// Should not be called if placingBuilding is null.
         /// </summary>
         private void RenderPlacingBuilding(Graphics g)
         {
-            bool validPlacing = true;
-            // If it's not on the game area, it's invalid (the left, right, top and bottom of the new building must all be on the game area)
-            if (!GetArea(mouseX-placingBuilding.size*tileWidth/2, mouseY-placingBuilding.size*tileHeight/2).Equals("game area")
-                || !GetArea(mouseX + placingBuilding.size * tileWidth / 2, mouseY + placingBuilding.size * tileHeight / 2).Equals("game area"))
-                validPlacing = false;
-            double tileX = mouseX / tileWidth - placingBuilding.size/2 + worldX;
-            double tileY = mouseY / tileHeight - placingBuilding.size/2 + worldY;
-            // It's also invalid if it would be placed outside the map
-            if (tileX < 0 || tileY < 0 || tileX + placingBuilding.size > client.map.width || tileY + placingBuilding.size > client.map.height)
-                validPlacing = false;
-            // Otherwise, find collisions
-            else
-            {
-                List<Coordinate> collidingTiles = client.map.GetIncludedTiles(tileX, tileY, placingBuilding.size);
-                if (client.map.Collides(tileX, tileY, placingBuilding.size, client.entitiesBySquare, false) != null)
-                    validPlacing = false;
-            }
+            // If it's not on the game area, we don't draw it
+            if (!GetArea(mouseX, mouseY).Equals("game area")) return;
+
+            double tileX = mouseX / tileWidth - placingBuilding.size / 2 + worldX;
+            double tileY = mouseY / tileHeight - placingBuilding.size / 2 + worldY;
 
             // We want to draw it so that the mouse is in the middle
             Rectangle bounds = new Rectangle((int)(mouseX - placingBuilding.size * tileWidth / 2), (int)(mouseY - placingBuilding.size * tileHeight / 2),
                                              (int)(placingBuilding.size * tileWidth), (int)(placingBuilding.size * tileHeight));
             g.DrawImage(placingBuilding.image, bounds);
-            if (!validPlacing)
+
+            // Overlay it in red if it would be an invalid placement
+            if (!world.ValidBuildingPlacement(placingBuilding, tileX, tileY))
                 g.FillRectangle(new SolidBrush(Color.FromArgb((int)(255 * (1 - OVERLAY_STRENGTH)), Color.DarkRed)), bounds);
         }
 
@@ -1292,8 +1232,8 @@ namespace Devious_Retention
                     {
                         double x = (double)e.X / tileWidth - placingBuilding.size / 2 + worldX; // Shift it over as the middle of the building should be on the mouse
                         double y = (double)e.Y / tileWidth - placingBuilding.size / 2 + worldY;
-                        if (x < 0) x = 0; if (x + placingBuilding.size > client.map.width) x = client.map.width - placingBuilding.size;
-                        if (y < 0) y = 0; if (y + placingBuilding.size > client.map.height) y = client.map.height - placingBuilding.size;
+                        if (x < 0) x = 0; if (x + placingBuilding.size > world.MapSize().x) x = world.MapSize().x - placingBuilding.size;
+                        if (y < 0) y = 0; if (y + placingBuilding.size > world.MapSize().y) y = world.MapSize().y - placingBuilding.size;
                         client.CreateFoundation(placingBuilding, x, y);
                         if (!shiftKeyDown) placingBuilding = null; // Let the player place multiple buildings with the shift key being down
                     }
@@ -1320,7 +1260,7 @@ namespace Devious_Retention
                     // Otherwise treat it as a click
                     else
                     {
-                        Entity entity = GetEntityAt((double)e.X / tileWidth, (double)e.Y / tileHeight);
+                        Entity entity = world.GetEntityAt((double)e.X / tileWidth, (double)e.Y / tileHeight);
                         client.selected.Clear();
                         if (entity != null) client.selected.Add(entity);
                     }
@@ -1465,8 +1405,8 @@ namespace Devious_Retention
             double proportionY = minimapY / minimapSize;
 
             // The tile of the map we should therefore center on is..
-            worldX = client.map.width * proportionX - maxXTiles / 2;
-            worldY = client.map.height * proportionY - maxYTiles / 2;
+            worldX = world.MapSize().x * proportionX - maxXTiles / 2;
+            worldY = world.MapSize().y * proportionY - maxYTiles / 2;
         }
 
         /// <summary>

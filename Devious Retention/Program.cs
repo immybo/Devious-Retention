@@ -20,9 +20,6 @@ namespace Devious_Retention
         [STAThread]
         static void Main()
         {
-            
-            /*
-            
             GameInfo.ReadDefinitions();
             Unit.ResetNextID();
             Building.ResetNextID();
@@ -38,7 +35,7 @@ namespace Devious_Retention
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"));
             CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"));
             
-            GameClient client = new GameClient(1, 8, map, cts, null);
+            GameClient client = new GameClient(1, 8, new World(map), cts, null);
             GameServer server = new GameServer(new List<STCConnection> { stc }, map);
 
             stc.SetServer(server);
@@ -51,7 +48,6 @@ namespace Devious_Retention
             server.SpawnEntity(client.info.unitTypes["TestUnit"], 2, 3, 3);
 
             Application.Run(client.GetWindow());
-            */
         }
     }
 }

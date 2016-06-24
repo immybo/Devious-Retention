@@ -127,5 +127,10 @@ namespace Devious_Retention
             // Draw the border
             g.DrawRectangle(GameInfo.PLAYER_PENS[PlayerNumber], bounds);
         }
+
+        public override bool Attackable()
+        {
+            return true;
+        }
     }
 }

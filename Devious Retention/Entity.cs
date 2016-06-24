@@ -14,6 +14,8 @@ namespace Devious_Retention
     /// </summary>
     public abstract class Entity
     {
+        // TODO More polymorphism for entity. Most things split up into 3, shouldn't have to use instanceof.
+
         public const int HP_BAR_VERTICAL_OFFSET = 20; // how far up the HP bars are above entities' tops
         
         public EntityType Type { get; protected set; } // unfortunately, this means that we must have two properties for this
@@ -37,6 +39,11 @@ namespace Devious_Retention
         /// <param name="g">The graphics to draw the HP bar on</param>
         /// <param name="bounds">The bounds of the HP bar</param>
         public abstract void RenderHPBar(Graphics g, Rectangle bounds);
+
+        /// <summary>
+        /// Returns whether or not this entity may be attacked by an enemy.
+        /// </summary>
+        public abstract bool Attackable();
 
         /// <summary>
         /// Draws this entity.

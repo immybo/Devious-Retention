@@ -180,7 +180,7 @@ namespace Devious_Retention_Menu
             {
                 client = clients[connection];
             }
-            catch(KeyNotFoundException e)
+            catch(KeyNotFoundException)
             {
                 throw new ObjectDisposedException("Attempting to read from a connection that doesn't exist in a lobby host.");
             }

@@ -68,6 +68,7 @@ namespace Devious_Retention
         public int attackTicks { get; private set; }
         private int attackSpeedMilliseconds;
 
+        // TODO get rid of this, put GetAllBuildingsOfType method into world?
         public List<Building> buildings { get; set; }
 
         // Unused

@@ -17,6 +17,8 @@ namespace Devious_Retention
     {
         // TODO Music/sounds
 
+        private World world;
+
         public CTSConnection connection { get; set; }
         // Each player's GameInfo is changed over time due to technologies, factions, etc
         public List<GameInfo> definitions { get; private set; }
@@ -25,17 +27,8 @@ namespace Devious_Retention
         // Doesn't need to be stored on the server, this is just used to determine time passing between events
         private int currentTick;
 
-        // Entities are gotten from the server every tick
-        public Dictionary<int, Resource> resources { get; private set; }
-        public Dictionary<int, Unit> units { get; private set; }
-        public Dictionary<int, Building> buildings { get; private set; }
-        // Which entities are where; if at least part of an entity is on a square, it will be recorded in that square's list
-        public List<Entity>[,] entitiesBySquare { get; private set; }
-
         // TODO Possibly migrate selected to window
         public List<Entity> selected;
-
-        public Map map { get; private set; }
 
         private GameWindow window;
 
@@ -65,18 +58,14 @@ namespace Devious_Retention
         /// When a GameClient is created, it is assumed that entities will be
         /// sent from the CTSConnection before the first tick.
         /// </summary>
-        public GameClient(int playerNumber, int numberOfPlayers, Map map, CTSConnection connection, List<Faction> factions)
+        public GameClient(int playerNumber, int numberOfPlayers, World gameWorld, CTSConnection connection, List<Faction> factions)
         {
-            this.map = map;
             //this.faction = faction;
             this.connection = connection;
             this.playerNumber = playerNumber;
             playerColor = GameInfo.PLAYER_COLORS[playerNumber];
 
-            resources = new Dictionary<int, Resource>();
-            buildings = new Dictionary<int, Building>();
-            units = new Dictionary<int, Unit>();
-            entitiesBySquare = new List<Entity>[map.width, map.height];
+            this.world = gameWorld;
 
             selected = new List<Entity>();
 
@@ -99,7 +88,7 @@ namespace Devious_Retention
                 definitions.Add(new GameInfo());
             info = definitions[playerNumber];
             
-            window = new GameWindow(this);
+            window = new GameWindow(world, this);
 
             Timer windowRefreshTimer = new Timer();
             windowRefreshTimer.Interval = GameInfo.WINDOW_REFRESH_TIME;
@@ -126,24 +115,57 @@ namespace Devious_Retention
             // TODO Possibly migrate to window
 
             // If the right click is out of bounds, do nothing
-            if (x < 0 || y < 0 || x >= map.width || y >= map.height) return;
+            if (world.OutOfBounds(x, y)) return;
 
-            // If there's anything to attack on that square, check which one is under the cursor (if any)
-            if(entitiesBySquare[(int)x, (int)y] != null && entitiesBySquare[(int)x, (int)y].Count > 0)
+            // If there's an enemy there, attack it
+            Entity[] overlappingEntities = world.GetEntitiesIn(x, y, 0, 0);
+            Entity[] enemies = GetEnemies(overlappingEntities);
+            if(enemies.Length > 0)
             {
-                foreach(Entity e in entitiesBySquare[(int)x, (int)y])
-                {
-                    // If the entity is under the mouse, attack it (just attack the first one, don't do any decision making if there's more)
-                    // (also make sure it isn't a resource & isn't allied with the player)
-                    if(e.X + e.Type.size > x && e.Y + e.Type.size > y && e.X < x && e.Y < y && !(e is Resource) && !teammates.Contains(e.PlayerNumber))
-                    {
-                        AttackEntity(e);
-                        return;
-                    }
-                }
+                // Pick any random entity; no guarantee is made as to the order
+                AttackEntity(enemies[0]);
             }
+
             // Otherwise, move the units
-            MoveUnits(x, y);
+            else
+            {
+                MoveUnits(x, y);
+            }
+        }
+
+        // TODO have player and team classes, check if enemy in there
+        /// <summary>
+        /// Generates and returns an array of entities which claim that
+        /// they are enemies to this player, and  are contained within
+        /// the given array.
+        /// </summary>
+        private Entity[] GetEnemies(Entity[] entities)
+        {
+            List<Entity> enemies = new List<Entity>();
+            foreach (Entity entity in entities)
+                if (IsEnemy(entity))
+                    enemies.Add(entity);
+            return enemies.ToArray();
+        }
+
+        /// <summary>
+        /// Finds out and returns whether or not the given entity is
+        /// an enemy of this player.
+        /// </summary>
+        private bool IsEnemy(Entity entity)
+        {
+            return entity.Attackable() && !IsAllied(entity.PlayerNumber);
+        }
+
+        /// <summary>
+        /// Returns whether or not the given player number is an ally
+        /// to this player. Also returns true if the given player number
+        /// is equal to this player's player number.
+        /// </summary>
+        private bool IsAllied(int playerNumber)
+        {
+            // TODO teams
+            return this.playerNumber == playerNumber;
         }
 
         /// <summary>
@@ -151,6 +173,7 @@ namespace Devious_Retention
         /// </summary>
         public void MoveUnits(double x, double y)
         {
+            // TODO change to specify which units to move, rather than just using selected
             List<Unit> selectedUnits = new List<Unit>();
             foreach (Entity e in selected)
                 if (e is Unit)
@@ -159,13 +182,15 @@ namespace Devious_Retention
             // We can check here if it would go off the map
             foreach (Unit unit in selectedUnits)
             {
+                // TODO reachability, find path to nearest reachable tile
                 double adjustedX = x - unit.Type.size / 2;
                 double adjustedY = y - unit.Type.size / 2;
+
                 if (adjustedX < 0) adjustedX = 0;
                 if (adjustedY < 0) adjustedY = 0;
 
-                if (x + unit.Type.size >= map.width) adjustedX = map.width - unit.Type.size;
-                if (y + unit.Type.size >= map.height) adjustedY = map.height - unit.Type.size;
+                if (x + unit.Type.size/2 >= world.MapSize().x) adjustedX = world.MapSize().x - unit.Type.size/2;
+                if (y + unit.Type.size/2 >= world.MapSize().y) adjustedY = world.MapSize().y - unit.Type.size/2;
 
                 connection.RequestMove(unit, adjustedX, adjustedY);
             }
@@ -183,6 +208,7 @@ namespace Devious_Retention
         /// <param name="e"></param>
         public void AttackEntity(Entity entityToAttack)
         {
+            // TODO refactor attackentity to take origin entities as well
             // Figure out which of the selected entities belong to the player
             List<Entity> available = new List<Entity>();
             foreach (Entity e in selected)
@@ -297,7 +323,7 @@ namespace Devious_Retention
                 if (!definitions[playerNumber].unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
                 UnitType unitType = definitions[playerNumber].unitTypes[type];
                 Unit unit = new Unit(unitType, id, xPos, yPos, player);
-                units.Add(unit.ID, unit);
+                world.AddEntity(unit);
                 unitType.units.Add(unit);
                 if(player == playerNumber)
                     window.UpdateLOSAdd(unit);
@@ -313,8 +339,8 @@ namespace Devious_Retention
                 if (!definitions[playerNumber].buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
                 BuildingType buildingType = definitions[playerNumber].buildingTypes[type];
                 Building building = new Building(buildingType, id, xPos, yPos, player);
-                if(resources.ContainsKey(resourceID)) building.resource = resources[resourceID];
-                buildings.Add(building.ID, building);
+                if(world.ContainsResource(resourceID)) building.resource = world.GetResource(resourceID);
+                world.AddEntity(building);
                 buildingType.buildings.Add(building);
                 if (player == playerNumber)
                     window.UpdateLOSAdd(building);
@@ -330,60 +356,57 @@ namespace Devious_Retention
                 if (!definitions[playerNumber].resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
                 ResourceType resourceType = definitions[playerNumber].resourceTypes[type];
                 Resource resource = new Resource(resourceType, id, xPos, yPos);
-                resources.Add(resource.ID, resource);
+                world.AddEntity(resource);
                 entity = resource;
-            }
-
-            // Check which tiles it at least partially occupies
-            foreach (Coordinate c in map.GetIncludedTiles(entity))
-            {
-                if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { entity };
-                else entitiesBySquare[c.x, c.y].Add(entity);
             }
         }
 
         /// <summary>
         /// Removes an entity.
-        /// Does nothing if no entity of the given type and ID can be found.
+        /// Throws an exception if the entity can't be found.
         /// </summary>
         /// <param name="entityType">0=unit, 1=building, 2=resource</param>
         /// <param name="deletedEntityID">The ID of the entity to be deleted.</param>
         public void DeleteEntity(int entityType, int deletedEntityID)
         {
             Entity entity = null;
+
+            // TODO factor out using switch case for type of entity
             if (entityType == 0)
             {
-                if (!units.ContainsKey(deletedEntityID)) return; // If the unit doesn't exist, do nothing
-                entity = units[deletedEntityID];
-                units[deletedEntityID].unitType.units.Remove(units[deletedEntityID]); // And finally remove it from both collections it appears in (in the type and in the client)
-                units.Remove(deletedEntityID);
+                if (!world.ContainsUnit(deletedEntityID))
+                    throw new KeyNotFoundException("There exists no unit with ID " + deletedEntityID + ", but one was attempted to be deleted.");
+                Unit unit = world.GetUnit(deletedEntityID);
+                entity = unit;
+                unit.unitType.units.Remove(unit);
                 window.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
             }
             else if (entityType == 1)
             {
-                if (!buildings.ContainsKey(deletedEntityID)) return;
-                entity = buildings[deletedEntityID];
-                buildings[deletedEntityID].buildingType.buildings.Remove(buildings[deletedEntityID]);
-                buildings.Remove(deletedEntityID);
+                if (!world.ContainsBuilding(deletedEntityID))
+                    throw new KeyNotFoundException("There exists no building with ID " + deletedEntityID + ", but one was attempted to be deleted.");
+                Building building = world.GetBuilding(deletedEntityID);
+                entity = building;
+                building.buildingType.buildings.Remove(building);
                 window.UpdateLOSDelete(entity);
             }
             else if (entityType == 2)
             {
-                if (!resources.ContainsKey(deletedEntityID)) return;
-                entity = resources[deletedEntityID];
-                resources.Remove(deletedEntityID);
+                if (!world.ContainsResource(deletedEntityID))
+                    throw new KeyNotFoundException("There exists no resource with ID " + deletedEntityID + ", but one was attempted to be deleted.");
+                entity = world.GetResource(deletedEntityID);
             }
+
+            world.RemoveEntity(entity);
 
             // Remove it from the selected entities if it was in there
             if (selected.Contains(entity)) selected.Remove(entity);
-            // And from the lists of entities by tile
-            foreach (Coordinate c in map.GetIncludedTiles(entity))
-                entitiesBySquare[c.x, c.y].Remove(entity);
         }
 
         /// <summary>
         /// Changes one property of an entity, e.g. its position,
         /// hitpoints, built status..
+        /// If that unit isn't found, throws an exception.
         /// </summary>
         /// <param name="entityType">0=unit, 1=building, 2=resource</param>
         /// <param name="entityID">The ID of the entity to be changed. Nothing will happen if no entity with this ID exists.</param>
@@ -393,8 +416,9 @@ namespace Devious_Retention
         {
             if (entityType == 0)
             {
-                if (!units.ContainsKey(entityID)) return;
-                Unit unit = units[entityID];
+                if (!world.ContainsUnit(entityID))
+                    throw new KeyNotFoundException("There exists no unit with ID " + entityID + ", but the property of one was attempted to be changed.");
+                Unit unit = world.GetUnit(entityID);
 
                 if (propertyID == 0) unit.hitpoints += (int)change;
                 else if (propertyID == 1)
@@ -415,8 +439,9 @@ namespace Devious_Retention
             }
             else if (entityType == 1)
             {
-                if (!buildings.ContainsKey(entityID)) return;
-                Building building = buildings[entityID];
+                if (!world.ContainsBuilding(entityID))
+                    throw new KeyNotFoundException("There exists no building with ID " + entityID + ", but the property of one was attempted to be changed.");
+                Building building = world.GetBuilding(entityID);
 
                 if (propertyID == 0) building.hitpoints += (int)change;
                 else if (propertyID == 1)
@@ -427,8 +452,9 @@ namespace Devious_Retention
             }
             else if (entityType == 2)
             {
-                if (!resources.ContainsKey(entityID)) return;
-                Resource resource = resources[entityID];
+                if (!world.ContainsResource(entityID))
+                    throw new KeyNotFoundException("There exists no resource with ID " + entityID + ", but the property of one was attempted to be changed.");
+                Resource resource = world.GetResource(entityID);
 
                 if (propertyID == 0) resource.amount += change;
             }
@@ -452,8 +478,8 @@ namespace Devious_Retention
         public void AnimateAttack(bool started, int attackerType, int attackerId, int defenderType, int defenderId)
         {
             // First, find the actual entities
-            Entity attacker = attackerType == 0 ? (Entity)units[attackerId] : (Entity)buildings[attackerId];
-            Entity defender = started ? defenderType == 0 ? (Entity)units[defenderId] : (Entity)buildings[defenderId] : null;
+            Entity attacker = attackerType == 0 ? (Entity)world.GetUnit(attackerId) : (Entity)world.GetBuilding(attackerId);
+            Entity defender = started ? defenderType == 0 ? (Entity)world.GetUnit(defenderId) : (Entity)world.GetBuilding(defenderId) : null;
 
             // If we're starting it, add the attacker to the list of attackers and the defender correspondingly
             if (started)
@@ -517,7 +543,7 @@ namespace Devious_Retention
         /// </summary>
         private void TickResourceGathering()
         {
-            foreach(Building b in buildings.Values)
+            foreach(Building b in world.GetBuildings())
             {
                 // Only tick if it is going to provide a resource
                 if(b.buildingType.providesResource)

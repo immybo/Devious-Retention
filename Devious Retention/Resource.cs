@@ -72,5 +72,10 @@ namespace Devious_Retention
         {
             return; // not applicable
         }
+
+        public override bool Attackable()
+        {
+            return false;
+        }
     }
 }

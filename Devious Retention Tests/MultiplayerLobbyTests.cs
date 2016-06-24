@@ -47,7 +47,7 @@ namespace Devious_Retention_Tests
             try {
                 Assert.AreEqual("0 1 test Red testfaction\n", clients[0].ToString());
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 Assert.Fail("Output was " + clients[0].ToString() + ". Expected 0 1 text Red testfaction\n.");
             }

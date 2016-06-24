@@ -73,6 +73,7 @@
     <Compile Include="Technology.cs" />
     <Compile Include="Unit.cs" />
     <Compile Include="UnitType.cs" />
+    <Compile Include="World.cs" />
     <EmbeddedResource Include="GameWindow.resx">
       <DependentUpon>GameWindow.cs</DependentUpon>
     </EmbeddedResource>
