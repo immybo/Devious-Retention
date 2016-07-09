@@ -18,11 +18,14 @@ namespace Devious_Retention
         // TODO Music/sounds
 
         private World world;
+        
+        private LocalPlayer player;
+        private Player[] players;
 
         public CTSConnection connection { get; set; }
         // Each player's GameInfo is changed over time due to technologies, factions, etc
         public List<GameInfo> definitions { get; private set; }
-        public GameInfo info { get; private set; } // This client's GameInfo (= definitions[playerNumber])
+        public GameInfo info { get { return GetLocalDefinitions(); } private set { } } // This client's GameInfo (= definitions[playerNumber])
 
         // Doesn't need to be stored on the server, this is just used to determine time passing between events
         private int currentTick;
@@ -32,14 +35,6 @@ namespace Devious_Retention
 
         private GameWindow window;
 
-        // This should be unique within a given game
-        public int playerNumber { get; private set; }
-        public Color playerColor { get; private set; }
-
-        // How many of each resource the player currently has
-        // Resources are handled entirely client-side
-        // metal, oil, energy, science
-        public double[] currentResources { get; private set; }
 
         // Entities which are currently attacking anything, for the purposes of animation and projectiles
         public List<Unit> attackingUnits { get; private set; }
@@ -48,31 +43,20 @@ namespace Devious_Retention
         // Whether the building panel or the technology panel is open
         public bool buildingPanelOpen { get; private set; }
 
-        // The faction this player belongs to
-        private Faction faction;
-
-        // The player numbers of players in this player's team
-        private List<int> teammates;
         
         /// <summary>
         /// When a GameClient is created, it is assumed that entities will be
         /// sent from the CTSConnection before the first tick.
         /// </summary>
-        public GameClient(int playerNumber, int numberOfPlayers, World gameWorld, CTSConnection connection, List<Faction> factions)
+        public GameClient(LocalPlayer player, Player[] players, World world, CTSConnection connection, List<Faction> factions)
         {
-            //this.faction = faction;
             this.connection = connection;
-            this.playerNumber = playerNumber;
-            playerColor = GameInfo.PLAYER_COLORS[playerNumber];
-
-            this.world = gameWorld;
+            this.world = world;
+            this.player = player;
+            this.players = players;
 
             selected = new List<Entity>();
-
-            currentResources = new double[GameInfo.RESOURCE_TYPES];
             currentTick = 0;
-
-            teammates = new List<int> { playerNumber };
 
             buildingPanelOpen = true;
 
@@ -84,19 +68,18 @@ namespace Devious_Retention
             attackingBuildings = new List<Building>();
 
             definitions = new List<GameInfo>();
-            for (int i = 0; i < numberOfPlayers; i++)
-                definitions.Add(new GameInfo());
-            info = definitions[playerNumber];
             
-            window = new GameWindow(world, this);
+            window = new GameWindow(world, player, this);
 
             Timer windowRefreshTimer = new Timer();
             windowRefreshTimer.Interval = GameInfo.WINDOW_REFRESH_TIME;
             windowRefreshTimer.Tick += new EventHandler(WindowRefreshTimerHandler);
             windowRefreshTimer.Start();
+        }
 
-            for (int i = 0; i < currentResources.Length; i++)
-                currentResources[i] += 1000;
+        public GameInfo GetLocalDefinitions()
+        {
+            return player.GetDefinitions();
         }
         
         /// <returns>The main window of the game.</returns>
@@ -119,7 +102,7 @@ namespace Devious_Retention
 
             // If there's an enemy there, attack it
             Entity[] overlappingEntities = world.GetEntitiesIn(x, y, 0, 0);
-            Entity[] enemies = GetEnemies(overlappingEntities);
+            Entity[] enemies = player.GetEnemies(overlappingEntities);
             if(enemies.Length > 0)
             {
                 // Pick any random entity; no guarantee is made as to the order
@@ -133,41 +116,6 @@ namespace Devious_Retention
             }
         }
 
-        // TODO have player and team classes, check if enemy in there
-        /// <summary>
-        /// Generates and returns an array of entities which claim that
-        /// they are enemies to this player, and  are contained within
-        /// the given array.
-        /// </summary>
-        private Entity[] GetEnemies(Entity[] entities)
-        {
-            List<Entity> enemies = new List<Entity>();
-            foreach (Entity entity in entities)
-                if (IsEnemy(entity))
-                    enemies.Add(entity);
-            return enemies.ToArray();
-        }
-
-        /// <summary>
-        /// Finds out and returns whether or not the given entity is
-        /// an enemy of this player.
-        /// </summary>
-        private bool IsEnemy(Entity entity)
-        {
-            return entity.Attackable() && !IsAllied(entity.PlayerNumber);
-        }
-
-        /// <summary>
-        /// Returns whether or not the given player number is an ally
-        /// to this player. Also returns true if the given player number
-        /// is equal to this player's player number.
-        /// </summary>
-        private bool IsAllied(int playerNumber)
-        {
-            // TODO teams
-            return this.playerNumber == playerNumber;
-        }
-
         /// <summary>
         /// Asks the server to move selected units to (x,y)
         /// </summary>
@@ -176,7 +124,7 @@ namespace Devious_Retention
             // TODO change to specify which units to move, rather than just using selected
             List<Unit> selectedUnits = new List<Unit>();
             foreach (Entity e in selected)
-                if (e is Unit)
+                if (e is Unit && player.Owns(e))
                     selectedUnits.Add((Unit)e);
             
             // We can check here if it would go off the map
@@ -212,7 +160,7 @@ namespace Devious_Retention
             // Figure out which of the selected entities belong to the player
             List<Entity> available = new List<Entity>();
             foreach (Entity e in selected)
-                if (e.PlayerNumber == playerNumber)
+                if (player.Owns(e))
                     available.Add(e);
 
             connection.RequestAttack(available, entityToAttack);
@@ -228,10 +176,8 @@ namespace Devious_Retention
         /// </summary>
         public bool CreateFoundation(BuildingType building, double x, double y)
         {
-            for (int i = 0; i < currentResources.Length; i++)
-                if (currentResources[i] < building.resourceCosts[i])
-                    return false;
-
+            if (!player.CanAfford(building.resourceCosts))
+                return false;
             connection.RequestBuilding(building, x, y);
             return true;
         }
@@ -247,10 +193,8 @@ namespace Devious_Retention
         public bool CreateUnit(Building sourceBuilding, UnitType unit)
         {
             if (!sourceBuilding.buildingType.trainableUnits.Contains(unit.name)) return false;
-            // And that we have enough resources
-            for (int i = 0; i < currentResources.Length; i++)
-                if (currentResources[i] < unit.resourceCosts[i])
-                    return false;
+            if (!player.CanAfford(unit.resourceCosts))
+                return false;
 
             connection.RequestUnit(sourceBuilding, unit);
             return true;
@@ -272,13 +216,11 @@ namespace Devious_Retention
                 if (info.technologies[s].researched)
                     return false;
             // And enough resources
-            for(int i = 0; i < currentResources.Length; i++)
-                if (currentResources[i] < technology.resourceCosts[i])
-                    return false;
+            if (!player.CanAfford(technology.resourceCosts))
+                return false;
 
             // Otherwise remove the resources and tell the server
-            for (int i = 0; i < currentResources.Length; i++)
-                currentResources[i] -= technology.resourceCosts[i];
+            player.PayResources(technology.resourceCosts);
             connection.RequestTechnology(technology);
 
             return true;
@@ -296,7 +238,7 @@ namespace Devious_Retention
             // Otherwise scroll through all the entities that are selected and find one that fits the criteria
             foreach(Entity e in selected)
             {
-                if ((e is Unit || e is Building) && e.PlayerNumber == playerNumber)
+                if (player.Owns(e))
                 {
                     connection.RequestDelete(e);
                     return;
@@ -313,51 +255,51 @@ namespace Devious_Retention
         /// <param name="type">The name of the type of entity to be created.</param>
         /// <param name="xPos">The initial x position of the new entity.</param>
         /// <param name="yPos">The initial y position of the new entity.</param>
-        /// <param name="player">The player that the entity belongs to. Irrelevant if a resource.</param>
+        /// <param name="playerNumber">The player that the entity belongs to. Irrelevant if a resource.</param>
         /// <param name="resource">The resource which the entity is built on, only relevant if it's a building.</param>
-        public void AddEntity(bool isFree, int entityType, int id, string type, double xPos, double yPos, int player, int resourceID)
+        public void AddEntity(bool isFree, int entityType, int id, string type, double xPos, double yPos, int playerNumber, int resourceID)
         {
-            Entity entity = null;
+            // TODO revamp definitions system so there's a central list of all definitions with a boolean attached for each player and a list of modifiers
             if(entityType == 0)
             {
-                if (!definitions[playerNumber].unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
-                UnitType unitType = definitions[playerNumber].unitTypes[type];
-                Unit unit = new Unit(unitType, id, xPos, yPos, player);
+                if (!players[playerNumber].GetDefinitions().unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
+                UnitType unitType = players[playerNumber].GetDefinitions().unitTypes[type];
+                Unit unit = new Unit(unitType, id, xPos, yPos, playerNumber);
                 world.AddEntity(unit);
                 unitType.units.Add(unit);
-                if(player == playerNumber)
-                    window.UpdateLOSAdd(unit);
-                entity = unit;
 
                 // If the unit belongs to the player, remove the resources as well
-                if (unit.PlayerNumber == playerNumber && !isFree)
-                    for (int i = 0; i < currentResources.Length; i++)
-                        currentResources[i] -= unit.unitType.resourceCosts[i];
+                // TODO remove from add entity
+                if(player.Owns(unit))
+                {
+                    window.UpdateLOSAdd(unit);
+                    if(!isFree)
+                        player.PayResources(unit.unitType.resourceCosts);
+                }
             }
             else if(entityType == 1)
             {
-                if (!definitions[playerNumber].buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
-                BuildingType buildingType = definitions[playerNumber].buildingTypes[type];
-                Building building = new Building(buildingType, id, xPos, yPos, player);
+                if (!players[playerNumber].GetDefinitions().buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
+                BuildingType buildingType = players[playerNumber].GetDefinitions().buildingTypes[type];
+                Building building = new Building(buildingType, id, xPos, yPos, playerNumber);
                 if(world.ContainsResource(resourceID)) building.resource = world.GetResource(resourceID);
                 world.AddEntity(building);
                 buildingType.buildings.Add(building);
-                if (player == playerNumber)
-                    window.UpdateLOSAdd(building);
-                entity = building;
 
                 // If the building belongs to the player, remove the resources as well
-                if (building.PlayerNumber == playerNumber && !isFree)
-                    for (int i = 0; i < currentResources.Length; i++)
-                        currentResources[i] -= building.buildingType.resourceCosts[i];
+                if (player.Owns(building))
+                {
+                    window.UpdateLOSAdd(building);
+                    if (!isFree)
+                        player.PayResources(building.buildingType.resourceCosts);
+                }
             }
             else if(entityType == 2)
             {
-                if (!definitions[playerNumber].resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
-                ResourceType resourceType = definitions[playerNumber].resourceTypes[type];
+                if (!players[playerNumber].GetDefinitions().resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
+                ResourceType resourceType = players[playerNumber].GetDefinitions().resourceTypes[type];
                 Resource resource = new Resource(resourceType, id, xPos, yPos);
                 world.AddEntity(resource);
-                entity = resource;
             }
         }
 
@@ -424,7 +366,7 @@ namespace Devious_Retention
                 else if (propertyID == 1)
                 {
                     unit.ChangePosition(change, change2);
-                    if (unit.PlayerNumber == playerNumber) window.UpdateLOSMove(unit, change, change2);
+                    if (player.Owns(unit)) window.UpdateLOSMove(unit, change, change2);
                 }
                 else if (propertyID == 2)
                 {
@@ -465,10 +407,10 @@ namespace Devious_Retention
         /// </summary>
         public void SetTechnologyResearched(int playerNumber, string technologyName)
         {
-            if (!definitions[playerNumber].technologies.ContainsKey(technologyName)) return;
-            Technology technology = definitions[playerNumber].technologies[technologyName];
+            if (!players[playerNumber].GetDefinitions().technologies.ContainsKey(technologyName)) return;
+            Technology technology = players[playerNumber].GetDefinitions().technologies[technologyName];
             technology.researched = true;
-            technology.ApplyEffects(definitions[playerNumber]);
+            technology.ApplyEffects(players[playerNumber].GetDefinitions());
         }
 
         /// <summary>
@@ -548,7 +490,7 @@ namespace Devious_Retention
                 // Only tick if it is going to provide a resource
                 if(b.buildingType.providesResource)
                 {
-                    currentResources[b.buildingType.resourceType] += b.buildingType.gatherSpeed;
+                    player.AddResource(b.buildingType.resourceType, b.buildingType.gatherSpeed);
                 }
                 else if(b.buildingType.canBeBuiltOnResource && b.resource != null)
                 {
@@ -560,7 +502,7 @@ namespace Devious_Retention
                         else
                             amount = b.resource.amount;
 
-                        currentResources[b.buildingType.builtOnResourceType] += amount;
+                        player.AddResource(b.buildingType.builtOnResourceType, amount);
 
                         connection.InformResourceGather(amount, b.resource);
                     }

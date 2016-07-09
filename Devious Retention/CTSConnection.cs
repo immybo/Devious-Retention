@@ -25,14 +25,17 @@ namespace Devious_Retention
         private Socket incomingSocket;
         private GameClient client;
 
+        private Player player;
+
         public CTSConnection(IPAddress ip)
         {
             this.ip = ip;
         }
 
-        public void SetClient(GameClient client)
+        public void SetClient(GameClient client, Player player)
         {
             this.client = client;
+            this.player = player;
             Listen();
         }
 
@@ -232,7 +235,8 @@ namespace Devious_Retention
         /// </summary>
         public void RequestBuilding(BuildingType building, double x, double y)
         {
-            outgoingWriter.WriteLine("0 " + building.name + " " + x + " " + y + " " + client.playerNumber);
+            // TODO can we just store the player number on the server
+            outgoingWriter.WriteLine("0 " + building.name + " " + x + " " + y + " " + player.GetPlayerNumber());
         }
 
         /// <summary>
@@ -254,7 +258,7 @@ namespace Devious_Retention
         /// </summary>
         public void RequestTechnology(Technology technology)
         {
-            outgoingWriter.WriteLine("2 " + technology.name + " " + client.playerNumber);
+            outgoingWriter.WriteLine("2 " + technology.name + " " + player.GetPlayerNumber());
         }
 
         /// <summary>

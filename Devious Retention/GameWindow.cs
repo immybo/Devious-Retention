@@ -16,6 +16,7 @@ namespace Devious_Retention
     {
         // TODO Better graphics/sprites.
         private World world;
+        private LocalPlayer player;
 
         private GameClient client; // TODO remove client from gamewindow
 
@@ -111,10 +112,11 @@ namespace Devious_Retention
         private Image resourceAreaBorderTop;
         private Image rightAreaBorderLeft;
 
-        public GameWindow(World world, GameClient client)
+        public GameWindow(World world, LocalPlayer player, GameClient client)
         {
             this.world = world;
             this.client = client;
+            this.player = player;
 
             InitializeComponent();
             LoadLOS();
@@ -179,11 +181,11 @@ namespace Devious_Retention
             // 1. Select all of the player's units within the area
             if(units.Count != 0)
                 foreach (Unit u in units)
-                    if (u.PlayerNumber == client.playerNumber) entitiesToAdd.Add(u);
+                    if (player.Owns(u)) entitiesToAdd.Add(u);
             // 2. Select all of the player's buildings within the area
             if (entitiesToAdd.Count == 0 && buildings.Count != 0)
                 foreach (Building b in buildings)
-                    if (b.PlayerNumber == client.playerNumber) entitiesToAdd.Add(b);
+                    if (player.Owns(b)) entitiesToAdd.Add(b);
             // 3. Select all other players' units within the area
             if (entitiesToAdd.Count == 0 && units.Count != 0)
                 foreach (Unit u in units)
@@ -276,7 +278,7 @@ namespace Devious_Retention
         /// </summary>
         public void UpdateLOSMove(Unit unit, double dX, double dY)
         {
-            if (unit.PlayerNumber != client.playerNumber) return;
+            if (!player.Owns(unit)) return;
 
             // The new LOS of the unit
             List<Coordinate> newTiles = new List<Coordinate>();
@@ -349,7 +351,7 @@ namespace Devious_Retention
         public void UpdateLOSDelete(Entity entity)
         {
             if (entity is Resource) return;
-            if (entity.PlayerNumber != client.playerNumber) return;
+            if (!player.Owns(entity)) return;
 
             int entityLOS = entity.Type.lineOfSight;
             int entityX = (int)(entity.X + entity.Type.size / 2);
@@ -379,11 +381,11 @@ namespace Devious_Retention
             // Stop if we find one that is
             HashSet<Entity> entities = new HashSet<Entity>();
             foreach (Unit u in world.GetUnits())
-                if (u.PlayerNumber == client.playerNumber)
+                if (player.Owns(u))
                     entities.Add(u);
                     
             foreach (Building b in world.GetBuildings())
-                if (b.PlayerNumber == client.playerNumber)
+                if (player.Owns(b))
                     entities.Add(b);
 
             foreach(Entity e in entities)
@@ -406,10 +408,10 @@ namespace Devious_Retention
 
             List<Entity> entities = new List<Entity>();
             foreach (Unit u in world.GetUnits())
-                if (u.PlayerNumber == client.playerNumber)
+                if (player.Owns(u))
                     entities.Add(u);
             foreach (Building b in world.GetBuildings())
-                if (b.PlayerNumber == client.playerNumber)
+                if (player.Owns(b))
                     entities.Add(b);
 
             foreach(Entity e in entities)
@@ -596,7 +598,7 @@ namespace Devious_Retention
                 Point textPoint = new Point(imageBounds.X + resourceIconWidth + resourcePadding, bounds.Y);
 
                 g.DrawImage(resourceImages[i], imageBounds);
-                g.DrawString((int)client.currentResources[i] + "", font, Brushes.Black, textPoint);
+                g.DrawString((int)player.GetResource(i) + "", font, Brushes.Black, textPoint);
             }
 
             // Draw the border
@@ -634,7 +636,7 @@ namespace Devious_Retention
                 // Do nothing if we don't have line of sight there
                 if (!LOS[(int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2)]) continue;
                 // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
-                tileImage.SetPixel((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2), GameInfo.PLAYER_COLORS[e.PlayerNumber]);
+                tileImage.SetPixel((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2), GameInfo.PLAYER_COLORS[e.PlayerNumber]); // TODO use actual player color not gotten from gameinfo
             }
 
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp
