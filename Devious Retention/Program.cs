@@ -24,12 +24,8 @@ namespace Devious_Retention
             Unit.ResetNextID();
             Building.ResetNextID();
             Resource.ResetNextID();
-
-            // CREATE MAP, WINDOW AND CLIENT
-            List<Tile> tileTypes = new List<Tile>();
-            foreach (Tile t in GameInfo.tiles.Values)
-                tileTypes.Add(t);
-            Map map = Map.GenerateMap(tileTypes, 20, 20, 2);
+            
+            Map map = Map.GenerateMap(Map.GetMapType("Rocky Plains"), 20, 20, 2);
 
             // CREATE CONNECTIONS
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"));

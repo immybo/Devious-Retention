@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Devious_Retention
 {
@@ -13,10 +14,15 @@ namespace Devious_Retention
     /// </summary>
     public class Map
     {
+        private static readonly Dictionary<string, string> mapTypes = new Dictionary<string, string>()
+        {
+            { "Rocky Plains", "RockyPlains" }
+        };
+
         public int width { get; private set; }
         public int height { get; private set; }
         public int[,] tiles { get; private set; }
-        private List<Tile> possibleTiles;
+        private Tile[] possibleTiles;
         public List<Coordinate> startingPositions { get; private set; }
 
         /// <summary>
@@ -24,14 +30,14 @@ namespace Devious_Retention
         /// provided in order. Then, the actual tiles on the map are given
         /// as integers; indices in the list of possible tiles.
         /// </summary>
-        public Map(List<Tile> possibleTiles, int[,] tiles, int width, int height, List<Coordinate> startingPositions)
+        public Map(Tile[] possibleTiles, int[,] tiles, int width, int height, List<Coordinate> startingPositions)
         {
             this.possibleTiles = possibleTiles;
             this.tiles = tiles;
             this.width = width;
             this.height = height;
             this.startingPositions = startingPositions;
-        } 
+        }
 
         /// <summary>
         /// Returns the type of tile at the specified coordinate.
@@ -95,24 +101,13 @@ namespace Devious_Retention
         /// Generates and returns a map with the specified width,
         /// height, number of players (for generating starting 
         /// coordinates) and list of possible tiles.
+        /// 
+        /// The map type describes which style of map will be 
+        /// generated. 
         /// </summary>
-        public static Map GenerateMap(List<Tile> possibleTiles, int width, int height, int numPlayers)
+        public static Map GenerateMap(IMapType mapType, int width, int height, int numPlayers)
         {
-            // TODO Good map generation
             int[,] tiles = new int[height, width];
-            Random random = new Random();
-            
-            for(int i = 0; i < height; i++)
-            {
-                for(int j = 0; j < width; j++)
-                {
-                    // Just generate it randomly from now
-                    if (random.Next(10) >= 9)
-                        tiles[i,j] = possibleTiles.Count - 1;
-                    else
-                        tiles[i,j] = 0;
-                }
-            }
 
             // We want starting positions to be out from the center, and evenly spaced
             List<Coordinate> startingPositions = new List<Coordinate>();
@@ -126,7 +121,31 @@ namespace Devious_Retention
                 startingPositions.Add(new Coordinate((int)(center.x + Math.Sin(angle) * distances.x), (int)(center.y - Math.Cos(angle) * distances.y)));
             }
 
-            return new Map(possibleTiles, tiles, width, height, startingPositions);
+            Map map = new Map(mapType.GetPossibleTiles(), tiles, width, height, startingPositions);
+            mapType.PopulateMap(map);
+            return map;
+        }
+
+        public static IMapType GetMapType(string name)
+        {
+            if (!mapTypes.ContainsKey(name))
+                throw new ArgumentException("There is no map type with the name " + name);
+
+            // We don't really have to use reflection here, but it's pretty cool to do so
+            Console.WriteLine(typeof(MapTypes.RockyPlains).ToString());
+            Type mapTypeType = Type.GetType("Devious_Retention.MapTypes."+mapTypes[name]);
+            return (IMapType)Activator.CreateInstance(mapTypeType);
+        }
+
+        public static string[] GetPossibleMapTypes()
+        {
+            return (string[])mapTypes.Keys.ToArray().Clone();
+        }
+
+        public interface IMapType
+        {
+            void PopulateMap(Map initialMap);
+            Tile[] GetPossibleTiles();
         }
     }
 
