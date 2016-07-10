@@ -20,11 +20,11 @@ namespace Devious_Retention
         
         public EntityType Type { get; protected set; } // unfortunately, this means that we must have two properties for this
         // in each entity, as apparently returning a type that implements EntityType isn't good enough......
-
+        // TODO private set and use a constructor for Entity
         public double X { get; protected set; }
         public double Y { get; protected set; }
         
-        public int PlayerNumber { get; protected set; }
+        public Player Player { get; protected set; }
         public int ID { get; protected set; }
 
         /// <summary>

@@ -52,14 +52,14 @@ namespace Devious_Retention
         /// A unit will get all of its attributes from
         /// a UnitType. Its position must also be given.
         /// </summary>
-        public Unit(UnitType type, int id, double x, double y, int player)
+        public Unit(UnitType type, int id, double x, double y, Player player)
         {
             this.unitType = type;
             this.Type = type;
             this.ID = id;
             this.X = x;
             this.Y = y;
-            this.PlayerNumber = player;
+            this.Player = player;
 
             direction = 0;
             xToMove = -1;
@@ -125,7 +125,7 @@ namespace Devious_Retention
             g.DrawRectangle(Pens.Black, bounds);
 
             // Draw the border
-            g.DrawRectangle(GameInfo.PLAYER_PENS[PlayerNumber], bounds);
+            g.DrawRectangle(Player.GetPen(), bounds);
         }
 
         public override bool Attackable()

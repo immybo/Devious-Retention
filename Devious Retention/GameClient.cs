@@ -106,7 +106,7 @@ namespace Devious_Retention
             if(enemies.Length > 0)
             {
                 // Pick any random entity; no guarantee is made as to the order
-                AttackEntity(enemies[0]);
+                AttackEntity(selected.ToArray(), enemies[0]);
             }
 
             // Otherwise, move the units
@@ -145,17 +145,13 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Tells the server to attack the given entity with all available
-        /// selected entities.
-        /// Assumes that the given entity
-        /// - Isn't a resource
-        /// - Isn't allied with the player
-        /// Does, however, check which of the selected entities are available
-        /// to attack the entity.
+        /// Tells the server to attack the given entity with the given entities.
+        /// Entities which can't attack won't.
         /// </summary>
         /// <param name="e"></param>
-        public void AttackEntity(Entity entityToAttack)
+        public void AttackEntity(Entity[] attackers, Entity entityToAttack)
         {
+            Entity[] enemies = entityToAttack.Player.GetEnemies(attackers);
             // TODO refactor attackentity to take origin entities as well
             // Figure out which of the selected entities belong to the player
             List<Entity> available = new List<Entity>();
@@ -264,7 +260,7 @@ namespace Devious_Retention
             {
                 if (!players[playerNumber].GetDefinitions().unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
                 UnitType unitType = players[playerNumber].GetDefinitions().unitTypes[type];
-                Unit unit = new Unit(unitType, id, xPos, yPos, playerNumber);
+                Unit unit = new Unit(unitType, id, xPos, yPos, players[playerNumber]);
                 world.AddEntity(unit);
                 unitType.units.Add(unit);
 
@@ -281,7 +277,7 @@ namespace Devious_Retention
             {
                 if (!players[playerNumber].GetDefinitions().buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
                 BuildingType buildingType = players[playerNumber].GetDefinitions().buildingTypes[type];
-                Building building = new Building(buildingType, id, xPos, yPos, playerNumber);
+                Building building = new Building(buildingType, id, xPos, yPos, players[playerNumber]);
                 if(world.ContainsResource(resourceID)) building.resource = world.GetResource(resourceID);
                 world.AddEntity(building);
                 buildingType.buildings.Add(building);

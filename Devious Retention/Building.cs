@@ -55,14 +55,14 @@ namespace Devious_Retention
         /// A building will get most of its initial attributes from a BuildingType.
         /// Its position must also be given.
         /// </summary>
-        public Building(BuildingType type, int id, double x, double y, int player)
+        public Building(BuildingType type, int id, double x, double y, Player player)
         {
             this.buildingType = type;
             this.Type = type;
             this.ID = id;
             this.X = x;
             this.Y = y;
-            this.PlayerNumber = player;
+            this.Player = player;
 
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
@@ -155,7 +155,7 @@ namespace Devious_Retention
             g.DrawRectangle(Pens.Black, bounds);
 
             // Draw the border
-            g.DrawRectangle(GameInfo.PLAYER_PENS[PlayerNumber], bounds);
+            g.DrawRectangle(Player.GetPen(), bounds);
         }
 
         public override bool Attackable()

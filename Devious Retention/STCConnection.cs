@@ -239,7 +239,7 @@ namespace Devious_Retention
             if (entity is Unit) { entityType = 0; typeName = ((Unit)entity).unitType.name; }
             else if (entity is Building) { entityType = 1; typeName = ((Building)entity).buildingType.name; resourceID = ((Building)entity).resource == null ? -1 : ((Building)entity).resource.ID; }
             else if (entity is Resource) { entityType = 2; typeName = ((Resource)entity).resourceType.name; }
-            outgoingWriter.WriteLine("0 " + isFree + " " + entityType + " " + typeName + " " + entity.ID + " " + entity.X + " " + entity.Y + " " + entity.PlayerNumber + " " + resourceID);
+            outgoingWriter.WriteLine("0 " + isFree + " " + entityType + " " + typeName + " " + entity.ID + " " + entity.X + " " + entity.Y + " " + entity.Player.GetPlayerNumber() + " " + resourceID);
         }
 
         /// <summary>

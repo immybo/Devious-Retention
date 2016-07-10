@@ -39,13 +39,15 @@ namespace Devious_Retention
         private List<Unit> attackingUnits;
         private List<Building> attackingBuildings;
 
+        private Player[] players;
+
         /// <summary>
         /// To create a GameServer, all clients (STCConnections) must be provided.
        ///  Note that the GameServer treats every
         /// game as multiplayer, and so computer controlled players will merely
         /// spoof having a connection.
         /// </summary>
-        public GameServer(List<STCConnection> connections, Map map)
+        public GameServer(List<STCConnection> connections, int[] aiNumbers, Map map)
         {
             if (connections != null)
                 this.connections = connections;
@@ -53,6 +55,21 @@ namespace Devious_Retention
                 this.connections = new List<STCConnection>();
 
             this.map = map;
+
+            // Init players and relations
+            players = new Player[connections.Count + aiNumbers.Length];
+
+            Player.Relation[] defaultRelations = new Player.Relation[players.Length];
+            for(int i = 0; i < defaultRelations.Length; i++)
+            {
+                defaultRelations[i] = Player.Relation.ENEMY;
+            }
+
+            for(int i = 0; i < players.Length; i++)
+            {
+                players[i] = new Player(Player.DefaultRelations(i, players.Length), i, GameInfo.PLAYER_COLORS[i],
+                                        null, new GameInfo());
+            }
 
             info = new GameInfo();
 
@@ -102,7 +119,7 @@ namespace Devious_Retention
             if (!info.buildingTypes.ContainsKey(buildingTypeName)) return;
             BuildingType buildingType = info.buildingTypes[buildingTypeName];
 
-            Building building = new Building(buildingType, Building.nextID, x, y, player);
+            Building building = new Building(buildingType, Building.nextID, x, y, players[player]);
             Building.IncrementNextID();
             // Make sure that the building doesn't collide with any other entities
             if (map.Collides(building.X, building.Y, buildingType.size, entitiesBySquare, false) == null) return;
@@ -170,7 +187,7 @@ namespace Devious_Retention
             if (placeX == -1)
                 return;
             // Now place it
-            Unit unit = new Unit(type, Unit.nextID, placeX, placeY, building.PlayerNumber);
+            Unit unit = new Unit(type, Unit.nextID, placeX, placeY, building.Player);
             Unit.IncrementNextID();
 
             foreach (STCConnection c in connections)
@@ -191,13 +208,13 @@ namespace Devious_Retention
 
             if (type is UnitType)
             {
-                entity = new Unit((UnitType)type, Unit.nextID, x, y, player);
+                entity = new Unit((UnitType)type, Unit.nextID, x, y, players[player]);
                 Unit.IncrementNextID();
                 units.Add(entity.ID, (Unit)entity);
             }
             else if(type is BuildingType)
             {
-                entity = new Building((BuildingType)type, Building.nextID, x, y, player);
+                entity = new Building((BuildingType)type, Building.nextID, x, y, players[player]);
                 Building.IncrementNextID();
                 buildings.Add(entity.ID, (Building)entity);
             }

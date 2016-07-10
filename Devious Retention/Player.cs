@@ -12,19 +12,26 @@ namespace Devious_Retention
     /// </summary>
     public class Player
     {
+        // TODO players owning entities
         private int playerNumber;
         private Color playerColor;
+        private Brush playerBrush;
+        private Pen playerPen;
         private Faction faction;
         // Every player must have a separate set of definitions,
         // as they'll be changed by technologies and faction.
         private GameInfo definitions;
+        private Relation[] playerRelations;
 
-        public Player(int number, Color color, Faction faction, GameInfo definitions)
+        public Player(Relation[] baseRelations, int number, Color color, Faction faction, GameInfo definitions)
         {
+            playerRelations = baseRelations;
             playerNumber = number;
             playerColor = color;
             this.faction = faction;
             this.definitions = definitions;
+            playerBrush = new SolidBrush(color);
+            playerPen = new Pen(playerBrush);
         }
 
         /// <summary>
@@ -33,7 +40,7 @@ namespace Devious_Retention
         /// </summary>
         public bool Owns(Entity entity)
         {
-            return entity.PlayerNumber == playerNumber;
+            return entity.Player == this;
         }
 
         public int GetPlayerNumber()
@@ -44,6 +51,63 @@ namespace Devious_Retention
         public GameInfo GetDefinitions()
         {
             return definitions;
+        }
+
+        // TODO just use accessors
+        public Color GetColor()
+        {
+            return playerColor;
+        }
+        public Pen GetPen()
+        {
+            return playerPen;
+        }
+        public Brush GetBrush()
+        {
+            return playerBrush;
+        }
+
+        /// <summary>
+        /// Generates and returns an array of entities which are
+        /// enemies to this player, and are contained within
+        /// the given array.
+        /// </summary>
+        public Entity[] GetEnemies(Entity[] entities)
+        {
+            List<Entity> enemies = new List<Entity>();
+            foreach (Entity entity in entities)
+                if (IsEnemy(entity))
+                    enemies.Add(entity);
+            return enemies.ToArray();
+        }
+
+        /// <summary>
+        /// Finds out and returns whether or not the given entity is
+        /// an enemy of this player.
+        /// </summary>
+        private bool IsEnemy(Entity entity)
+        {
+            return entity.Attackable() && GetRelation(entity.Player.GetPlayerNumber()) == Relation.ENEMY;
+        }
+
+        /// <summary>
+        /// Returns The relation which this player has to the player
+        /// with the given number.
+        /// </summary>
+        private Relation GetRelation(int playerNumber)
+        {
+            if (playerNumber < 0 || playerNumber >= playerRelations.Length)
+                throw new ArgumentOutOfRangeException("Attempting to find relation with player #" + playerNumber + ", who does not exist.");
+            return playerRelations[playerNumber];
+        }
+
+        public static Relation[] DefaultRelations(int playerNumber, int playerCount)
+        {
+            Relation[] relations = new Relation[playerCount];
+            for (int i = 0; i < playerCount; i++)
+                relations[i] = Relation.ENEMY;
+            relations[playerNumber] = Relation.ALLIED;
+            return relations;
         }
 
         public enum Relation
@@ -60,51 +124,15 @@ namespace Devious_Retention
     public class LocalPlayer : Player
     {
         private bool[][] LOS;
-        private Relation[] playerRelations;
         // How many of each resource the player currently has
         // Resources are handled entirely client-side
         // metal, oil, energy, science
         private double[] currentResources;
 
         public LocalPlayer(Relation[] baseRelations, int number, Color color, Faction faction, GameInfo definitions)
-            : base(number, color, faction, definitions)
+            : base(baseRelations, number, color, faction, definitions)
         {
-            playerRelations = baseRelations;
             currentResources = new double[GameInfo.RESOURCE_TYPES];
-        }
-
-        /// <summary>
-        /// Finds out and returns whether or not the given entity is
-        /// an enemy of this player.
-        /// </summary>
-        private bool IsEnemy(Entity entity)
-        {
-            return entity.Attackable() && GetRelation(entity.PlayerNumber) == Relation.ENEMY;
-        }
-
-        /// <summary>
-        /// Returns The relation which this player has to the player
-        /// with the given number.
-        /// </summary>
-        private Relation GetRelation(int playerNumber)
-        {
-            if (playerNumber < 0 || playerNumber >= playerRelations.Length)
-                throw new ArgumentOutOfRangeException("Attempting to find relation with player #" + playerNumber + ", who does not exist.");
-            return playerRelations[playerNumber];
-        }
-
-        /// <summary>
-        /// Generates and returns an array of entities which are
-        /// enemies to this player, and are contained within
-        /// the given array.
-        /// </summary>
-        public Entity[] GetEnemies(Entity[] entities)
-        {
-            List<Entity> enemies = new List<Entity>();
-            foreach (Entity entity in entities)
-                if (IsEnemy(entity))
-                    enemies.Add(entity);
-            return enemies.ToArray();
         }
 
         /// <summary>
