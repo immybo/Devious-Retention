@@ -21,7 +21,7 @@ namespace Devious_Retention
 
         public int width { get; private set; }
         public int height { get; private set; }
-        public int[,] tiles { get; private set; }
+        private int[,] tiles;
         private Tile[] possibleTiles;
         public List<Coordinate> startingPositions { get; private set; }
 
@@ -105,7 +105,7 @@ namespace Devious_Retention
         /// The map type describes which style of map will be 
         /// generated. 
         /// </summary>
-        public static Map GenerateMap(IMapType mapType, int width, int height, int numPlayers)
+        public static Map GenerateMap(MapType mapType, int width, int height, int numPlayers)
         {
             int[,] tiles = new int[height, width];
 
@@ -126,7 +126,7 @@ namespace Devious_Retention
             return map;
         }
 
-        public static IMapType GetMapType(string name)
+        public static MapType GetMapType(string name)
         {
             if (!mapTypes.ContainsKey(name))
                 throw new ArgumentException("There is no map type with the name " + name);
@@ -134,7 +134,7 @@ namespace Devious_Retention
             // We don't really have to use reflection here, but it's pretty cool to do so
             Console.WriteLine(typeof(MapTypes.RockyPlains).ToString());
             Type mapTypeType = Type.GetType("Devious_Retention.MapTypes."+mapTypes[name]);
-            return (IMapType)Activator.CreateInstance(mapTypeType);
+            return (MapType)Activator.CreateInstance(mapTypeType);
         }
 
         public static string[] GetPossibleMapTypes()
@@ -142,10 +142,14 @@ namespace Devious_Retention
             return (string[])mapTypes.Keys.ToArray().Clone();
         }
 
-        public interface IMapType
+        public abstract class MapType
         {
-            void PopulateMap(Map initialMap);
-            Tile[] GetPossibleTiles();
+            public abstract void PopulateMap(Map initialMap);
+            public abstract Tile[] GetPossibleTiles();
+            protected void SetTile(Map map, int x, int y, int tile)
+            {
+                map.tiles[y,x] = tile;
+            }
         }
     }
 
