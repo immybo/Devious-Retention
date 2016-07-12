@@ -66,8 +66,8 @@ namespace Devious_Retention
         public const double RED_SHIFT = 50;
 
         // In milliseconds
-        public const int TICK_TIME = 30;
-        public const int WINDOW_REFRESH_TIME = 20;
+        public const int TICK_TIME = 16;
+        public const int WINDOW_REFRESH_TIME = 16;
         // Melee, ranged, bombard
         public const int DAMAGE_TYPES  = 3;
         // Metal, oil, energy, science
