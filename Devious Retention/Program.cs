@@ -35,14 +35,16 @@ namespace Devious_Retention
             Player player2 = new Player(new Player.Relation[] { Player.Relation.ENEMY, Player.Relation.ALLIED }, 1, Color.Red, null, new GameInfo());
 
             Player[] players = { player1, player2 };
-
-            GameClient client = new GameClient(player1, players, new World(map), cts, null);
+            
             GameServer server = new GameServer(new List<STCConnection> { stc }, new int[] { 1 }, map);
+            GameClient client = new GameClient(player1, players, new World(new Map(GameInfo.tiles.Values.ToArray(), new int[,]{}, 0, 0, null)), cts, null);
 
             stc.SetServer(server);
             cts.SetClient(client, player1);
             stc.Connect();
             cts.Connect();
+
+            server.SyncMap();
 
             // TESTING STUFF
             server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 0, 0, 0);

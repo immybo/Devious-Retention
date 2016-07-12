@@ -24,6 +24,7 @@ namespace Devious_Retention
 
         // This map is used to determine what can and can't happen; e.g. whether or not a building can be placed at the given location
         private Map map;
+        private World world;
 
         // Lists of all entities in the game
         private Dictionary<int, Unit> units;
@@ -108,6 +109,17 @@ namespace Devious_Retention
                 c.Tick();
 
             currentTick++;
+        }
+
+        /// <summary>
+        /// Tells all clients to update their map to the current one on the server.
+        /// </summary>
+        public void SyncMap()
+        {
+            foreach(STCConnection c in connections)
+            {
+                c.InformMap(map);
+            }
         }
 
         /// <summary>

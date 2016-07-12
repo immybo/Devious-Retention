@@ -147,6 +147,12 @@ namespace Devious_Retention
             MouseMove += new MouseEventHandler(MouseMoveEvent);
         }
 
+        public void SetMap(Map newMap)
+        {
+            world.SetMap(newMap);
+            LoadLOS();
+        }
+
         /// <summary>
         /// Selects the appropriate entities within the given area.
         /// This can only select one type of entity for one player. For example,
@@ -209,6 +215,8 @@ namespace Devious_Retention
         {
             // TODO Renderable interface, so render can be called on a large list of things
             Graphics g = e.Graphics;
+
+            if (world.OutOfBounds(0, 0)) return; // nothing to render
 
             ResizeToFit();
             RenderTiles(g,

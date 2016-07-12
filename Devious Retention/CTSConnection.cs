@@ -60,52 +60,48 @@ namespace Devious_Retention
             incomingSocket = listener.AcceptSocket();
             Console.WriteLine("CTS incoming socket opened.");
             
-            try
+            NetworkStream s = new NetworkStream(incomingSocket);
+            StreamReader reader = new StreamReader(s);
+
+            while (true)
             {
-                NetworkStream s = new NetworkStream(incomingSocket);
-                StreamReader reader = new StreamReader(s);
-
-                while (true)
+                // If anything was read,
+                string line = reader.ReadLine();
+                if(line != null)
                 {
-                    // If anything was read,
-                    string line = reader.ReadLine();
-                    if(line != null)
-                    {
-                        string[] splitLine = line.Split(new Char[] { ' ' });
-                        // Check what type of message it was
-                        int messageType = int.Parse(splitLine[0]);
+                    string[] splitLine = line.Split(new Char[] { ' ' });
+                    // Check what type of message it was
+                    int messageType = int.Parse(splitLine[0]);
 
-                        // And process that message appropriately
-                        switch (messageType)
-                        {
-                            case 0:
-                                AddEntity(splitLine);
-                                break;
-                            case 1:
-                                DeleteEntity(splitLine);
-                                break;
-                            case 2:
-                                ChangeEntity(splitLine);
-                                break;
-                            case 3:
-                                ResearchTechnology(splitLine);
-                                break;
-                            case 4:
-                                GameOver(splitLine);
-                                break;
-                            case 5:
-                                client.Tick();
-                                break;
-                            case 6:
-                                Attack(splitLine);
-                                break;
-                        }
+                    // And process that message appropriately
+                    switch (messageType)
+                    {
+                        case 0:
+                            AddEntity(splitLine);
+                            break;
+                        case 1:
+                            DeleteEntity(splitLine);
+                            break;
+                        case 2:
+                            ChangeEntity(splitLine);
+                            break;
+                        case 3:
+                            ResearchTechnology(splitLine);
+                            break;
+                        case 4:
+                            GameOver(splitLine);
+                            break;
+                        case 5:
+                            client.Tick();
+                            break;
+                        case 6:
+                            Attack(splitLine);
+                            break;
+                        case 7:
+                            UpdateClientMap(line.Substring(2));
+                            break;
                     }
                 }
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e);
             }
         }
 
@@ -141,6 +137,16 @@ namespace Devious_Retention
         {
             if (outgoingSocket != null)
                 outgoingSocket.Close();
+        }
+
+        /// <summary>
+        /// Sets the client's map to a map specified by the
+        /// given string.
+        /// </summary>
+        private void UpdateClientMap(string mapString)
+        {
+            Map newMap = Map.FromString(mapString, GameInfo.tiles.Values.ToArray());
+            client.UpdateMap(newMap);
         }
 
         /// <summary>

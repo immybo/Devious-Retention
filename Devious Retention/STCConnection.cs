@@ -333,5 +333,14 @@ namespace Devious_Retention
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
             outgoingWriter.WriteLine("6 " + started + " " + (attacker is Unit ? 0 : 1) + " " + attacker.ID + " " + (defender is Unit ? 0 : 1) + " " + defender.ID);
         }
+
+        /// <summary>
+        /// Informs the client to update to the given map.
+        /// </summary>
+        public void InformMap(Map map)
+        {
+            if (outgoingSocket == null || !outgoingSocket.Connected) return;
+            outgoingWriter.WriteLine("7 " + map.ToString());
+        }
     }
 }

@@ -89,6 +89,15 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Updates the map to the given map.
+        /// </summary>
+        public void UpdateMap(Map newMap)
+        {
+            world.SetMap(newMap);
+            window.SetMap(newMap);
+        }
+
+        /// <summary>
         /// Processes a right click, given that there is at least one
         /// selected entity, at the given location; attacking or moving
         /// the units.
@@ -255,6 +264,9 @@ namespace Devious_Retention
         /// <param name="resource">The resource which the entity is built on, only relevant if it's a building.</param>
         public void AddEntity(bool isFree, int entityType, int id, string type, double xPos, double yPos, int playerNumber, int resourceID)
         {
+            if (world.OutOfBounds(xPos, yPos))
+                throw new ArgumentException("Attempted to add an entity at an invalid position! Pos: " + xPos + "," + yPos + " .");
+
             // TODO revamp definitions system so there's a central list of all definitions with a boolean attached for each player and a list of modifiers
             if(entityType == 0)
             {

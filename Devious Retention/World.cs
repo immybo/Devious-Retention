@@ -252,5 +252,10 @@ namespace Devious_Retention
         {
             return map.GetTile(x, y);
         }
+
+        public void SetMap(Map newMap)
+        {
+            map = newMap;
+        }
     }
 }
