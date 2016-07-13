@@ -53,6 +53,7 @@ namespace Devious_Retention
             this.connection = connection;
             this.world = world;
             this.player = player;
+            player.LoadLOS();
             this.players = players;
 
             selected = new List<Entity>();
@@ -90,7 +91,7 @@ namespace Devious_Retention
         public void UpdateMap(Map newMap)
         {
             world.SetMap(newMap);
-            window.SetMap(newMap);
+            player.LoadLOS();
         }
 
         /// <summary>
@@ -245,7 +246,7 @@ namespace Devious_Retention
                 UnitType unitType = players[playerNumber].Definitions.unitTypes[type];
                 Unit unit = new Unit(unitType, id, xPos, yPos, players[playerNumber]);
                 world.AddEntity(unit);
-                window.UpdateLOSAdd(unit);
+                player.UpdateLOSAdd(unit);
                 return unit;
             }
             else if (entityType == 1)
@@ -256,7 +257,7 @@ namespace Devious_Retention
                 Building building = new Building(buildingType, id, xPos, yPos, players[playerNumber]);
                 if (world.ContainsResource(resourceID)) building.resource = world.GetResource(resourceID);
                 world.AddEntity(building);
-                window.UpdateLOSAdd(building);
+                player.UpdateLOSAdd(building);
                 return building;
             }
             else if (entityType == 2)
@@ -302,7 +303,7 @@ namespace Devious_Retention
                 Unit unit = world.GetUnit(deletedEntityID);
                 entity = unit;
                 unit.unitType.units.Remove(unit);
-                window.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
+                player.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
             }
             else if (entityType == 1)
             {
@@ -311,7 +312,7 @@ namespace Devious_Retention
                 Building building = world.GetBuilding(deletedEntityID);
                 entity = building;
                 building.buildingType.buildings.Remove(building);
-                window.UpdateLOSDelete(entity);
+                player.UpdateLOSDelete(entity);
             }
             else if (entityType == 2)
             {
@@ -347,7 +348,7 @@ namespace Devious_Retention
                 else if (propertyID == 1)
                 {
                     unit.ChangePosition(change, change2);
-                    if (player.Owns(unit)) window.UpdateLOSMove(unit, change, change2);
+                    if (player.Owns(unit)) player.UpdateLOSMove(unit, change, change2);
                 }
                 else if (propertyID == 2)
                 {

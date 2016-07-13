@@ -23,18 +23,19 @@ namespace Devious_Retention
             GameInfo.ReadDefinitions();
             
             Map map = Map.GenerateMap(Map.GetMapType("Rocky Plains"), 20, 20, 2);
+            World world = new World(new Map(GameInfo.tiles.Values.ToArray(), new int[,] { }, 0, 0, null));
 
             // CREATE CONNECTIONS
             STCConnection stc = new STCConnection(IPAddress.Parse("127.0.0.1"));
             CTSConnection cts = new CTSConnection(IPAddress.Parse("127.0.0.1"));
 
-            LocalPlayer player1 = new LocalPlayer(new Player.Relation[]{ Player.Relation.ALLIED, Player.Relation.ENEMY }, 0, Color.Blue, null, new GameInfo());
+            LocalPlayer player1 = new LocalPlayer(new Player.Relation[]{ Player.Relation.ALLIED, Player.Relation.ENEMY }, 0, Color.Blue, null, new GameInfo(), world);
             Player player2 = new Player(new Player.Relation[] { Player.Relation.ENEMY, Player.Relation.ALLIED }, 1, Color.Red, null, new GameInfo());
 
             Player[] players = { player1, player2 };
             
             GameServer server = new GameServer(new List<STCConnection> { stc }, new int[] { 1 }, map);
-            GameClient client = new GameClient(player1, players, new World(new Map(GameInfo.tiles.Values.ToArray(), new int[,]{}, 0, 0, null)), cts, null);
+            GameClient client = new GameClient(player1, players, world, cts, null);
 
             stc.SetServer(server);
             cts.SetClient(client, player1);

@@ -195,7 +195,14 @@ namespace Devious_Retention
             int attribute = int.Parse(splitLine[3]);
             double attributeChange = double.Parse(splitLine[4]);
             double attributeChange2 = double.Parse(splitLine[5]);
-            client.ChangeEntityProperty(entityType, entityID, attribute, attributeChange, attributeChange2);
+            try
+            {
+                client.ChangeEntityProperty(entityType, entityID, attribute, attributeChange, attributeChange2);
+            }
+            catch(KeyNotFoundException)
+            {
+                // The entity was recently deleted. This is fine.
+            }
         }
 
         /// <summary>
