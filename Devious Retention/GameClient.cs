@@ -94,37 +94,9 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Processes a right click, given that there is at least one
-        /// selected entity, at the given location; attacking or moving
-        /// the units.
-        /// </summary>
-        public void RightClick(double x, double y)
-        {
-            // TODO Possibly migrate to window
-
-            // If the right click is out of bounds, do nothing
-            if (world.OutOfBounds(x, y)) return;
-
-            // If there's an enemy there, attack it
-            Entity[] overlappingEntities = world.GetEntitiesIn(x, y, 0, 0);
-            Entity[] enemies = player.GetEnemies(overlappingEntities);
-            if(enemies.Length > 0)
-            {
-                // Pick any random entity; no guarantee is made as to the order
-                AttackEntity(selected.ToArray(), enemies[0]);
-            }
-
-            // Otherwise, move the units
-            else
-            {
-                MoveUnits(x, y);
-            }
-        }
-
-        /// <summary>
         /// Asks the server to move selected units to (x,y)
         /// </summary>
-        public void MoveUnits(double x, double y)
+        public void MoveSelectedUnits(double x, double y)
         {
             // TODO change to specify which units to move, rather than just using selected
             List<Unit> selectedUnits = new List<Unit>();
@@ -165,6 +137,11 @@ namespace Devious_Retention
                     available.Add(e);
 
             connection.RequestAttack(available, entityToAttack);
+        }
+
+        public void AttackEntityWithSelected(Entity entityToAttack)
+        {
+            AttackEntity(selected.ToArray(), entityToAttack);
         }
 
         /// <summary>

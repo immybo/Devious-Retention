@@ -1228,7 +1228,7 @@ namespace Devious_Retention
                 {
                     double tileX = worldX + (double)e.X / tileWidth;
                     double tileY = worldY + (double)e.Y / tileHeight;
-                    client.RightClick(tileX, tileY);
+                    RightClick(tileX, tileY);
                 }
             }
             else if (e.Button == MouseButtons.Left)
@@ -1318,6 +1318,32 @@ namespace Devious_Retention
                         }
                 }
 
+            }
+        }
+
+        /// <summary>
+        /// Processes a right click, given that there is at least one
+        /// selected entity, at the given location; attacking or moving
+        /// the units.
+        /// </summary>
+        public void RightClick(double x, double y)
+        {
+            // If the right click is out of bounds, do nothing
+            if (world.OutOfBounds(x, y)) return;
+
+            // If there's an enemy there, attack it
+            Entity[] overlappingEntities = world.GetEntitiesIn(x, y, 0, 0);
+            Entity[] enemies = player.GetEnemies(overlappingEntities);
+            if (enemies.Length > 0)
+            {
+                // Pick any random entity; no guarantee is made as to the order
+                client.AttackEntityWithSelected(enemies[0]);
+            }
+
+            // Otherwise, move the units
+            else
+            {
+                client.MoveSelectedUnits(x, y);
             }
         }
 
