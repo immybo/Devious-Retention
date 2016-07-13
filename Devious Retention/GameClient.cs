@@ -226,61 +226,61 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Adds an entity. Does nothing if the entity type isn't found.
+        /// Creates a new entity from the parameters and spawns it into the game world.
         /// </summary>
-        /// <param name="isFree">Whether or not this entity doesn't cost resources.</param>
         /// <param name="entityType">0=unit, 1=building, 2=resource</param>
         /// <param name="type">The name of the type of entity to be created.</param>
         /// <param name="xPos">The initial x position of the new entity.</param>
         /// <param name="yPos">The initial y position of the new entity.</param>
         /// <param name="playerNumber">The player that the entity belongs to. Irrelevant if a resource.</param>
-        /// <param name="resource">The resource which the entity is built on, only relevant if it's a building.</param>
-        public void AddEntity(bool isFree, int entityType, int id, string type, double xPos, double yPos, int playerNumber, int resourceID)
+        /// <param name="resourceID">The resource which the entity is built on, only relevant if it's a building.</param>
+        /// <returns>The entity that was spawned.</returns>
+        public Entity SpawnEntity(int entityType, int id, string type, double xPos, double yPos, int playerNumber, int resourceID)
         {
-            if (world.OutOfBounds(xPos, yPos))
-                throw new ArgumentException("Attempted to add an entity at an invalid position! Pos: " + xPos + "," + yPos + " .");
-
             // TODO revamp definitions system so there's a central list of all definitions with a boolean attached for each player and a list of modifiers
-            if(entityType == 0)
+            if (entityType == 0)
             {
-                if (!players[playerNumber].Definitions.unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
+                if (!players[playerNumber].Definitions.unitTypes.ContainsKey(type))
+                    throw new ArgumentException("Invalid unit type " + type + " given when adding entity.");
                 UnitType unitType = players[playerNumber].Definitions.unitTypes[type];
                 Unit unit = new Unit(unitType, id, xPos, yPos, players[playerNumber]);
                 world.AddEntity(unit);
-                unitType.units.Add(unit);
-
-                // If the unit belongs to the player, remove the resources as well
-                // TODO remove from add entity
-                if(player.Owns(unit))
-                {
-                    window.UpdateLOSAdd(unit);
-                    if(!isFree)
-                        player.PayResources(unit.unitType.resourceCosts);
-                }
+                window.UpdateLOSAdd(unit);
+                return unit;
             }
-            else if(entityType == 1)
+            else if (entityType == 1)
             {
-                if (!players[playerNumber].Definitions.buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
+                if (!players[playerNumber].Definitions.buildingTypes.ContainsKey(type))
+                    throw new ArgumentException("Invalid building type " + type + " given when adding entity.");
                 BuildingType buildingType = players[playerNumber].Definitions.buildingTypes[type];
                 Building building = new Building(buildingType, id, xPos, yPos, players[playerNumber]);
-                if(world.ContainsResource(resourceID)) building.resource = world.GetResource(resourceID);
+                if (world.ContainsResource(resourceID)) building.resource = world.GetResource(resourceID);
                 world.AddEntity(building);
-                buildingType.buildings.Add(building);
-
-                // If the building belongs to the player, remove the resources as well
-                if (player.Owns(building))
-                {
-                    window.UpdateLOSAdd(building);
-                    if (!isFree)
-                        player.PayResources(building.buildingType.resourceCosts);
-                }
+                window.UpdateLOSAdd(building);
+                return building;
             }
-            else if(entityType == 2)
+            else if (entityType == 2)
             {
-                if (!players[playerNumber].Definitions.resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
+                if (!players[playerNumber].Definitions.resourceTypes.ContainsKey(type))
+                    throw new ArgumentException("Invalid resource type " + type + " given when adding entity.");
                 ResourceType resourceType = players[playerNumber].Definitions.resourceTypes[type];
                 Resource resource = new Resource(resourceType, id, xPos, yPos);
                 world.AddEntity(resource);
+                return resource;
+            }
+
+            throw new ArgumentException("Attempted to add an entity with an entity type that is out of range.");
+        }
+
+        /// <summary>
+        /// Wrapper for SpawnEntity that also removes resources appropriately.
+        /// </summary>
+        public void AddEntity(int entityType, int id, string type, double xPos, double yPos, int playerNumber, int resourceID)
+        {
+            Entity entity = SpawnEntity(entityType, id, type, xPos, yPos, playerNumber, resourceID);
+            if (player.Owns(entity))
+            {
+                player.PayResources(entity);
             }
         }
 

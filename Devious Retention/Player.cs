@@ -145,6 +145,15 @@ namespace Devious_Retention
             for (int i = 0; i < resourceCosts.Length; i++)
                 currentResources[i] -= resourceCosts[i];
         }
+        /// <summary>
+        /// Deducts the resource costs of the give nentity
+        /// from this player's stockpiles, disregarding whether
+        /// or not the player can actually afford it.
+        /// </summary>
+        public void PayResources(Entity entity)
+        {
+            PayResources(entity.Type.resourceCosts);
+        }
 
         public void AddResource(int resourceIndex, double amount)
         {

@@ -164,7 +164,11 @@ namespace Devious_Retention
             double yPos = double.Parse(splitLine[6]);
             int playerNumber = int.Parse(splitLine[2]) == 2 ? 0 : int.Parse(splitLine[7]); // use a player number of 0 if it's a resource
             int resource = int.Parse(splitLine[8]);
-            client.AddEntity(isFree, entityType, id, typeName, xPos, yPos, playerNumber, resource);
+
+            if (isFree)
+                client.SpawnEntity(entityType, id, typeName, xPos, yPos, playerNumber, resource);
+            else
+                client.AddEntity(entityType, id, typeName, xPos, yPos, playerNumber, resource);
         }
 
         /// <summary>

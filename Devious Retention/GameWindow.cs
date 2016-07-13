@@ -250,6 +250,7 @@ namespace Devious_Retention
         /// </summary>
         public void UpdateLOSAdd(Entity e)
         {
+            // TODO FIX LOS....
             // TODO Optimise LOS calculations
             // TODO move LOS to world
 

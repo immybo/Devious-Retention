@@ -171,19 +171,28 @@ namespace Devious_Retention
         }
 
         // TODO ideally some of these should only be used internally
+        private void AddEntityGeneric(Entity entity)
+        {
+            if (OutOfBounds(entity.X, entity.Y))
+                throw new ArgumentException("Attempted to add an entity at an invalid position! Pos: " + entity.X + "," + entity.Y + " .");
+        }
         public void AddEntity(Resource resource)
         {
+            AddEntityGeneric(resource);
             resources[resource.ID] = resource;
             // TODO update entities by square
         }
         public void AddEntity(Unit unit)
         {
+            AddEntityGeneric(unit);
             units[unit.ID] = unit;
         }
         public void AddEntity(Building building)
         {
+            AddEntityGeneric(building);
             buildings[building.ID] = building;
         }
+
         public bool ContainsResource(int resourceID)
         {
             return resources.ContainsKey(resourceID);
