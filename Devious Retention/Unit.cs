@@ -13,8 +13,6 @@ namespace Devious_Retention
     /// </summary>
     public class Unit : Entity
     {
-        public static int nextID { get; private set; }
-        
         // As most attributes will change only under circumstances where
         // the UnitType will change as well, this provides most attributes
         // so not many fields are needed.
@@ -53,13 +51,22 @@ namespace Devious_Retention
         /// a UnitType. Its position must also be given.
         /// </summary>
         public Unit(UnitType type, int id, double x, double y, Player player)
+            : base(player, id, x, y)
+        {
+            Init(type);
+        }
+        /// <summary>
+        /// Builds a unit with a new unique ID.
+        /// </summary>
+        public Unit(UnitType type, double x, double y, Player player)
+            : base(player, x, y)
+        {
+            Init(type);
+        }
+
+        private void Init(UnitType type)
         {
             this.unitType = type;
-            this.Type = type;
-            this.ID = id;
-            this.X = x;
-            this.Y = y;
-            this.Player = player;
 
             direction = 0;
             xToMove = -1;
@@ -90,21 +97,6 @@ namespace Devious_Retention
             hitpoints = (int)(hitpoints * newHPMultiplier);
         }
 
-        /// <summary>
-        /// Resets the next ID to 0.
-        /// </summary>
-        public static void ResetNextID()
-        {
-            nextID = 0;
-        }
-        /// <summary>
-        /// Increments the next ID by 1.
-        /// </summary>
-        public static void IncrementNextID()
-        {
-            nextID++;
-        }
-
         public override Image GetImage()
         {
             return unitType.image;
@@ -131,6 +123,10 @@ namespace Devious_Retention
         public override bool Attackable()
         {
             return true;
+        }
+        public override EntityType GetEntityType()
+        {
+            return unitType;
         }
     }
 }

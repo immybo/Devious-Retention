@@ -17,8 +17,6 @@ namespace Devious_Retention
     /// </summary>
     public class Building : Entity
     {
-        public static int nextID { get; private set; }
-
         // Each building belongs to a BuildingType, from which most of its attributes can be gotten
         public BuildingType buildingType { get; private set; }
 
@@ -56,13 +54,22 @@ namespace Devious_Retention
         /// Its position must also be given.
         /// </summary>
         public Building(BuildingType type, int id, double x, double y, Player player)
+            : base(player, id, x, y)
+        {
+            Init(type);
+        }
+        /// <summary>
+        /// Builds a building with a new unique ID.
+        /// </summary>
+        public Building(BuildingType type, double x, double y, Player player)
+            : base(player, x, y)
+        {
+            Init(type);
+        }
+
+        private void Init(BuildingType type)
         {
             this.buildingType = type;
-            this.Type = type;
-            this.ID = id;
-            this.X = x;
-            this.Y = y;
-            this.Player = player;
 
             trainingQueue = new Queue<UnitType>();
             trainingQueueTime = 0;
@@ -120,21 +127,6 @@ namespace Devious_Retention
             hitpoints = (int)(hitpoints * newHPMultiplier);
         }
 
-        /// <summary>
-        /// Resets the next ID to 0.
-        /// </summary>
-        public static void ResetNextID()
-        {
-            nextID = 0;
-        }
-        /// <summary>
-        /// Increments the next ID by 1.
-        /// </summary>
-        public static void IncrementNextID()
-        {
-            nextID++;
-        }
-
         public override Image GetImage()
         {
             return buildingType.image;
@@ -161,6 +153,10 @@ namespace Devious_Retention
         public override bool Attackable()
         {
             return true;
+        }
+        public override EntityType GetEntityType()
+        {
+            return buildingType;
         }
     }
 }

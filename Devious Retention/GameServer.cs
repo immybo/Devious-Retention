@@ -131,8 +131,7 @@ namespace Devious_Retention
             if (!info.buildingTypes.ContainsKey(buildingTypeName)) return;
             BuildingType buildingType = info.buildingTypes[buildingTypeName];
 
-            Building building = new Building(buildingType, Building.nextID, x, y, players[player]);
-            Building.IncrementNextID();
+            Building building = new Building(buildingType, x, y, players[player]);
             // Make sure that the building doesn't collide with any other entities
             if (map.Collides(building.X, building.Y, buildingType.size, entitiesBySquare, false) == null) return;
 
@@ -199,8 +198,7 @@ namespace Devious_Retention
             if (placeX == -1)
                 return;
             // Now place it
-            Unit unit = new Unit(type, Unit.nextID, placeX, placeY, building.Player);
-            Unit.IncrementNextID();
+            Unit unit = new Unit(type, placeX, placeY, building.Player);
 
             foreach (STCConnection c in connections)
                 c.InformEntityAdd(unit, false);
@@ -220,20 +218,17 @@ namespace Devious_Retention
 
             if (type is UnitType)
             {
-                entity = new Unit((UnitType)type, Unit.nextID, x, y, players[player]);
-                Unit.IncrementNextID();
+                entity = new Unit((UnitType)type, x, y, players[player]);
                 units.Add(entity.ID, (Unit)entity);
             }
             else if(type is BuildingType)
             {
-                entity = new Building((BuildingType)type, Building.nextID, x, y, players[player]);
-                Building.IncrementNextID();
+                entity = new Building((BuildingType)type, x, y, players[player]);
                 buildings.Add(entity.ID, (Building)entity);
             }
             else if(type is ResourceType)
             {
-                entity = new Resource((ResourceType)type, Resource.nextID, x, y);
-                Resource.IncrementNextID();
+                entity = new Resource((ResourceType)type, x, y);
                 resources.Add(entity.ID, (Resource)entity);
             }
 

@@ -15,8 +15,6 @@ namespace Devious_Retention
     /// </summary>
     public class Resource : Entity
     {
-        public static int nextID { get; private set; }
-
         // Every resource belongs to a type, which gives most of its statistics
         public ResourceType resourceType { get; private set; }
 
@@ -29,14 +27,21 @@ namespace Devious_Retention
         /// Most of a resource's statistics are gathered from its type,
         /// however its position must also be provided.
         /// </summary>
+        public Resource(ResourceType type, double x, double y)
+            : base(null, x, y)
+        {
+            Init(type);
+        }
         public Resource(ResourceType type, int id, double x, double y)
+            : base(null, id, x, y)
+        {
+            Init(type);
+        }
+
+        private void Init(ResourceType type)
         {
             this.resourceType = type;
             this.amount = type.resourceAmount;
-            this.Type = type;
-            this.ID = id;
-            this.X = x;
-            this.Y = y;
         }
 
         public override Image GetImage()
@@ -53,21 +58,6 @@ namespace Devious_Retention
             return amount <= 0;
         }
 
-        /// <summary>
-        /// Resets the next ID to 0.
-        /// </summary>
-        public static void ResetNextID()
-        {
-            nextID = 0;
-        }
-        /// <summary>
-        /// Increments the next ID by 1.
-        /// </summary>
-        public static void IncrementNextID()
-        {
-            nextID++;
-        }
-
         public override void RenderHPBar(Graphics g, Rectangle bounds)
         {
             return; // not applicable
@@ -76,6 +66,10 @@ namespace Devious_Retention
         public override bool Attackable()
         {
             return false;
+        }
+        public override EntityType GetEntityType()
+        {
+            return resourceType;
         }
     }
 }

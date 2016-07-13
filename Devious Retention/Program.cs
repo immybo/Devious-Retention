@@ -21,9 +21,6 @@ namespace Devious_Retention
         static void Main()
         {
             GameInfo.ReadDefinitions();
-            Unit.ResetNextID();
-            Building.ResetNextID();
-            Resource.ResetNextID();
             
             Map map = Map.GenerateMap(Map.GetMapType("Rocky Plains"), 20, 20, 2);
 
@@ -49,6 +46,11 @@ namespace Devious_Retention
             // TESTING STUFF
             server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 0, 0, 0);
             server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 3, 3);
+            server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 3, 4);
+            server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 3, 5);
+            server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 4, 3);
+            server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 4, 4);
+            server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 4, 5);
 
             Application.Run(client.GetWindow());
         }

@@ -18,14 +18,48 @@ namespace Devious_Retention
 
         public const int HP_BAR_VERTICAL_OFFSET = 20; // how far up the HP bars are above entities' tops
         
-        public EntityType Type { get; protected set; } // unfortunately, this means that we must have two properties for this
-        // in each entity, as apparently returning a type that implements EntityType isn't good enough......
-        // TODO private set and use a constructor for Entity
-        public double X { get; protected set; }
-        public double Y { get; protected set; }
+        public EntityType Type
+        {
+            get
+            {
+                return GetEntityType();
+            }
+        }
+
+        public double X { get; private set; }
+        public double Y { get; private set; }
         
-        public Player Player { get; protected set; }
-        public int ID { get; protected set; }
+        public Player Player { get; private set; }
+        public int ID { get; private set; }
+
+        private static int nextID = 0;
+
+        /// <summary>
+        /// Creates an entity, generating a new unique ID for it.
+        /// Note that the ID is only unique to the local client;
+        /// i.e. this should only be used on the server.
+        /// </summary>
+        public Entity(Player player, double x, double y)
+        {
+            ID = nextID++;
+            Init(player, x, y);
+        }
+
+        /// <summary>
+        /// Creates an entity with the given ID.
+        /// </summary>
+        public Entity(Player player, int id, double x, double y)
+        {
+            this.ID = id;
+            Init(player, x, y);
+        }
+
+        private void Init(Player player, double x, double y)
+        {
+            this.Player = player;
+            this.X = x;
+            this.Y = y;
+        }
 
         /// <summary>
         /// Returns the appropriate image for this entity at this point in time
@@ -44,6 +78,11 @@ namespace Devious_Retention
         /// Returns whether or not this entity may be attacked by an enemy.
         /// </summary>
         public abstract bool Attackable();
+
+        /// <summary>
+        /// Returns the entity type of this entity.
+        /// </summary>
+        public abstract EntityType GetEntityType();
 
         /// <summary>
         /// Draws this entity.

@@ -60,10 +60,6 @@ namespace Devious_Retention
 
             buildingPanelOpen = true;
 
-            Unit.ResetNextID();
-            Building.ResetNextID();
-            Resource.ResetNextID();
-
             attackingUnits = new List<Unit>();
             attackingBuildings = new List<Building>();
 
