@@ -183,7 +183,6 @@ namespace Devious_Retention
         {
             // TODO FIX LOS....
             // TODO Optimise LOS calculations
-            // TODO move LOS to world
 
             // Resources don't have LOS
             if (e is Resource) return;

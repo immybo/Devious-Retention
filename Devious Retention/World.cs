@@ -16,7 +16,7 @@ namespace Devious_Retention
         private Dictionary<int, Building> buildings;
         // Which entities are where; if at least part of an entity is on a square, it will be recorded in that square's list
         private List<Entity>[,] entitiesBySquare;
-        private Map map;
+        public Map Map { get; private set; }
 
         /// <summary>
         /// Creates a new world with the given map,
@@ -28,7 +28,7 @@ namespace Devious_Retention
             units = new Dictionary<int, Unit>();
             buildings = new Dictionary<int, Building>();
 
-            this.map = map;
+            this.Map = map;
             entitiesBySquare = new List<Entity>[map.width, map.height];
         }
 
@@ -38,8 +38,8 @@ namespace Devious_Retention
         /// </summary>
         public bool OutOfBounds(double x, double y)
         {
-            if (x >= map.width || x < 0) return true;
-            if (y >= map.height || y < 0) return true;
+            if (x >= Map.width || x < 0) return true;
+            if (y >= Map.height || y < 0) return true;
             return false;
         }
         /// <summary>
@@ -84,6 +84,10 @@ namespace Devious_Retention
         {
             return null;
         }
+        public Entity[] EntityCollisions(Entity e)
+        {
+            return EntityCollisions(e.X, e.Y, e.Type.size);
+        }
 
         /// <summary>
         /// Returns an array of all coordinates of tiles with which an entity
@@ -93,6 +97,16 @@ namespace Devious_Retention
         public Coordinate[] TileCollisions(double x, double y, EntityType type)
         {
             return null;
+        }
+
+        /// <summary>
+        /// Returns whether or not an entity of the given type at the
+        /// given position would collide with anything or not.
+        /// </summary>
+        public bool Collides(double x, double y, EntityType type)
+        {
+            return TileCollisions(x, y, type).Count() == 0 &&
+                EntityCollisions(x, y, type.size).Count() == 0;
         }
 
         /// <summary>
@@ -156,7 +170,7 @@ namespace Devious_Retention
         }
         public Coordinate[] GetIncludedTiles(double x, double y, double size)
         {
-            return map.GetIncludedTiles(x, y, size).ToArray();
+            return Map.GetIncludedTiles(x, y, size).ToArray();
         }
         
         private bool EntityIntersectsPoint(Entity e, double x, double y)
@@ -171,26 +185,37 @@ namespace Devious_Retention
         }
 
         // TODO ideally some of these should only be used internally
-        private void AddEntityGeneric(Entity entity)
+        public void AddEntity(Entity entity)
         {
             if (OutOfBounds(entity.X, entity.Y))
                 throw new ArgumentException("Attempted to add an entity at an invalid position! Pos: " + entity.X + "," + entity.Y + " .");
+
+            if (entity is Unit)
+                AddUnit((Unit)entity);
+            else if (entity is Building)
+                AddBuilding((Building)entity);
+            else if (entity is Resource)
+                AddResource((Resource)entity);
         }
-        public void AddEntity(Resource resource)
+
+        private void AddResource(Resource resource)
         {
-            AddEntityGeneric(resource);
             resources[resource.ID] = resource;
             // TODO update entities by square
         }
-        public void AddEntity(Unit unit)
+        private void AddUnit(Unit unit)
         {
-            AddEntityGeneric(unit);
             units[unit.ID] = unit;
         }
-        public void AddEntity(Building building)
+        private void AddBuilding(Building building)
         {
-            AddEntityGeneric(building);
             buildings[building.ID] = building;
+
+            // See if there are any resource that this is built on
+            if (building.buildingType.canBeBuiltOnResource)
+                foreach (Entity e in EntityCollisions(building))
+                    if (e is Resource && ((Resource)e).resourceType.resourceType == building.buildingType.builtOnResourceType)
+                        building.resource = (Resource)e;
         }
 
         public bool ContainsResource(int resourceID)
@@ -229,6 +254,7 @@ namespace Devious_Retention
         {
             return resources.Values.ToArray();
         }
+        // TODO get entity/entities (ids are now unique across entity classes)
 
         public void RemoveEntity(Entity entity)
         {
@@ -248,23 +274,23 @@ namespace Devious_Retention
         /// </summary>
         public Coordinate MapSize()
         {
-            return new Coordinate(map.width, map.height);
+            return new Coordinate(Map.width, Map.height);
         }
         /// <summary>
         /// Returns the type of tile which is at the given coordinate.
         /// </summary>
         public Tile GetTile(Coordinate coord)
         {
-            return map.GetTile(coord.x, coord.y);
+            return Map.GetTile(coord.x, coord.y);
         }
         public Tile GetTile(int x, int y)
         {
-            return map.GetTile(x, y);
+            return Map.GetTile(x, y);
         }
 
         public void SetMap(Map newMap)
         {
-            map = newMap;
+            Map = newMap;
         }
     }
 }

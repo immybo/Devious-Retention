@@ -426,7 +426,7 @@ namespace Devious_Retention
                 // Do nothing if we don't have line of sight there
                 if (!player.HasLOSTo(new Coordinate((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2)))) continue;
                 // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
-                tileImage.SetPixel((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2), e.Player.Color); // TODO use actual player color not gotten from gameinfo
+                tileImage.SetPixel((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2), e.Player.Color);
             }
 
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp
