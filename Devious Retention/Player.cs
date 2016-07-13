@@ -13,25 +13,28 @@ namespace Devious_Retention
     public class Player
     {
         // TODO players owning entities
-        private int playerNumber;
-        private Color playerColor;
-        private Brush playerBrush;
-        private Pen playerPen;
+
+        // Silly sounding names but they make sense...
+        public int Number { get; private set; }
+        public Color Color { get; private set; }
+        public Brush Brush { get; private set; }
+        public Pen Pen { get; private set; }
+
         private Faction faction;
         // Every player must have a separate set of definitions,
         // as they'll be changed by technologies and faction.
-        private GameInfo definitions;
+        public GameInfo Definitions { get; private set; }
         private Relation[] playerRelations;
 
         public Player(Relation[] baseRelations, int number, Color color, Faction faction, GameInfo definitions)
         {
             playerRelations = baseRelations;
-            playerNumber = number;
-            playerColor = color;
+            Number = number;
+            Color = color;
             this.faction = faction;
-            this.definitions = definitions;
-            playerBrush = new SolidBrush(color);
-            playerPen = new Pen(playerBrush);
+            this.Definitions = definitions;
+            Brush = new SolidBrush(color);
+            Pen = new Pen(Brush);
         }
 
         /// <summary>
@@ -41,30 +44,6 @@ namespace Devious_Retention
         public bool Owns(Entity entity)
         {
             return entity.Player == this;
-        }
-
-        public int GetPlayerNumber()
-        {
-            return playerNumber;
-        }
-
-        public GameInfo GetDefinitions()
-        {
-            return definitions;
-        }
-
-        // TODO just use accessors
-        public Color GetColor()
-        {
-            return playerColor;
-        }
-        public Pen GetPen()
-        {
-            return playerPen;
-        }
-        public Brush GetBrush()
-        {
-            return playerBrush;
         }
 
         /// <summary>
@@ -87,7 +66,7 @@ namespace Devious_Retention
         /// </summary>
         private bool IsEnemy(Entity entity)
         {
-            return entity.Attackable() && GetRelation(entity.Player.GetPlayerNumber()) == Relation.ENEMY;
+            return entity.Attackable() && GetRelation(entity.Player.Number) == Relation.ENEMY;
         }
 
         /// <summary>

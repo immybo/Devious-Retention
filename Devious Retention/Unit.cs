@@ -117,7 +117,7 @@ namespace Devious_Retention
             g.DrawRectangle(Pens.Black, bounds);
 
             // Draw the border
-            g.DrawRectangle(Player.GetPen(), bounds);
+            g.DrawRectangle(Player.Pen, bounds);
         }
 
         public override bool Attackable()

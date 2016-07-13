@@ -543,7 +543,7 @@ namespace Devious_Retention
                     // Only draw if at least one part is on the screen and if it's within range
                     if (!(x < 0 && x2 < 0) && !(y < 0 && y2 < 0) && !(y > maxYTiles * tileHeight && y2 > maxYTiles * tileHeight) && !(x > maxXTiles * tileWidth && x2 > maxXTiles * tileWidth))
                         if(e.Type.range >= Math.Sqrt(xDiff*xDiff + yDiff* yDiff))
-                            g.DrawLine(e.Player.GetPen(), (int)x, (int)y, (int)x2, (int)y2);
+                            g.DrawLine(e.Player.Pen, (int)x, (int)y, (int)x2, (int)y2);
                 }
 
                 // First check if they're even on the screen
@@ -644,7 +644,7 @@ namespace Devious_Retention
                 // Do nothing if we don't have line of sight there
                 if (!LOS[(int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2)]) continue;
                 // Draw at most one tile worth of color, in the middle of the entity (may be important for large entities)
-                tileImage.SetPixel((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2), e.Player.GetColor()); // TODO use actual player color not gotten from gameinfo
+                tileImage.SetPixel((int)(e.X + e.Type.size / 2), (int)(e.Y + e.Type.size / 2), e.Player.Color); // TODO use actual player color not gotten from gameinfo
             }
 
             g.InterpolationMode = InterpolationMode.NearestNeighbor; // Remove blur from scaling the image up, we want it to be sharp

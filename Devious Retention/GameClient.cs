@@ -75,7 +75,7 @@ namespace Devious_Retention
 
         public GameInfo GetLocalDefinitions()
         {
-            return player.GetDefinitions();
+            return player.Definitions;
         }
         
         /// <returns>The main window of the game.</returns>
@@ -266,8 +266,8 @@ namespace Devious_Retention
             // TODO revamp definitions system so there's a central list of all definitions with a boolean attached for each player and a list of modifiers
             if(entityType == 0)
             {
-                if (!players[playerNumber].GetDefinitions().unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
-                UnitType unitType = players[playerNumber].GetDefinitions().unitTypes[type];
+                if (!players[playerNumber].Definitions.unitTypes.ContainsKey(type)) return; // do nothing if the unit type isn't found
+                UnitType unitType = players[playerNumber].Definitions.unitTypes[type];
                 Unit unit = new Unit(unitType, id, xPos, yPos, players[playerNumber]);
                 world.AddEntity(unit);
                 unitType.units.Add(unit);
@@ -283,8 +283,8 @@ namespace Devious_Retention
             }
             else if(entityType == 1)
             {
-                if (!players[playerNumber].GetDefinitions().buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
-                BuildingType buildingType = players[playerNumber].GetDefinitions().buildingTypes[type];
+                if (!players[playerNumber].Definitions.buildingTypes.ContainsKey(type)) return; // do nothing if the building type isn't found
+                BuildingType buildingType = players[playerNumber].Definitions.buildingTypes[type];
                 Building building = new Building(buildingType, id, xPos, yPos, players[playerNumber]);
                 if(world.ContainsResource(resourceID)) building.resource = world.GetResource(resourceID);
                 world.AddEntity(building);
@@ -300,8 +300,8 @@ namespace Devious_Retention
             }
             else if(entityType == 2)
             {
-                if (!players[playerNumber].GetDefinitions().resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
-                ResourceType resourceType = players[playerNumber].GetDefinitions().resourceTypes[type];
+                if (!players[playerNumber].Definitions.resourceTypes.ContainsKey(type)) return; // do nothing if the resource type isn't found
+                ResourceType resourceType = players[playerNumber].Definitions.resourceTypes[type];
                 Resource resource = new Resource(resourceType, id, xPos, yPos);
                 world.AddEntity(resource);
             }
@@ -411,10 +411,10 @@ namespace Devious_Retention
         /// </summary>
         public void SetTechnologyResearched(int playerNumber, string technologyName)
         {
-            if (!players[playerNumber].GetDefinitions().technologies.ContainsKey(technologyName)) return;
-            Technology technology = players[playerNumber].GetDefinitions().technologies[technologyName];
+            if (!players[playerNumber].Definitions.technologies.ContainsKey(technologyName)) return;
+            Technology technology = players[playerNumber].Definitions.technologies[technologyName];
             technology.researched = true;
-            technology.ApplyEffects(players[playerNumber].GetDefinitions());
+            technology.ApplyEffects(players[playerNumber].Definitions);
         }
 
         /// <summary>

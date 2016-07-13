@@ -242,7 +242,7 @@ namespace Devious_Retention
         public void RequestBuilding(BuildingType building, double x, double y)
         {
             // TODO can we just store the player number on the server
-            outgoingWriter.WriteLine("0 " + building.name + " " + x + " " + y + " " + player.GetPlayerNumber());
+            outgoingWriter.WriteLine("0 " + building.name + " " + x + " " + y + " " + player.Number);
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace Devious_Retention
         /// </summary>
         public void RequestTechnology(Technology technology)
         {
-            outgoingWriter.WriteLine("2 " + technology.name + " " + player.GetPlayerNumber());
+            outgoingWriter.WriteLine("2 " + technology.name + " " + player.Number);
         }
 
         /// <summary>
