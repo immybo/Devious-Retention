@@ -20,19 +20,9 @@ namespace Devious_Retention
         private int currentTick;
         
         // One map for every player, contains only technologies that they have researched
-        private List<Dictionary<String, Technology>> researched;
-
-        // This map is used to determine what can and can't happen; e.g. whether or not a building can be placed at the given location
-        private Map map;
+        private List<Dictionary<string, Technology>> researched;
+        
         private World world;
-
-        // Lists of all entities in the game
-        private Dictionary<int, Unit> units;
-        private Dictionary<int, Building> buildings;
-        private Dictionary<int, Resource> resources;
-
-        // Which entities are where; if at least part of an entity is on a square, it will be recorded in that square's list
-        private List<Entity>[,] entitiesBySquare;
 
         // What units have been commanded to move
         private List<Unit> movingUnits;
@@ -48,14 +38,14 @@ namespace Devious_Retention
         /// game as multiplayer, and so computer controlled players will merely
         /// spoof having a connection.
         /// </summary>
-        public GameServer(List<STCConnection> connections, int[] aiNumbers, Map map)
+        public GameServer(List<STCConnection> connections, int[] aiNumbers, World world)
         {
             if (connections != null)
                 this.connections = connections;
             else
                 this.connections = new List<STCConnection>();
 
-            this.map = map;
+            this.world = world;
 
             // Init players and relations
             players = new Player[connections.Count + aiNumbers.Length];
@@ -73,14 +63,6 @@ namespace Devious_Retention
             }
 
             info = new GameInfo();
-
-            units = new Dictionary<int, Unit>();
-            buildings = new Dictionary<int, Building>();
-            resources = new Dictionary<int, Resource>();
-            entitiesBySquare = new List<Entity>[map.width,map.height];
-            for (int i = 0; i < map.width; i++)
-                for (int j = 0; j < map.height; j++)
-                    entitiesBySquare[i, j] = new List<Entity>();
 
             researched = new List<Dictionary<String, Technology>>();
             for (int i = 0; i < this.connections.Count; i++)
@@ -118,7 +100,7 @@ namespace Devious_Retention
         {
             foreach(STCConnection c in connections)
             {
-                c.InformMap(map);
+                c.InformMap(world.Map);
             }
         }
 
@@ -129,30 +111,15 @@ namespace Devious_Retention
         public void CreateBuilding(int player, string buildingTypeName, double x, double y)
         {
             if (!info.buildingTypes.ContainsKey(buildingTypeName)) return;
+
             BuildingType buildingType = info.buildingTypes[buildingTypeName];
-
             Building building = new Building(buildingType, x, y, players[player]);
+
             // Make sure that the building doesn't collide with any other entities
-            if (map.Collides(building.X, building.Y, buildingType.size, entitiesBySquare, false) == null) return;
+            if (world.EntityCollisions(building).Count() > 0) return;
+            world.AddEntity(building);
 
-            buildings.Add(building.ID, building);
-            List<Coordinate> buildingCoordinates = map.GetIncludedTiles(building);
-            foreach (Coordinate c in buildingCoordinates)
-            {
-                if (entitiesBySquare[c.x, c.y] == null) entitiesBySquare[c.x, c.y] = new List<Entity> { building };
-                else
-                {
-                    // Also see if there are any resource that this is built on
-                    if (buildingType.canBeBuiltOnResource)
-                        foreach(Entity e in entitiesBySquare[c.x, c.y])
-                            if (e is Resource && ((Resource)e).resourceType.resourceType == buildingType.builtOnResourceType)
-                                building.resource = (Resource)e;
-
-                    entitiesBySquare[c.x, c.y].Add(building);
-                }
-            }
-
-            // No collisions, so we can safetly place the foundation :)
+            // No collisions, so we can safetly place the building :)
             foreach (STCConnection c in connections)
                 c.InformEntityAdd(building, false);
         }
@@ -164,10 +131,11 @@ namespace Devious_Retention
         /// </summary>
         public void CreateUnit(int buildingId, string unitTypeName)
         {
-            if (!buildings.ContainsKey(buildingId)) return;
+            // TODO better space checks on creating unit from building
+            if (!world.ContainsBuilding(buildingId)) return;
             if (!info.unitTypes.ContainsKey(unitTypeName)) return;
 
-            Building building = buildings[buildingId];
+            Building building = world.GetBuilding(buildingId);
             UnitType type = info.unitTypes[unitTypeName];
 
             double placeX = -1;
@@ -177,36 +145,32 @@ namespace Devious_Retention
             double y = building.Y - type.size - 0.1;
             // On top
             for (x = building.X - type.size - 0.1; x <= building.X + building.Type.size + 0.1; x += 0.1)
-                if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                if (!world.Collides(x,y,type)){ placeX = x; placeY = y; }
             // On the right
             x = building.X + building.Type.size + 0.1;
             if(placeX == -1)
                 for(y = building.Y - type.size - 0.1; y <= building.Y + building.Type.size + 0.1; y += 0.1)
-                    if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                    if (!world.Collides(x, y, type)) { placeX = x; placeY = y; }
             // On the bottom
             y = building.Y + building.Type.size + 0.1;
             if(placeX == -1)
                 for(x = building.X + building.Type.size + 0.1; x >= building.X - type.size - 0.1; x -= 0.1)
-                    if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                    if (!world.Collides(x, y, type)) { placeX = x; placeY = y; }
             // On the left
             x = building.X - type.size - 0.1;
             if(placeX == -1)
                 for(y = building.Y + building.Type.size + 0.1; y >= building.Y - type.size - 0.1; y -= 0.1)
-                    if (map.Collides(x, y, type.size, entitiesBySquare, true) != null){ placeX = x; placeY = y; }
+                    if (!world.Collides(x, y, type)) { placeX = x; placeY = y; }
 
             // Was there a place for it?
             if (placeX == -1)
                 return;
             // Now place it
             Unit unit = new Unit(type, placeX, placeY, building.Player);
-
+            
+            world.AddEntity(unit);
             foreach (STCConnection c in connections)
                 c.InformEntityAdd(unit, false);
-
-            units.Add(unit.ID, unit);
-            List<Coordinate> unitCoordinates = map.GetIncludedTiles(unit);
-            foreach (Coordinate c in unitCoordinates)
-                entitiesBySquare[c.x, c.y].Add(unit);
         }
 
         /// <summary>
@@ -217,27 +181,13 @@ namespace Devious_Retention
             Entity entity = null;
 
             if (type is UnitType)
-            {
                 entity = new Unit((UnitType)type, x, y, players[player]);
-                units.Add(entity.ID, (Unit)entity);
-            }
             else if(type is BuildingType)
-            {
                 entity = new Building((BuildingType)type, x, y, players[player]);
-                buildings.Add(entity.ID, (Building)entity);
-            }
             else if(type is ResourceType)
-            {
                 entity = new Resource((ResourceType)type, x, y);
-                resources.Add(entity.ID, (Resource)entity);
-            }
 
-            // Make sure to add it to the list of entities by coordinate as well as the regular entity dictionaries
-            List<Coordinate> entityCoordinates = map.GetIncludedTiles(entity);
-            foreach (Coordinate c in entityCoordinates)
-                entitiesBySquare[c.x, c.y].Add(entity);
-
-            if (entity == null) return;
+            world.AddEntity(entity);
             foreach (STCConnection c in connections)
                 c.InformEntityAdd(entity, true);
         }
@@ -259,8 +209,10 @@ namespace Devious_Retention
         /// </summary>
         public void CommandUnitToMove(int unitID, double x, double y)
         {
-            if (!units.ContainsKey(unitID)) return;
-            Unit unit = units[unitID];
+            if (!world.ContainsUnit(unitID))
+                throw new ArgumentException("Unit with invalid ID " + unitID + " commanded to move.");
+
+            Unit unit = world.GetUnit(unitID);
             // If we're attacking with that unit, halt the attack
             if (attackingUnits.Contains(unit)) StopEntityAttack(unit);
             if(!movingUnits.Contains(unit)) movingUnits.Add(unit);
@@ -279,18 +231,18 @@ namespace Devious_Retention
             Entity entity;
             if(entityType == 0)
             {
-                if (!units.ContainsKey(entityID)) return;
-                entity = units[entityID];
+                if (!world.ContainsUnit(entityID)) return;
+                entity = world.GetUnit(entityID);
             }
             else if(entityType == 1)
             {
-                if (!buildings.ContainsKey(entityID)) return;
-                entity = buildings[entityID];
+                if (!world.ContainsBuilding(entityID)) return;
+                entity = world.GetBuilding(entityID);
             }
             else
             {
-                if (!resources.ContainsKey(entityID)) return;
-                entity = resources[entityID];
+                if (!world.ContainsResource(entityID)) return;
+                entity = world.GetResource(entityID);
             }
             DeleteEntity(entity);
         }
@@ -305,24 +257,24 @@ namespace Devious_Retention
         {
             if (entity is Unit)
             {
-                if (!units.ContainsKey(entity.ID)) return;
-                units.Remove(entity.ID);
+                if (!world.ContainsUnit(entity.ID)) return;
+                world.RemoveEntity(world.GetUnit(entity.ID));
 
                 if (attackingUnits.Contains((Unit)entity)) // Stop attacking with it if necessary
                     StopEntityAttack(entity);
             }
             else if (entity is Building)
             {
-                if (!buildings.ContainsKey(entity.ID)) return;
-                buildings.Remove(entity.ID);
+                if (!world.ContainsBuilding(entity.ID)) return;
+                world.RemoveEntity(world.GetBuilding(entity.ID));
 
                 if (attackingBuildings.Contains((Building)entity)) // Stop attacking with it if necessary
                     StopEntityAttack(entity);
             }
             else
             {
-                if (!resources.ContainsKey(entity.ID)) return;
-                resources.Remove(entity.ID);
+                if (!world.ContainsResource(entity.ID)) return;
+                world.RemoveEntity(world.GetResource(entity.ID));
             }
 
             // Also stop whatever is attacking it from attacking it, if necessary
@@ -339,14 +291,12 @@ namespace Devious_Retention
             // Update both the clients and entities by square
             foreach (STCConnection c in connections)
                 c.InformEntityDeletion(entity is Unit ? 0 : entity is Building ? 1 : 2, entity.ID);
-            foreach (Coordinate c in map.GetIncludedTiles(entity))
-                entitiesBySquare[c.x, c.y].Remove(entity);
         }
 
         public void GatherResource(double amount, int resourceID)
         {
-            if (!resources.ContainsKey(resourceID)) return;
-            Resource resource = resources[resourceID];
+            if (!world.ContainsResource(resourceID)) return;
+            Resource resource = world.GetResource(resourceID);
             foreach (STCConnection c in connections)
                 c.InformEntityChange(resource, 0, -amount, 0);
         }
@@ -363,12 +313,12 @@ namespace Devious_Retention
             for(int i = 0; i < attackerTypes.Count; i++)
             {
                 if (attackerTypes[i] == 0)
-                    attackerUnits.Add(units[attackerIds[i]]);
+                    attackerUnits.Add(world.GetUnit(attackerIds[i]));
                 else
-                    attackerBuildings.Add(buildings[attackerIds[i]]);
+                    attackerBuildings.Add(world.GetBuilding(attackerIds[i]));
             }
 
-            Entity defender = defenderType == 0 ? (Entity)units[defenderId] : (Entity)buildings[defenderId];
+            Entity defender = defenderType == 0 ? (Entity)world.GetUnit(defenderId) : (Entity)world.GetBuilding(defenderId);
 
             foreach(Unit u in attackerUnits)
             {
@@ -455,36 +405,18 @@ namespace Devious_Retention
                 for(int i = 0; i < 4; i++)
                 {
                     // Make sure the tile is actually on the map (movement will be blocked if it isn't anyway)
-                    if (endSquares[i].x < 0 || endSquares[i].y < 0 || endSquares[i].x >= map.width || endSquares[i].y >= map.height) continue;
-
-                    bool collides = !map.GetTile(endSquares[i].x, endSquares[i].y).unitTypePassable[u.unitType.type];
+                    if (endSquares[i].x < 0 || endSquares[i].y < 0 || endSquares[i].x >= world.MapSize().x || endSquares[i].y >= world.MapSize().y) continue;
+                    
                     // If it does collide, just stop its movement.
-                    if (collides)
+                    if (world.Collides(endSquares[i].x, endSquares[i].y, u.Type))
                     {
                         toRemove.Add(u);
                         dX = 0;
                         dY = 0;
                     }
                 }
-
-                // Update the list of entities by square
-                List<Coordinate> previousCoords = map.GetIncludedTiles(u);
-                List<Coordinate> coordsToRemove = new List<Coordinate>();
-
+                
                 u.ChangePosition(dX, dY);
-
-                List<Coordinate> newCoords = map.GetIncludedTiles(u);
-
-                foreach (Coordinate c in previousCoords)
-                    if (!newCoords.Contains(c))
-                        coordsToRemove.Add(c);
-                    else
-                        newCoords.Remove(c);
-
-                foreach (Coordinate c in newCoords)
-                    entitiesBySquare[c.x, c.y].Add(u);
-
-
                 foreach (STCConnection c in connections)
                     c.InformEntityChange(u, 1, dX, dY);
             }
@@ -506,8 +438,8 @@ namespace Devious_Retention
             foreach(Unit u in attackingUnits)
             {
                 // Make sure the defender isn't dead yet
-                if((u.entityToAttack is Unit && !units.ContainsValue((Unit)u.entityToAttack)) ||
-                    (u.entityToAttack is Building && !buildings.ContainsValue((Building)u.entityToAttack)))
+                if((u.entityToAttack is Unit && !world.ContainsUnit(u.entityToAttack.ID)) ||
+                    (u.entityToAttack is Building && !world.ContainsBuilding(u.entityToAttack.ID)))
                 {
                     toRemoveUnits.Add(u);
                     continue;
@@ -566,8 +498,8 @@ namespace Devious_Retention
             foreach (Building b in attackingBuildings)
             {
                 // Make sure the defender isn't dead yet
-                if ((b.entityToAttack is Unit && !units.ContainsValue((Unit)b.entityToAttack)) ||
-                    (b.entityToAttack is Building && !buildings.ContainsValue((Building)b.entityToAttack)))
+                if ((b.entityToAttack is Unit && !world.ContainsUnit(b.entityToAttack.ID)) ||
+                    (b.entityToAttack is Building && !world.ContainsBuilding(b.entityToAttack.ID)))
                 {
                     toRemoveBuildings.Add(b);
                     continue;
