@@ -35,11 +35,6 @@ namespace Devious_Retention
 
         private GameWindow window;
 
-
-        // Entities which are currently attacking anything, for the purposes of animation and projectiles
-        public List<Unit> attackingUnits { get; private set; }
-        public List<Building> attackingBuildings { get; private set; }
-
         // Whether the building panel or the technology panel is open
         public bool buildingPanelOpen { get; private set; }
 
@@ -60,9 +55,6 @@ namespace Devious_Retention
             currentTick = 0;
 
             buildingPanelOpen = true;
-
-            attackingUnits = new List<Unit>();
-            attackingBuildings = new List<Building>();
 
             definitions = new List<GameInfo>();
             
@@ -301,6 +293,7 @@ namespace Devious_Retention
                 if (!world.ContainsUnit(deletedEntityID))
                     throw new KeyNotFoundException("There exists no unit with ID " + deletedEntityID + ", but one was attempted to be deleted.");
                 Unit unit = world.GetUnit(deletedEntityID);
+                unit.Kill();
                 entity = unit;
                 unit.unitType.units.Remove(unit);
                 player.UpdateLOSDelete(entity); // Make sure we update the line of sight of the player
@@ -310,6 +303,7 @@ namespace Devious_Retention
                 if (!world.ContainsBuilding(deletedEntityID))
                     throw new KeyNotFoundException("There exists no building with ID " + deletedEntityID + ", but one was attempted to be deleted.");
                 Building building = world.GetBuilding(deletedEntityID);
+                building.Kill();
                 entity = building;
                 building.buildingType.buildings.Remove(building);
                 player.UpdateLOSDelete(entity);
@@ -396,43 +390,24 @@ namespace Devious_Retention
         }
 
         /// <summary>
-        /// Either starts or stops (based on started) the attack animation between two entities
+        /// Either starts or stops (based on starting) the attack animation between two entities
         /// with the given types and IDs.
         /// </summary>
-        public void AnimateAttack(bool started, int attackerType, int attackerId, int defenderType, int defenderId)
+        public void AnimateAttack(bool starting, int attackerType, int attackerId, int defenderType, int defenderId)
         {
             // First, find the actual entities
             Entity attacker = attackerType == 0 ? (Entity)world.GetUnit(attackerId) : (Entity)world.GetBuilding(attackerId);
-            Entity defender = started ? defenderType == 0 ? (Entity)world.GetUnit(defenderId) : (Entity)world.GetBuilding(defenderId) : null;
+            Entity defender = starting ? defenderType == 0 ? (Entity)world.GetUnit(defenderId) : (Entity)world.GetBuilding(defenderId) : null;
 
-            // If we're starting it, add the attacker to the list of attackers and the defender correspondingly
-            if (started)
-            {
-                if(attacker is Unit)
-                {
-                    attackingUnits.Add((Unit)attacker);
-                    ((Unit)attacker).entityToAttack = defender;
-                    ((Unit)attacker).attackTick = 0;
-                }
-                else
-                {
-                    attackingBuildings.Add((Building)attacker);
-                    ((Building)attacker).entityToAttack = defender;
-                    ((Building)attacker).attackTick = 0;
-                }
-            }
-            // Otherwise remove them
+            if (!attacker.CanAttack())
+                throw new InvalidOperationException("Trying to attack with an entity which can't attack (" + attacker.Type.name + ").");
+            if (!defender.Attackable())
+                throw new InvalidOperationException("Trying to attack an entity which can't be attacked (" + defender.Type.name + ").");
+
+            if (starting)
+                attacker.BeginAttacking(defender);
             else
-            {
-                if(attacker is Unit)
-                {
-                    attackingUnits.Remove((Unit)attacker);
-                }
-                else
-                {
-                    attackingBuildings.Remove((Building)attacker);
-                }
-            }
+                attacker.HaltAttacking();
         }
 
         /// <summary>
@@ -449,14 +424,7 @@ namespace Devious_Retention
         /// </summary>
         public void Tick()
         {
-            // Events that happen every tick
-            TickAttackAnimations();
-
-            // Events that happen every second
-            if (currentTick % (int)(1000 / GameInfo.TICK_TIME) == 0)
-            {
-                TickResourceGathering();
-            }
+            world.Tick();
 
             currentTick++;
         }
@@ -488,37 +456,6 @@ namespace Devious_Retention
 
                         connection.InformResourceGather(amount, b.resource);
                     }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Ticks all currently attacking entities' animations (including projectiles).
-        /// </summary>
-        private void TickAttackAnimations()
-        {
-            // Units first
-            foreach(Unit u in attackingUnits)
-            {
-                if(u.attackTick >= u.unitType.attackTicks)
-                {
-                    u.attackTick = 0;
-                }
-                else
-                {
-                    u.attackTick++;
-                }
-            }
-            // Then buildings
-            foreach(Building b in attackingBuildings)
-            {
-                if(b.attackTick >= b.buildingType.attackTicks)
-                {
-                    b.attackTick = 0;
-                }
-                else
-                {
-                    b.attackTick++;
                 }
             }
         }

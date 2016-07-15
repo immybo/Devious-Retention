@@ -25,10 +25,11 @@ namespace Devious_Retention
         // null,-1,-1 (respectively). If it has, however, it will attempt to move
         // towards the spot or the unit, or attack the unit if it's within range.
         // Attacking will take priority (although they should never both be active).
-        public Entity entityToAttack;
-        public double xToMove;
-        public double yToMove;
-        private int direction;
+        private Entity entityToAttack;
+
+        private bool isMoving;
+        private double toMoveX;
+        private double toMoveY;
 
         // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will be considered ready to attack
         public int attackTick = 0;
@@ -67,22 +68,14 @@ namespace Devious_Retention
         private void Init(UnitType type)
         {
             this.unitType = type;
-
-            direction = 0;
-            xToMove = -1;
-            yToMove = -1;
             hitpoints = type.hitpoints;
 
             projectiles = new List<Coordinate>();
         }
         
-        /// <param name="damage">The integer amount of damage dealt to this unit.</param>
-        /// <param name="damageType">The type of damage being dealt.</param>
-        public int TakeDamage(int damage, int damageType)
+        public override void Damage(Entity source)
         {
-            int realDamage = (int)(damage * (100 - unitType.resistances[damageType]) / 100);
-            hitpoints -= realDamage;
-            return realDamage;
+            hitpoints -= GetDamage(source, this);
         }
 
         /// <summary>
@@ -100,6 +93,45 @@ namespace Devious_Retention
         public override Image GetImage()
         {
             return unitType.image;
+        }
+
+        public override void Tick()
+        {
+            if (Attacking())
+            {
+                entityToAttack.Damage(this);
+                if (entityToAttack.IsDead())
+                    HaltAttacking();
+
+                attackTick++;
+                if (attackTick == unitType.attackTicks)
+                    attackTick = 0;
+            }
+            if (Moving())
+            {
+                movementTick++;
+                double distToEnd = Math.Sqrt(Math.Pow(toMoveX - X, 2) + Math.Pow(toMoveY - Y, 2));
+                double tickSpeed = Type.speed / 1000 * GameInfo.TICK_TIME;
+
+                if(distToEnd < tickSpeed)
+                {
+                    Move(toMoveX, toMoveY);
+                    isMoving = false;
+                }
+                else
+                {
+                    // Figure out how much to move in each direction
+                    double xToGo = toMoveX - X;
+                    double yToGo = toMoveY - Y;
+                    double total = Math.Abs(xToGo) + Math.Abs(yToGo);
+                    double xProportion = xToGo / total;
+                    double yProportion = yToGo / total;
+
+                    double newX = X + xProportion * tickSpeed;
+                    double newY = Y + yProportion * tickSpeed;
+                    Move(newX, newY);
+                }
+            }
         }
 
         public override void RenderHPBar(Graphics g, Rectangle bounds)
@@ -120,13 +152,72 @@ namespace Devious_Retention
             g.DrawRectangle(Player.Pen, bounds);
         }
 
+        public override void BeginAttacking(Entity defender)
+        {
+            entityToAttack = defender;
+            attackTick = 0;
+        }
+
+        public override void HaltAttacking()
+        {
+            entityToAttack = null;
+        }
+
         public override bool Attackable()
         {
             return true;
         }
+
+        public override bool Attacking()
+        {
+            return entityToAttack != null;
+        }
+
+        public override bool CanAttack()
+        {
+            return true;
+        }
+        
+        public override void BeginMovement(double newX, double newY)
+        {
+            isMoving = true;
+            toMoveX = newX;
+            toMoveY = newY;
+        }
+
+        public override void HaltMovement()
+        {
+            isMoving = false;
+        }
+
+        public override bool Moving()
+        {
+            return isMoving;
+        }
+
+        public override bool CanMove()
+        {
+            return true;
+        }
+
         public override EntityType GetEntityType()
         {
             return unitType;
+        }
+
+        public override bool IsDead()
+        {
+            return hitpoints <= 0;
+        }
+
+        public override void Kill()
+        {
+            hitpoints = 0;
+        }
+
+        public override Entity AttackedEntity()
+        {
+            return entityToAttack;
         }
     }
 }

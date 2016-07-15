@@ -45,7 +45,7 @@ namespace Devious_Retention
             server.SyncMap();
 
             // TESTING STUFF
-            server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 0, 0, 0);
+            server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 0, 2, 2);
             server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 3, 3);
             server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 3, 4);
             server.SpawnEntity(client.GetLocalDefinitions().unitTypes["TestUnit"], 1, 3, 5);

@@ -311,11 +311,11 @@ namespace Devious_Retention
             foreach(Entity e in entities)
             {
                 // Render a laser if they're attacking anything and it's their frame to attack
-                if (e is Unit && client.attackingUnits.Contains((Unit)e) && ((Unit)e).attackTick == ((Unit)e).unitType.attackTicks)
+                if (e is Unit && e.Attacking() && ((Unit)e).attackTick == ((Unit)e).unitType.attackTicks)
                 {
                     double x = (e.X + e.Type.size / 2 - worldX) * tileWidth;
                     double y = (e.Y + e.Type.size / 2 - worldY) * tileHeight;
-                    Entity entityToAttack = ((Unit)e).entityToAttack;
+                    Entity entityToAttack = e.AttackedEntity();
                     double x2 = (entityToAttack.X + entityToAttack.Type.size / 2 - worldX) * tileWidth;
                     double y2 = (entityToAttack.Y + entityToAttack.Type.size / 2 - worldY) * tileHeight;
 

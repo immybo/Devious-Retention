@@ -21,8 +21,6 @@ namespace Devious_Retention
         // The current amount of the given resource in this resource
         public double amount;
 
-        private Image image;
-
         /// <summary>
         /// Most of a resource's statistics are gathered from its type,
         /// however its position must also be provided.
@@ -63,13 +61,14 @@ namespace Devious_Retention
             return; // not applicable
         }
 
-        public override bool Attackable()
-        {
-            return false;
-        }
         public override EntityType GetEntityType()
         {
             return resourceType;
+        }
+
+        public override bool IsDead()
+        {
+            return amount <= 0;
         }
     }
 }

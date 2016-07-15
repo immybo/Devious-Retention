@@ -292,5 +292,47 @@ namespace Devious_Retention
         {
             Map = newMap;
         }
+
+        /// <summary>
+        /// Updates everything that needs to be updated by a tick.
+        /// </summary>
+        public void Tick()
+        {
+            foreach (Unit u in units.Values)
+                u.Tick();
+            foreach (Building b in buildings.Values)
+                b.Tick();
+            foreach (Resource r in resources.Values)
+                r.Tick();
+
+            CleanupEntities(); // Remove entities which have died
+        }
+
+        /// <summary>
+        /// Removes all entities which are dead from the world.
+        /// </summary>
+        private void CleanupEntities()
+        {
+            List<Unit> toRemoveU = new List<Unit>();
+            foreach (Unit u in units.Values)
+                if (u.IsDead())
+                    toRemoveU.Add(u);
+            foreach (Unit u in toRemoveU)
+                units.Remove(u.ID);
+
+            List<Building> toRemoveB = new List<Building>();
+            foreach (Building b in buildings.Values)
+                if (b.IsDead())
+                    toRemoveB.Add(b);
+            foreach (Building b in toRemoveB)
+                buildings.Remove(b.ID);
+
+            List<Resource> toRemoveR = new List<Resource>();
+            foreach (Resource r in resources.Values)
+                if (r.IsDead())
+                    toRemoveR.Add(r);
+            foreach (Resource r in toRemoveR)
+                resources.Remove(r.ID);
+        }
     }
 }

@@ -331,7 +331,11 @@ namespace Devious_Retention
         public void InformEntityAttack(Entity attacker, Entity defender, bool started)
         {
             if (outgoingSocket == null || !outgoingSocket.Connected) return;
-            outgoingWriter.WriteLine("6 " + started + " " + (attacker is Unit ? 0 : 1) + " " + attacker.ID + " " + (defender is Unit ? 0 : 1) + " " + defender.ID);
+
+            if(defender == null)
+                outgoingWriter.WriteLine("6 " + started + " " + (attacker is Unit ? 0 : 1) + " " + attacker.ID + " " + 0 + " " + 0);
+            else
+                outgoingWriter.WriteLine("6 " + started + " " + (attacker is Unit ? 0 : 1) + " " + attacker.ID + " " + (defender is Unit ? 0 : 1) + " " + defender.ID);
         }
 
         /// <summary>

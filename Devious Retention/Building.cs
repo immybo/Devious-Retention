@@ -12,8 +12,7 @@ namespace Devious_Retention
     /// Some buildings can train units, and some buildings
     /// can attack enemy units and buildings. Some also gather
     /// resources, whether on their own or in combination with
-    /// resource desposits. Buildings are created by placing a
-    /// foundation and waiting.
+    /// resource desposits.
     /// </summary>
     public class Building : Entity
     {
@@ -92,15 +91,9 @@ namespace Devious_Retention
             if (trainingQueue.Count == 1) trainingQueueTime = unit.trainingTime;
         }
 
-        /// <summary>
-        /// Lowers this building's current hitpoints by the appropriate amount,
-        /// from the given damage and damage type.
-        /// </summary>
-        public int TakeDamage(int damage, int damageType)
+        public override void Damage(Entity source)
         {
-            int realDamage = (int)(damage * (100 - buildingType.resistances[damageType]) / 100);
-            hitpoints -= realDamage;
-            return realDamage;
+            hitpoints -= GetDamage(source, this);
         }
 
         /// <summary>
@@ -113,6 +106,27 @@ namespace Devious_Retention
         {
             if (entity is Resource) return;
             entityToAttack = entity;
+        }
+
+        public override void BeginAttacking(Entity defender)
+        {
+            entityToAttack = defender;
+            attackTick = 0;
+        }
+
+        public override void HaltAttacking()
+        {
+            entityToAttack = null;
+        }
+
+        public override bool Attacking()
+        {
+            return entityToAttack != null;
+        }
+
+        public override bool CanAttack()
+        {
+            return buildingType.aggressive;
         }
 
         /// <summary>
@@ -130,6 +144,20 @@ namespace Devious_Retention
         public override Image GetImage()
         {
             return buildingType.image;
+        }
+
+        public override void Tick()
+        {
+            if (Attacking())
+            {
+                entityToAttack.Damage(this);
+                if (entityToAttack.IsDead())
+                    HaltAttacking();
+
+                attackTick++;
+                if (attackTick == buildingType.attackTicks)
+                    attackTick = 0;
+            }
         }
 
         public override void RenderHPBar(Graphics g, Rectangle bounds)
@@ -157,6 +185,21 @@ namespace Devious_Retention
         public override EntityType GetEntityType()
         {
             return buildingType;
+        }
+
+        public override bool IsDead()
+        {
+            return hitpoints <= 0;
+        }
+
+        public override void Kill()
+        {
+            hitpoints = 0;
+        }
+
+        public override Entity AttackedEntity()
+        {
+            return entityToAttack;
         }
     }
 }
