@@ -35,7 +35,7 @@ namespace Devious_Retention
 
         public Entity entityToAttack;
 
-        public int attackTick = 0;
+        public int attackTick = -1;
 
         public Image image
         {
@@ -116,6 +116,7 @@ namespace Devious_Retention
 
         public override void HaltAttacking()
         {
+            attackTick = -1;
             entityToAttack = null;
         }
 
@@ -150,14 +151,25 @@ namespace Devious_Retention
         {
             if (Attacking())
             {
-                entityToAttack.Damage(this);
                 if (entityToAttack.IsDead())
                     HaltAttacking();
 
                 attackTick++;
                 if (attackTick == buildingType.attackTicks)
+                {
                     attackTick = 0;
+                    entityToAttack.Damage(this);
+                }
             }
+        }
+
+        /// <summary>
+        /// Returns whether or not this building attacked on 
+        /// the previous tick, if it was attacking.
+        /// </summary>
+        public override bool JustAttacked()
+        {
+            return attackTick == 0;
         }
 
         public override void RenderHPBar(Graphics g, Rectangle bounds)

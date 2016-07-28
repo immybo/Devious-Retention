@@ -160,6 +160,15 @@ namespace Devious_Retention
         }
 
         /// <summary>
+        /// Returns whether or not this entity attacked on the
+        /// previous tick, if it is attacking.
+        /// </summary>
+        public virtual bool JustAttacked()
+        {
+            throw new NotImplementedException("Attempting to check if an entity which can't attack just attacked.");
+        }
+
+        /// <summary>
         /// Teleports this entity to a given position, disregarding
         /// its ability to move normally. No checking is done here
         /// for whether the new position is outside of the map.

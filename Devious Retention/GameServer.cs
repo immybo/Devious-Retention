@@ -74,8 +74,6 @@ namespace Devious_Retention
         /// </summary>
         private void Tick(object sender, EventArgs e)
         {
-            AttackAllEntities(); // Attack all the entities that need attacking
-
             world.Tick();
 
             foreach (STCConnection c in connections) // Inform all the clients
@@ -320,30 +318,6 @@ namespace Devious_Retention
         private void StopUnitMovement(Unit unit)
         {
             unit.HaltMovement();
-        }
-
-        /// <summary>
-        /// Moves all units which have been commanded to attack forward by one tick in the attack cycle.
-        /// </summary>
-        private void AttackAllEntities()
-        {
-            List<Tuple<Entity, Entity>> combatants = new List<Tuple<Entity, Entity>>();
-            foreach (Unit u in world.GetUnits())
-                if (u.Attacking())
-                    combatants.Add(new Tuple<Entity, Entity>(u, u.AttackedEntity()));
-            foreach (Building b in world.GetBuildings())
-                if (b.Attacking())
-                    combatants.Add(new Tuple<Entity, Entity>(b, b.AttackedEntity()));
-            
-            foreach(Tuple<Entity,Entity> fight in combatants)
-            {
-                int damage = Entity.GetDamage(fight.Item1, fight.Item2);
-
-                foreach (STCConnection c in connections)
-                {
-                    c.InformEntityChange(fight.Item2, 0, -damage, 0);
-                }
-            }
         }
     }
 }

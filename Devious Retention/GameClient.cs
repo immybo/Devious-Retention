@@ -424,9 +424,8 @@ namespace Devious_Retention
         /// </summary>
         public void Tick()
         {
-            world.Tick();
-
             currentTick++;
+            TickResourceGathering();
         }
 
         /// <summary>

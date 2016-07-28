@@ -32,7 +32,7 @@ namespace Devious_Retention
         private double toMoveY;
 
         // The frame of attack animation this unit is on; when this reaches type.attackTicks, this unit will be considered ready to attack
-        public int attackTick = 0;
+        public int attackTick = -1;
         // " movement animation
         public int movementTick = 0;
 
@@ -99,13 +99,15 @@ namespace Devious_Retention
         {
             if (Attacking())
             {
-                entityToAttack.Damage(this);
                 if (entityToAttack.IsDead())
                     HaltAttacking();
 
                 attackTick++;
                 if (attackTick == unitType.attackTicks)
+                {
                     attackTick = 0;
+                    entityToAttack.Damage(this);
+                }
             }
             if (Moving())
             {
@@ -134,6 +136,15 @@ namespace Devious_Retention
             }
         }
 
+        /// <summary>
+        /// Returns whether or not this unit attacked on the previous
+        /// tick, if it is attacking.
+        /// </summary>
+        public override bool JustAttacked()
+        {
+            return attackTick == 0;
+        }
+
         public override void RenderHPBar(Graphics g, Rectangle bounds)
         {
             Brush brush;
@@ -160,6 +171,7 @@ namespace Devious_Retention
 
         public override void HaltAttacking()
         {
+            attackTick = -1;
             entityToAttack = null;
         }
 
