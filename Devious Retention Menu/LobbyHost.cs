@@ -10,6 +10,8 @@ using System.Threading;
 using System.IO;
 using System.Collections;
 using System.Collections.Concurrent;
+using Devious_Retention;
+using static Devious_Retention.GameBuilder;
 
 namespace Devious_Retention_Menu
 {
@@ -92,49 +94,6 @@ namespace Devious_Retention_Menu
             {
                 c.WriteLine("terminate");
                 c.Close();
-            }
-        }
-
-        /// <summary>
-        /// Provides information about one client.
-        /// </summary>
-        public class ClientData
-        {
-            public int uniqueID;
-            public string username;
-            public int playerNumber;
-            public Color color;
-            
-            public string factionName; // Kept as a primitive type and synced up on launch
-
-            public ClientData(int uniqueID, string username, int playerNumber, Color color, string factionName)
-            {
-                this.username = username;
-                this.playerNumber = playerNumber;
-                this.color = color;
-                this.factionName = factionName;
-            }
-
-            /// <summary>
-            /// The opposite of the toString method for a clientdata.
-            /// </summary>
-            public static ClientData FromString(string inputString)
-            {
-                // We need to split it with "!!"
-                string[] splitLine = inputString.Split(new string[] { "!!" }, StringSplitOptions.None);
-
-                int uniqueID = int.Parse(splitLine[0]);
-                int playerNumber = int.Parse(splitLine[1]);
-                string username = splitLine[2];
-                Color color = ColorTranslator.FromHtml(splitLine[3]);
-                string factionName = splitLine[4];
-
-                return new ClientData(uniqueID, username, playerNumber, color, factionName);
-            }
-
-            public override string ToString()
-            {
-                return uniqueID + "!!" + playerNumber + "!!" + username + "!!" + ColorTranslator.ToHtml(color) + "!!" + factionName;
             }
         }
 
@@ -249,7 +208,14 @@ namespace Devious_Retention_Menu
 
         private void StartGame()
         {
-            Console.WriteLine("Game starting (unimplemented)");
+            // First, build the STC connections
+            Dictionary<STCConnection, ClientData> serverClients = new Dictionary<STCConnection, ClientData>();
+            foreach(KeyValuePair<Connection, ClientData> client in clients)
+            {
+                client.Key.WriteLine("start");
+                STCConnection newConnection = new STCConnection(client.Key.GetLocalIP());
+            }
+            GameBuilder.BuildServer(serverClients);
         }
     }
 }

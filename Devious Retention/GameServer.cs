@@ -13,7 +13,7 @@ namespace Devious_Retention
     /// to different clients, and receives actions from them
     /// to process.
     /// </summary>
-    class GameServer
+    public class GameServer
     {
         public List<STCConnection> connections { get; set; }
         private GameInfo info;

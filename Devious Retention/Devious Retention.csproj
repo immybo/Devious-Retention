@@ -55,6 +55,7 @@
     <Compile Include="Entity.cs" />
     <Compile Include="EntityType.cs" />
     <Compile Include="Faction.cs" />
+    <Compile Include="GameBuilder.cs" />
     <Compile Include="GameClient.cs" />
     <Compile Include="GameInfo.cs" />
     <Compile Include="GameServer.cs" />

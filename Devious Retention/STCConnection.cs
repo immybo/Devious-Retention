@@ -15,7 +15,7 @@ namespace Devious_Retention
     /// the socket connection, and receives information from the client, passing
     /// that on to its server.
     /// </summary>
-    class STCConnection
+    public class STCConnection
     {
         private IPAddress ip;
         private Socket outgoingSocket;

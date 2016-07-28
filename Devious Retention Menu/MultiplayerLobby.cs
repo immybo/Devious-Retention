@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Devious_Retention.GameBuilder;
 
 namespace Devious_Retention_Menu
 {
@@ -33,7 +34,7 @@ namespace Devious_Retention_Menu
 
         private IPlayerChangeListener listener;
 
-        private ICollection<LobbyHost.ClientData> players;
+        private ICollection<ClientData> players;
         private int playerID;
 
         private Font titleFont;
@@ -93,7 +94,7 @@ namespace Devious_Retention_Menu
         /// Sets this lobby renderer's knowledge of the lobby players
         /// to the given players.
         /// </summary>
-        public void SetPlayers(ICollection<LobbyHost.ClientData> players, int playerID)
+        public void SetPlayers(ICollection<ClientData> players, int playerID)
         {
             this.players = players;
             numPlayers = players.Count;
@@ -134,7 +135,7 @@ namespace Devious_Retention_Menu
         {
             int topY = (int)(PLAYER_AREA_TOP * Height);
 
-            foreach(LobbyHost.ClientData player in players)
+            foreach(ClientData player in players)
             {
                 int currentY = topY + (playerHeight + margin) * (player.playerNumber-1);
                 Point currentPoint = new Point(margin, currentY);

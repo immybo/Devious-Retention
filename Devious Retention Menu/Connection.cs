@@ -66,6 +66,15 @@ namespace Devious_Retention_Menu
             }
         }
 
+        public IPAddress GetLocalIP()
+        {
+            return (client.Client.LocalEndPoint as IPEndPoint).Address;
+        }
+        public IPAddress GetRemoteIP()
+        {
+            return (client.Client.RemoteEndPoint as IPEndPoint).Address;
+        }
+
         private void SetUpFromClient()
         {
             stream = client.GetStream();

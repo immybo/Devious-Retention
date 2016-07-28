@@ -8,6 +8,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Devious_Retention;
+using static Devious_Retention.GameBuilder;
 
 namespace Devious_Retention_Menu
 {
@@ -18,7 +20,7 @@ namespace Devious_Retention_Menu
     public class MultiplayerLobbyHandler : MenuItemHandler, IConnectionDataListener, IPlayerChangeListener
     { 
         private Connection connection;
-        private Dictionary<int, LobbyHost.ClientData> clients; // identifier is unique player ID
+        private Dictionary<int, ClientData> clients; // identifier is unique player ID
         private MultiplayerLobby gui;
         
         public bool Connected
@@ -39,7 +41,7 @@ namespace Devious_Retention_Menu
         public MultiplayerLobbyHandler(IPAddress hostIP)
         {
             Connected = false;
-            clients = new Dictionary<int, LobbyHost.ClientData>();
+            clients = new Dictionary<int, ClientData>();
 
             // Attempt to connect to the host
             connection = new Connection(hostIP, LobbyHost.HOST_CONNECTION_PORT);
@@ -103,7 +105,7 @@ namespace Devious_Retention_Menu
         public override string ToString()
         {
             StringBuilder b = new StringBuilder();
-            foreach (LobbyHost.ClientData client in clients.Values)
+            foreach (ClientData client in clients.Values)
             {
                 b.Append(client.ToString() + "\n");
             }
@@ -124,7 +126,7 @@ namespace Devious_Retention_Menu
                 StringBuilder b = new StringBuilder();
                 for (int i = 1; i < splitLine.Length; i++)
                     b.Append(splitLine[i]+" ");
-                LobbyHost.ClientData newData = LobbyHost.ClientData.FromString(b.ToString());
+                ClientData newData = ClientData.FromString(b.ToString());
                 clients[newData.playerNumber] = newData;
             }
             // Inform this client's ID
@@ -148,9 +150,19 @@ namespace Devious_Retention_Menu
             {
                 Connected = false;
             }
+            else if (splitLine[0].Equals("start"))
+            {
+                OpenGameClient();
+            }
 
             gui.SetPlayers(clients.Values, PlayerID);
             gui.Refresh();
+        }
+
+        private void OpenGameClient()
+        {
+            CTSConnection c = new CTSConnection(connection.GetRemoteIP());
+            GameBuilder.BuildClient(c);
         }
     }
 }
