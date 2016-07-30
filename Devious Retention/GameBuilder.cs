@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Devious_Retention
 {
@@ -11,12 +12,48 @@ namespace Devious_Retention
     {
         public static void BuildServer(Dictionary<STCConnection, ClientData> clientInfo)
         {
-            Console.WriteLine("Building server [unimplemented]");
+            List<STCConnection> connections = clientInfo.Keys.ToList();
+            Map map = Map.GenerateMap(Map.GetMapType(Map.GetPossibleMapTypes()[0]), 20, 20, clientInfo.Count);
+            World world = new World(map);
+            GameServer server = new GameServer(connections, new int[] { }, world);
+            foreach (STCConnection c in connections)
+            {
+                c.SetServer(server);
+                c.Listen();
+                c.RepeatedlyAttemptConnect();
+            }
+            server.SyncMap();
         }
 
-        public static void BuildClient(CTSConnection connection)
+        public static void BuildClient(CTSConnection connection, List<ClientData> clientInfo, int localPlayerNumber)
         {
-            Console.WriteLine("Building client [unimplemented]");
+            ClientData[] clients = new ClientData[clientInfo.Count+1];
+            foreach (ClientData data in clientInfo)
+                clients[data.playerNumber] = data;
+            Map tempMap = Map.EmptyMap();
+            World world = new World(tempMap);
+            LocalPlayer localPlayer = new LocalPlayer(Player.DefaultRelations(localPlayerNumber, clientInfo.Count),
+                localPlayerNumber,
+                clients[localPlayerNumber].color,
+                GameInfo.factions[clients[localPlayerNumber].factionName],
+                new GameInfo(),
+                world);
+
+            Player[] players = new Player[clientInfo.Count];
+            players[localPlayerNumber-1] = localPlayer;
+            for (int i = 1; i < clients.Count(); i++)
+            {
+                if (i == localPlayerNumber) continue;
+                players[i] = new Player(Player.DefaultRelations(i, clients.Count()),
+                    i+1, clients[i].color, GameInfo.factions[clients[i].factionName], new GameInfo());
+            }
+
+            connection.Listen();
+            connection.Connect();
+            GameClient client = new GameClient(localPlayer, players, world, connection);
+            connection.SetClient(client, localPlayer);
+
+            Application.Run(client.GetWindow());
         }
 
         /// <summary>

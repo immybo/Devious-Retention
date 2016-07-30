@@ -82,11 +82,11 @@ namespace Devious_Retention
 
         public static Relation[] DefaultRelations(int playerNumber, int playerCount)
         {
-            Relation[] relations = new Relation[playerCount];
-            for (int i = 0; i < playerCount; i++)
-                relations[i] = Relation.ENEMY;
-            relations[playerNumber] = Relation.ALLIED;
-            return relations;
+            Relation[] defRelations = new Relation[playerCount+1];
+            for (int i = 0; i < playerCount+1; i++)
+                defRelations[i] = Relation.ENEMY;
+            defRelations[playerNumber] = Relation.ALLIED;
+            return defRelations;
         }
 
         public enum Relation

@@ -122,10 +122,14 @@ namespace Devious_Retention_Menu
         private async Task ReadLinesAsync()
         {
             string line;
-            while((line = await incomingReader.ReadLineAsync()) != null)
+            try
             {
-                ProcessLine(line);
+                while ((line = await incomingReader.ReadLineAsync()) != null)
+                {
+                    ProcessLine(line);
+                }
             }
+            catch (NullReferenceException) { } // closed
         }
 
         /// <summary>

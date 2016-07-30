@@ -40,6 +40,8 @@ namespace Devious_Retention_Menu
         /// </summary>
         public MultiplayerLobbyHandler(IPAddress hostIP)
         {
+            GameInfo.ReadDefinitions();
+
             Connected = false;
             clients = new Dictionary<int, ClientData>();
 
@@ -55,7 +57,7 @@ namespace Devious_Retention_Menu
             // Give the connection initial values for this client
             UpdateClientUsername("Default");
             UpdateClientColor("#000000");
-            UpdateClientFactionName("Default Faction");
+            UpdateClientFactionName("Default");
         }
 
         public void BeginGUI(bool isHost, LobbyHost host)
@@ -125,9 +127,11 @@ namespace Devious_Retention_Menu
             {
                 StringBuilder b = new StringBuilder();
                 for (int i = 1; i < splitLine.Length; i++)
-                    b.Append(splitLine[i]+" ");
+                    b.Append(splitLine[i]);
                 ClientData newData = ClientData.FromString(b.ToString());
-                clients[newData.playerNumber] = newData;
+                if (clients.ContainsKey(newData.uniqueID))
+                    clients.Remove(newData.uniqueID);
+                clients[newData.uniqueID] = newData;
             }
             // Inform this client's ID
             else if (splitLine[0].Equals("inform"))
@@ -162,7 +166,8 @@ namespace Devious_Retention_Menu
         private void OpenGameClient()
         {
             CTSConnection c = new CTSConnection(connection.GetRemoteIP());
-            GameBuilder.BuildClient(c);
+            GameBuilder.BuildClient(c, clients.Values.ToList(), clients[PlayerID].playerNumber);
+            Close();
         }
     }
 }

@@ -214,6 +214,16 @@ namespace Devious_Retention
             }
         }
 
+        public void RepeatedlyAttemptConnect()
+        {
+            for(int i = 0; i < 100; i++)
+            {
+                if (Connect())
+                    return;
+            }
+            throw new InvalidOperationException("Can't connect repeatedly with STCConnection.");
+        }
+
         /// <summary>
         /// Closes the socket connection.
         /// </summary>

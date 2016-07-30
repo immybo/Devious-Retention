@@ -37,7 +37,7 @@ namespace Devious_Retention_Menu
             this.maxPlayers = maxPlayers;
             closed = false;
             currentUniqueID = 0;
-
+            
             clients = new Dictionary<Connection, ClientData>();
 
             // Build the connection listener
@@ -64,10 +64,7 @@ namespace Devious_Retention_Menu
         {
             foreach(ClientData data in clients.Values)
             {
-                foreach(Connection c in clients.Keys)
-                {
-                    c.WriteLine(data.ToString());
-                }
+                UpdateClients(data);
             }
         }
 
@@ -118,7 +115,7 @@ namespace Devious_Retention_Menu
                 newClient.WriteLine("full");
             }
 
-            clients.Add(newClient, new ClientData(currentUniqueID, "Default", GetFreePlayerNumber(), Color.Black, "Default Faction"));
+            clients.Add(newClient, new ClientData(currentUniqueID, "Default", GetFreePlayerNumber(), Color.Black, "Default"));
             currentUniqueID++;
 
             newClient.AddConnectionDataListener(this);
@@ -213,9 +210,10 @@ namespace Devious_Retention_Menu
             foreach(KeyValuePair<Connection, ClientData> client in clients)
             {
                 client.Key.WriteLine("start");
-                STCConnection newConnection = new STCConnection(client.Key.GetLocalIP());
+                STCConnection newConnection = new STCConnection(client.Key.GetRemoteIP());
             }
             GameBuilder.BuildServer(serverClients);
+            Close();
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Devious_Retention
             Player[] players = { player1, player2 };
             
             GameServer server = new GameServer(new List<STCConnection> { stc }, new int[] { 1 }, world);
-            GameClient client = new GameClient(player1, players, world, cts, null);
+            GameClient client = new GameClient(player1, players, world, cts);
 
             stc.SetServer(server);
             cts.SetClient(client, player1);

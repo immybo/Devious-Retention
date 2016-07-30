@@ -43,7 +43,7 @@ namespace Devious_Retention
         /// When a GameClient is created, it is assumed that entities will be
         /// sent from the CTSConnection before the first tick.
         /// </summary>
-        public GameClient(LocalPlayer player, Player[] players, World world, CTSConnection connection, List<Faction> factions)
+        public GameClient(LocalPlayer player, Player[] players, World world, CTSConnection connection)
         {
             this.connection = connection;
             this.world = world;

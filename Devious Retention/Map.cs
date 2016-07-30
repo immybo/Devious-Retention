@@ -39,6 +39,11 @@ namespace Devious_Retention
             this.startingPositions = startingPositions;
         }
 
+        public static Map EmptyMap()
+        {
+            return new Map(new Tile[] { }, new int[,] { }, 0, 0, new List<Coordinate>() { });
+        }
+
         /// <summary>
         /// Returns the type of tile at the specified coordinate.
         /// </summary>

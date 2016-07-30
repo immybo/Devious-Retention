@@ -14,7 +14,7 @@ namespace Devious_Retention
     /// </summary>
     public class GameInfo
     {
-        public static string BASE_DIRECTORY = AppDomain.CurrentDomain.BaseDirectory.Remove(AppDomain.CurrentDomain.BaseDirectory.Length - 10, 10);
+        public static string BASE_DIRECTORY = AppDomain.CurrentDomain.BaseDirectory.Remove(AppDomain.CurrentDomain.BaseDirectory.Length - 16, 16) + "\\";
         public static string UNIT_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Units.txt"; 
         public static string BUILDING_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Buildings.txt";
         public static string RESOURCE_FNAME { get; internal set; } = BASE_DIRECTORY + "Definitions\\Resources.txt";
@@ -127,7 +127,6 @@ namespace Devious_Retention
         /// </summary>
         public static void ReadDefinitions()
         {
-            // TODO Add more types.
             ReadUnits(UNIT_FNAME);
             ReadBuildings(BUILDING_FNAME);
             ReadResources(RESOURCE_FNAME);
@@ -138,6 +137,7 @@ namespace Devious_Retention
 
         private static void ReadUnits(string fname)
         {
+            Console.WriteLine(fname);
             baseUnitTypes = new SortedDictionary<string, UnitType>();
 
             StreamReader r = new StreamReader(fname);
@@ -170,8 +170,9 @@ namespace Devious_Retention
                 StringBuilder descriptionBuilder = new StringBuilder();
                 for (int i = 15 + GameInfo.DAMAGE_TYPES + GameInfo.RESOURCE_TYPES; i < attributes.Length; i++)
                     descriptionBuilder.Append(attributes[i] + " ");
-                baseUnitTypes.Add(name, new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTime, speed, prerequisite, 
-                    aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, descriptionBuilder.ToString()));
+
+                baseUnitTypes[name] = new UnitType(name, hitpoints, damage, damageType, size, lineOfSight, resistances, trainingTime, speed, prerequisite, 
+                    aggressive, type, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, descriptionBuilder.ToString());
             }
             r.Close();
         }
@@ -217,8 +218,8 @@ namespace Devious_Retention
                 for (int i = 19 + DAMAGE_TYPES + RESOURCE_TYPES + trainableUnits.Length; i < attributes.Length; i++)
                     descriptionBuilder.Append(attributes[i] + " ");
 
-                baseBuildingTypes.Add(name, new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
-                    builtOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits, descriptionBuilder.ToString()));
+                baseBuildingTypes[name] = new BuildingType(name, hitpoints, damage, damageType, lineOfSight, size, resistances, buildTime, prerequisite, providesResource, resourceType, gatherSpeed,
+                    builtOnResource, builtOnResourceType, aggressive, imageName, iconName, range, attackSpeedMilliseconds, resourceCosts, trainableUnits, descriptionBuilder.ToString());
             }
             r.Close();
         }
@@ -241,7 +242,7 @@ namespace Devious_Retention
                 StringBuilder descriptionBuilder = new StringBuilder();
                 for (int i = 6; i < attributes.Length; i++)
                     descriptionBuilder.Append(attributes[i] + " ");
-                baseResourceTypes.Add(name, new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size, descriptionBuilder.ToString()));
+                baseResourceTypes[name] = new ResourceType(name, resourceType, resourceAmount, imageFilename, gatherSpeed, size, descriptionBuilder.ToString());
             }
             r.Close();
         }
@@ -278,7 +279,7 @@ namespace Devious_Retention
                 // If we're on the last line of a technology, create that technology and reset the necessary variables for the next one
                 if (line.Equals("~"))
                 {
-                    baseTechnologies.Add(name, new Technology(name, prerequisites, clashing, effects, resourceCosts, iconName, description));
+                    baseTechnologies[name] = new Technology(name, prerequisites, clashing, effects, resourceCosts, iconName, description);
                     currentLine = -1;
                     prerequisites = new List<string>();
                     effects = new List<string>();
@@ -328,7 +329,7 @@ namespace Devious_Retention
             {
                 if (line.Equals("~"))
                 {
-                    factions.Add(name,new Faction(name, effects));
+                    factions[name] = new Faction(name, effects);
                     currentLine = -1;
                     effects = new HashSet<String>();
                 }
@@ -360,7 +361,7 @@ namespace Devious_Retention
                 for (int j = 0; j < 3; j++)
                     colorRGB[j] = int.Parse(split[3 + GameInfo.UNIT_TYPES + j]);
 
-                tiles.Add(name, new Tile(name, imageName, buildable, unitTypePassable, colorRGB));
+                tiles[name] = new Tile(name, imageName, buildable, unitTypePassable, colorRGB);
                 i++;
             }
             r.Close();
