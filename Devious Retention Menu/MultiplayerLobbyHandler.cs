@@ -166,6 +166,7 @@ namespace Devious_Retention_Menu
         private void OpenGameClient()
         {
             CTSConnection c = new CTSConnection(connection.GetRemoteIP());
+            connection.Close();
             GameBuilder.BuildClient(c, clients.Values.ToList(), clients[PlayerID].playerNumber);
             Close();
         }

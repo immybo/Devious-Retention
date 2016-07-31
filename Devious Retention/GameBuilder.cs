@@ -48,8 +48,8 @@ namespace Devious_Retention
                     i+1, clients[i].color, GameInfo.factions[clients[i].factionName], new GameInfo());
             }
 
-            connection.Listen();
-            connection.Connect();
+            //connection.Listen();
+            //connection.Connect();
             GameClient client = new GameClient(localPlayer, players, world, connection);
             connection.SetClient(client, localPlayer);
 

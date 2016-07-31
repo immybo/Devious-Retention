@@ -89,8 +89,11 @@ namespace Devious_Retention_Menu
                 connectionListener.StopListening();
             foreach (Connection c in clients.Keys)
             {
-                c.WriteLine("terminate");
-                c.Close();
+                if (c.IsOpen())
+                {
+                    c.WriteLine("terminate");
+                    c.Close();
+                }
             }
         }
 
@@ -211,6 +214,7 @@ namespace Devious_Retention_Menu
             {
                 client.Key.WriteLine("start");
                 STCConnection newConnection = new STCConnection(client.Key.GetRemoteIP());
+                client.Key.Close();
             }
             GameBuilder.BuildServer(serverClients);
             Close();

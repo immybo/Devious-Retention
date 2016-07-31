@@ -124,7 +124,7 @@ namespace Devious_Retention_Menu
             string line;
             try
             {
-                while ((line = await incomingReader.ReadLineAsync()) != null)
+                while (incomingReader != null && (line = await incomingReader.ReadLineAsync()) != null)
                 {
                     ProcessLine(line);
                 }
