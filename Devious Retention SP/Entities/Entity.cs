@@ -54,14 +54,6 @@ namespace Devious_Retention_SP
         /// Returns whether or not this entity may be attacked by an enemy.
         /// </summary>
         public abstract bool Attackable();
-        /// <summary>
-        /// Returns whether or not this entity can attack enemies.
-        /// </summary>
-        public abstract bool CanAttack();
-        /// <summary>
-        /// Returns whether or not this entity can move.
-        /// </summary>
-        public abstract bool CanMove();
 
         /// <summary>
         /// Attempts to inflict the given amount of damage of the

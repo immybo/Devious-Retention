@@ -8,7 +8,12 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP
 {
-    public class Building : Entity
+    /// <summary>
+    /// Buildings are entities that:
+    /// - Can be attacked
+    /// - Can sometimes attack but not always
+    /// </summary>
+    public abstract class Building : Entity
     {
         public Building(Player player, double x, double y)
             : base(player, x, y)
@@ -18,17 +23,7 @@ namespace Devious_Retention_SP
 
         public override bool Attackable()
         {
-            throw new NotImplementedException();
-        }
-
-        public override bool CanAttack()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool CanMove()
-        {
-            throw new NotImplementedException();
+            return true;
         }
 
         public override void Draw(Graphics g, PositionTransformation p)
