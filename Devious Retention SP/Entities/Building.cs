@@ -11,7 +11,10 @@ namespace Devious_Retention_SP
     /// <summary>
     /// Buildings are entities that:
     /// - Can be attacked
-    /// - Can sometimes attack but not always
+    /// - Can't move
+    /// - Can sometimes attack
+    /// - Can sometimes train units
+    /// - Can sometimes research technologies
     /// </summary>
     public abstract class Building : Entity
     {
@@ -48,7 +51,9 @@ namespace Devious_Retention_SP
 
         public override Command[] ValidCommands()
         {
-            throw new NotImplementedException();
+            return new Command[]
+            {
+            };
         }
     }
 }

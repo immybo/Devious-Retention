@@ -8,6 +8,13 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP
 {
+    /// <summary>
+    /// Resources are entities that:
+    /// - Can't be attacked
+    /// - Can't move
+    /// - Can't attack
+    /// - Can be gathered from
+    /// </summary>
     public abstract class Resource : Entity
     {
         public Resource(Player player, double x, double y)
@@ -16,9 +23,13 @@ namespace Devious_Retention_SP
 
         }
 
+        public abstract int MaxResourceCount();
+        public abstract int CurrentResourceCount();
+        public abstract void Gather(int amount);
+
         public override bool Attackable()
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public override void Draw(Graphics g, PositionTransformation p)

@@ -8,6 +8,13 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP
 {
+    /// <summary>
+    /// Units are entities that:
+    /// - Can be attacked
+    /// - Can move
+    /// - Can usually attack
+    /// - Often have special abilities
+    /// </summary>
     public abstract class Unit : Entity
     {
         public Unit(Player player, double x, double y)
@@ -18,7 +25,7 @@ namespace Devious_Retention_SP
 
         public override bool Attackable()
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public override void Draw(Graphics g, PositionTransformation p)
@@ -43,7 +50,10 @@ namespace Devious_Retention_SP
 
         public override Command[] ValidCommands()
         {
-            throw new NotImplementedException();
+            return new Command[]
+            {
+                Command.MOVE
+            };
         }
     }
 }
