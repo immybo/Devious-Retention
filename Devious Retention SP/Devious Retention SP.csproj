@@ -51,6 +51,7 @@
     <Compile Include="Entities\Entity.cs" />
     <Compile Include="Entities\Resource.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="GameConfiguration.cs" />
     <Compile Include="HumanPlayerView\HumanPlayer.cs" />
     <Compile Include="HumanPlayerView\HumanPlayerListener.cs" />
     <Compile Include="HumanPlayerView\HumanPlayerWindow.cs">
