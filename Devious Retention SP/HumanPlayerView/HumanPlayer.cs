@@ -9,8 +9,14 @@ namespace Devious_Retention_SP
     /// <summary>
     /// Represents a human player on the local machine.
     /// </summary>
-    public class HumanPlayer : Player
+    public class HumanPlayer : Player, HumanPlayerListener
     {
         private HumanPlayerWindow window;
+
+        public HumanPlayer(World world)
+            : base(world)
+        {
+            window = new HumanPlayerWindow(this);
+        }
     }
 }

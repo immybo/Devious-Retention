@@ -23,6 +23,35 @@ namespace Devious_Retention_SP
         public HumanPlayerWindow(HumanPlayerListener listener)
         {
             this.listener = listener;
+
+            resourceBar.Paint += DrawResourceBar;
+            topRightPanel.Paint += DrawTopRightPanel;
+            bottomRightPanel.Paint += DrawBottomRightPanel;
+            gameArea.Paint += DrawGameArea;
+        }
+
+        public void DrawResourceBar(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            Rectangle bounds = resourceBar.Bounds;
+        }
+
+        public void DrawTopRightPanel(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            Rectangle bounds = topRightPanel.Bounds;
+        }
+
+        public void DrawBottomRightPanel(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            Rectangle bounds = bottomRightPanel.Bounds;
+        }
+
+        public void DrawGameArea(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            Rectangle bounds = gameArea.Bounds;
         }
     }
 }

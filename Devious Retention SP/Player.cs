@@ -15,5 +15,10 @@ namespace Devious_Retention_SP
     public abstract class Player
     {
         private World world;
+
+        public Player(World world)
+        {
+            this.world = world;
+        }
     }
 }
