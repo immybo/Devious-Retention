@@ -11,7 +11,6 @@ namespace Devious_Retention_SP
         [STAThread]
         static void Main()
         {
-            new Game().RunGame();
         }
     }
 }

@@ -8,12 +8,12 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP
 {
-    public class Building : Entity
+    public class Unit : Entity
     {
-        public Building(Player player, double x, double y)
+        public Unit(Player player, double x, double y)
             : base(player, x, y)
         {
-            
+
         }
 
         public override bool Attackable()
