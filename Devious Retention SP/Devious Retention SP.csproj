@@ -46,6 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\Attackable.cs" />
+    <Compile Include="Entities\Gatherable.cs" />
     <Compile Include="HumanPlayerView\BottomRightPanel.cs">
       <SubType>Component</SubType>
     </Compile>

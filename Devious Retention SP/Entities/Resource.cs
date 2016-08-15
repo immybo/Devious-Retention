@@ -15,7 +15,7 @@ namespace Devious_Retention_SP
     /// - Can't attack
     /// - Can be gathered from
     /// </summary>
-    public abstract class Resource : Entity
+    public abstract class Resource : Entity, Gatherable
     {
         public Resource(Player player, double x, double y)
             : base(player, x, y)
@@ -26,11 +26,6 @@ namespace Devious_Retention_SP
         public abstract int MaxResourceCount();
         public abstract int CurrentResourceCount();
         public abstract void Gather(int amount);
-
-        public override bool Attackable()
-        {
-            return false;
-        }
 
         public override void Draw(Graphics g, PositionTransformation p)
         {

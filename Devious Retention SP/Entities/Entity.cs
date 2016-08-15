@@ -10,6 +10,9 @@ namespace Devious_Retention_SP
 {
     public abstract class Entity : Drawable
     {
+        /// <summary>
+        /// A command is some action that an entity can do.
+        /// </summary>
         public enum Command
         {
             ATTACK,
@@ -51,28 +54,6 @@ namespace Devious_Retention_SP
         public abstract void Draw(Graphics g, PositionTransformation p);
 
         /// <summary>
-        /// Returns whether or not this entity may be attacked by an enemy.
-        /// </summary>
-        public abstract bool Attackable();
-
-        /// <summary>
-        /// Attempts to inflict the given amount of damage of the
-        /// given type onto this entity.
-        /// </summary>
-        public virtual void Damage(double damage, int damageType)
-        {
-            throw new NotImplementedException("Attempting to damage an entity which can't be damaged.");
-        }
-
-        /// <summary>
-        /// Returns whether or not this entity is considered to be dead.
-        /// </summary>
-        public virtual bool IsDead()
-        {
-            throw new NotImplementedException("Attempting to read the life status of an entity which doesn't have one.");
-        }
-
-        /// <summary>
         /// Teleports this entity to a given position, disregarding
         /// its ability to move normally. No checking is done here
         /// for whether the new position is outside of the map.
@@ -94,9 +75,39 @@ namespace Devious_Retention_SP
             
         }
 
+        /// <summary>
+        /// Returns the list of commands that this entity can perform.
+        /// </summary>
         public abstract Command[] ValidCommands();
+
+        /// <summary>
+        /// Tells this entity to perform a command.
+        /// If the command can't be performed by this entity, throws an exception.
+        /// </summary>
+        /// <param name="entity">The entity to perform the command on, or null if there is none.</param>
+        /// <param name="point">The point to perform the command to. May just be the coordinate of the entity.</param>
+        /// <param name="command">The command to perform.</param>
         public abstract void SendCommand(Entity entity, PointF point, Command command);
+
+        /// <summary>
+        /// Sends a key or key combination as a command to this entity.
+        /// The entity will either perform the related command if it exists, or
+        /// do nothing if there is no command associated with that key or key
+        /// combination.
+        /// </summary>
+        /// <param name="entity">The entity to perform the command on, or null if there is none.</param>
+        /// <param name="point">The point to perform the command to. May just be the coordinate of the entity.</param>
+        /// <param name="input">The input to interpret.</param>
         public abstract void SendKeyboardCommand(Entity entity, PointF point, Keys input);
+
+        /// <summary>
+        /// Sends a mouse button press or combination to this entity.
+        /// The entity will either perform the related command if it exists,
+        /// or do nothing if there is no command associated with it.
+        /// </summary>
+        /// <param name="entity">The entity to perform the command on, or null if there is none.</param>
+        /// <param name="point">The point to perform the command to. May just be the coordinate of the entity.</param>
+        /// <param name="input">The input to interpret.</param>
         public abstract void SendMouseCommand(Entity entity, PointF point, MouseButtons input);
     }
 }

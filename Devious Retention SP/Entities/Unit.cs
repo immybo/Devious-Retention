@@ -15,7 +15,7 @@ namespace Devious_Retention_SP
     /// - Can usually attack
     /// - Often have special abilities
     /// </summary>
-    public abstract class Unit : Entity
+    public abstract class Unit : Entity, Attackable
     {
         public Unit(Player player, double x, double y)
             : base(player, x, y)
@@ -23,10 +23,9 @@ namespace Devious_Retention_SP
 
         }
 
-        public override bool Attackable()
-        {
-            return true;
-        }
+        public abstract void Damage(int amount, int damageType);
+        public abstract void Heal(int amount);
+        public abstract bool IsDead();
 
         public override void Draw(Graphics g, PositionTransformation p)
         {

@@ -16,7 +16,7 @@ namespace Devious_Retention_SP
     /// - Can sometimes train units
     /// - Can sometimes research technologies
     /// </summary>
-    public abstract class Building : Entity
+    public abstract class Building : Entity, Attackable
     {
         public Building(Player player, double x, double y)
             : base(player, x, y)
@@ -24,10 +24,9 @@ namespace Devious_Retention_SP
             
         }
 
-        public override bool Attackable()
-        {
-            return true;
-        }
+        public abstract void Damage(int amount, int damageType);
+        public abstract void Heal(int amount);
+        public abstract bool IsDead();
 
         public override void Draw(Graphics g, PositionTransformation p)
         {
