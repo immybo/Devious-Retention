@@ -11,6 +11,7 @@ namespace Devious_Retention_SP
         [STAThread]
         static void Main()
         {
+            new Game(new Player[] { new HumanPlayer(new World()) }, new World(), new GameConfiguration(30)).RunGame();
         }
     }
 }

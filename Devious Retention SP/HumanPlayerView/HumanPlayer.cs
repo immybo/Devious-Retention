@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Devious_Retention_SP
 {
@@ -17,6 +18,7 @@ namespace Devious_Retention_SP
             : base(world)
         {
             window = new HumanPlayerWindow(this);
+            Application.Run(window);
         }
     }
 }

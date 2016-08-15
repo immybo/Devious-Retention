@@ -19,39 +19,22 @@ namespace Devious_Retention_SP
     public partial class HumanPlayerWindow : Form
     {
         private HumanPlayerListener listener;
+        private Timer windowRefreshTimer;
 
         public HumanPlayerWindow(HumanPlayerListener listener)
         {
+            InitializeComponent();
             this.listener = listener;
 
-            resourceBar.Paint += DrawResourceBar;
-            topRightPanel.Paint += DrawTopRightPanel;
-            bottomRightPanel.Paint += DrawBottomRightPanel;
-            gameArea.Paint += DrawGameArea;
+            windowRefreshTimer = new Timer();
+            windowRefreshTimer.Interval = 16;
+            windowRefreshTimer.Tick += new EventHandler(RefreshWindow);
+            windowRefreshTimer.Start();
         }
 
-        public void DrawResourceBar(object sender, PaintEventArgs e)
+        public void RefreshWindow(object sender, EventArgs e)
         {
-            Graphics g = e.Graphics;
-            Rectangle bounds = resourceBar.Bounds;
-        }
-
-        public void DrawTopRightPanel(object sender, PaintEventArgs e)
-        {
-            Graphics g = e.Graphics;
-            Rectangle bounds = topRightPanel.Bounds;
-        }
-
-        public void DrawBottomRightPanel(object sender, PaintEventArgs e)
-        {
-            Graphics g = e.Graphics;
-            Rectangle bounds = bottomRightPanel.Bounds;
-        }
-
-        public void DrawGameArea(object sender, PaintEventArgs e)
-        {
-            Graphics g = e.Graphics;
-            Rectangle bounds = gameArea.Bounds;
+            this.Refresh();
         }
     }
 }

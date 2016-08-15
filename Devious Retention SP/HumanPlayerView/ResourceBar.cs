@@ -4,10 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace Devious_Retention_SP.HumanPlayerView
 {
     class ResourceBar : Panel
     {
+        public ResourceBar()
+        {
+            this.Paint += new PaintEventHandler(Render);
+            this.DoubleBuffered = true;
+        }
+
+        public void Render(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            RectangleF bounds = g.ClipBounds;
+            g.FillRectangle(new SolidBrush(Color.Blue), bounds);
+        }
     }
 }

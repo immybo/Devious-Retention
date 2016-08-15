@@ -52,7 +52,7 @@ namespace Devious_Retention_SP
             // 
             // topRightPanel
             // 
-            this.topRightPanel.Location = new System.Drawing.Point(997, 1);
+            this.topRightPanel.Location = new System.Drawing.Point(997, 0);
             this.topRightPanel.Name = "topRightPanel";
             this.topRightPanel.Size = new System.Drawing.Size(266, 364);
             this.topRightPanel.TabIndex = 2;
