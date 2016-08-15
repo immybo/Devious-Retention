@@ -56,5 +56,13 @@ namespace Devious_Retention_SP
                 ((float)graphicsPoint.Y - yOffset) / yMultiplier
             );
         }
+
+        /// <summary>
+        /// Returns the multiplicative scale of this position transformation.
+        /// </summary>
+        public PointF Scale()
+        {
+            return new PointF(xMultiplier, yMultiplier);
+        }
     }
 }

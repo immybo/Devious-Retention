@@ -74,6 +74,7 @@
     <Compile Include="HumanPlayerView\TopRightPanel.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Map.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="HumanPlayerView\PositionTransformation.cs" />
     <Compile Include="Program.cs" />

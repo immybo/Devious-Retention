@@ -13,6 +13,13 @@ namespace Devious_Retention_SP
     /// </summary>
     public class World
     {
+        public Map Map { get; private set; }
+
+        public World()
+        {
+
+        }
+
         /// <summary>
         /// Updates everything in the world by one tick.
         /// </summary>
