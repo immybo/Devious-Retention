@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,13 +12,13 @@ namespace Devious_Retention_SP
     /// responsibility for maintaining entities and the map, and is often changed
     /// by the players as such.
     /// </summary>
-    public class World
+    public class World : Drawable
     {
         public Map Map { get; private set; }
 
         public World()
         {
-
+            this.Map = new Map();
         }
 
         /// <summary>
@@ -26,6 +27,11 @@ namespace Devious_Retention_SP
         public void Tick()
         {
 
+        }
+
+        public void Draw(Graphics g, PositionTransformation p)
+        {
+            Map.Draw(g, p);
         }
     }
 }

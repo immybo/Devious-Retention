@@ -10,17 +10,25 @@ namespace Devious_Retention_SP.HumanPlayerView
 {
     class GameArea : Panel
     {
-        public GameArea()
+        private World world;
+
+        public GameArea(World world)
         {
             this.Paint += new PaintEventHandler(Render);
             this.DoubleBuffered = true;
+            this.world = world;
         }
 
         public void Render(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             RectangleF bounds = g.ClipBounds;
-            g.FillRectangle(new SolidBrush(Color.Green), bounds);
+
+            PositionTransformation worldTransform = new PositionTransformation(
+                (int)bounds.X, (int)bounds.Y,
+                (float)bounds.Width / world.Map.Width, (float)bounds.Height / world.Map.Height
+                );
+            world.Draw(g, worldTransform);
         }
     }
 }

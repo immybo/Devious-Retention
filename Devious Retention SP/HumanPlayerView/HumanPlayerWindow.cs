@@ -18,13 +18,16 @@ namespace Devious_Retention_SP
     /// </summary>
     public partial class HumanPlayerWindow : Form
     {
+        private World world;
         private HumanPlayerListener listener;
         private Timer windowRefreshTimer;
 
-        public HumanPlayerWindow(HumanPlayerListener listener)
+        public HumanPlayerWindow(HumanPlayerListener listener, World world)
         {
-            InitializeComponent();
             this.listener = listener;
+            this.world = world;
+
+            InitializeComponent();
 
             windowRefreshTimer = new Timer();
             windowRefreshTimer.Interval = 16;

@@ -17,7 +17,7 @@ namespace Devious_Retention_SP
         public HumanPlayer(World world)
             : base(world)
         {
-            window = new HumanPlayerWindow(this);
+            window = new HumanPlayerWindow(this, world);
             Application.Run(window);
         }
     }

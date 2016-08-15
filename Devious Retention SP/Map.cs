@@ -19,8 +19,8 @@ namespace Devious_Retention_SP
         }
 
         private Tile[,] tiles;
-        private int width;
-        private int height;
+        public int Width { get; private set; }
+        public int Height { get; private set; }
 
         /// <summary>
         /// Generic constructor for a Map.
@@ -28,11 +28,11 @@ namespace Devious_Retention_SP
         public Map()
         {
             tiles = new Tile[10,10];
-            this.width = 10;
-            this.height = 10;
-            for(int i = 0; i < width; i++)
+            this.Width = 10;
+            this.Height = 10;
+            for(int i = 0; i < Width; i++)
             {
-                for(int j = 0; j < height; j++)
+                for(int j = 0; j < Height; j++)
                 {
                     tiles[i, j] = Tile.GRASS;
                 }
@@ -41,15 +41,17 @@ namespace Devious_Retention_SP
 
         public void Draw(Graphics g, PositionTransformation p)
         {
-            for(int i = 0; i < width; i++)
+            for(int i = 0; i < Width; i++)
             {
-                for(int j = 0; j < height; j++)
+                for(int j = 0; j < Height; j++)
                 {
-                    if(tiles[i,j] == Tile.GRASS)
+                    Point topCorner = p.Transform(new PointF(i, j));
+                    if (tiles[i,j] == Tile.GRASS)
                     {
-                        Point topCorner = p.Transform(new PointF(i, j));
                         g.FillRectangle(new SolidBrush(Color.Green), new Rectangle(topCorner, new Size(new Point((int)p.Scale().X, (int)p.Scale().Y)))); // ..
                     }
+
+                    g.DrawRectangle(new Pen(Color.Black), new Rectangle(topCorner, new Size(new Point((int)p.Scale().X, (int)p.Scale().Y))));
                 }
             }
         }
