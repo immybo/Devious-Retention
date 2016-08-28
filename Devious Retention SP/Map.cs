@@ -13,11 +13,6 @@ namespace Devious_Retention_SP
     /// </summary>
     public class Map : Drawable
     {
-        private enum Tile
-        {
-            GRASS
-        }
-
         private Tile[,] tiles;
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -30,11 +25,18 @@ namespace Devious_Retention_SP
             tiles = new Tile[10,10];
             this.Width = 10;
             this.Height = 10;
+
+            Random random = new Random();
             for(int i = 0; i < Width; i++)
             {
                 for(int j = 0; j < Height; j++)
                 {
-                    tiles[i, j] = Tile.GRASS;
+                    if (random.NextDouble() > 0.2)
+                        tiles[i, j] = new Tiles.Grass();
+                    else
+                        tiles[i, j] = new Tiles.Mountain();
+
+                    tiles[i, j].SetPosition(new PointF(i, j));
                 }
             }
         }
@@ -45,13 +47,7 @@ namespace Devious_Retention_SP
             {
                 for(int j = 0; j < Height; j++)
                 {
-                    Point topCorner = p.Transform(new PointF(i, j));
-                    if (tiles[i,j] == Tile.GRASS)
-                    {
-                        SizeF rectSize = new SizeF(new PointF((float)Math.Ceiling(p.Scale().X), (float)Math.Ceiling(p.Scale().Y)));
-                        RectangleF tileRect = new RectangleF(topCorner, rectSize);
-                        g.FillRectangle(new SolidBrush(Color.Green), tileRect);
-                    }
+                    tiles[i, j].Draw(g, p);
                 }
             }
         }
