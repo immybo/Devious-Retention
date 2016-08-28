@@ -48,10 +48,10 @@ namespace Devious_Retention_SP
                     Point topCorner = p.Transform(new PointF(i, j));
                     if (tiles[i,j] == Tile.GRASS)
                     {
-                        g.FillRectangle(new SolidBrush(Color.Green), new Rectangle(topCorner, new Size(new Point((int)p.Scale().X, (int)p.Scale().Y)))); // ..
+                        SizeF rectSize = new SizeF(new PointF((float)Math.Ceiling(p.Scale().X), (float)Math.Ceiling(p.Scale().Y)));
+                        RectangleF tileRect = new RectangleF(topCorner, rectSize);
+                        g.FillRectangle(new SolidBrush(Color.Green), tileRect);
                     }
-
-                    g.DrawRectangle(new Pen(Color.Black), new Rectangle(topCorner, new Size(new Point((int)p.Scale().X, (int)p.Scale().Y))));
                 }
             }
         }
