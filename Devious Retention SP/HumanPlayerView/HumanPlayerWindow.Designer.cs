@@ -33,7 +33,7 @@ namespace Devious_Retention_SP
             this.resourceBar = new ResourceBar();
             this.bottomRightPanel = new BottomRightPanel();
             this.topRightPanel = new TopRightPanel();
-            this.gameArea = new GameArea(this.world);
+            this.gameArea = new GameArea(this.world, this.listener);
             this.SuspendLayout();
             // 
             // resourceBar

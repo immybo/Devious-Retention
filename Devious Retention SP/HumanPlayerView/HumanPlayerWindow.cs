@@ -39,5 +39,27 @@ namespace Devious_Retention_SP
         {
             this.Refresh();
         }
+
+        /// <summary>
+        /// Returns the panel which the given position lies on.
+        /// Assumes that the given point is within the bounds of the window.
+        /// </summary>
+        private Panel GetArea(PointF graphicsPosition)
+        {
+            if (graphicsPosition.X < gameArea.Width)
+            {
+                if (graphicsPosition.Y < gameArea.Height)
+                    return gameArea;
+                else
+                    return resourceBar;
+            }
+            else
+            {
+                if (graphicsPosition.Y < topRightPanel.Height)
+                    return topRightPanel;
+                else
+                    return bottomRightPanel;
+            }
+        }
     }
 }

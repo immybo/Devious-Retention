@@ -11,12 +11,24 @@ namespace Devious_Retention_SP.HumanPlayerView
     class GameArea : Panel
     {
         private World world;
+        private HumanPlayerListener listener;
 
-        public GameArea(World world)
+        public GameArea(World world, HumanPlayerListener listener)
         {
             this.Paint += new PaintEventHandler(Render);
             this.DoubleBuffered = true;
             this.world = world;
+            this.listener = listener;
+            this.MouseClick += new MouseEventHandler(DoMouse);
+        }
+
+        private void DoMouse(object o, MouseEventArgs e)
+        {
+            PointF worldCoordinate = new PointF(
+                e.X / ((float)this.Width / world.Map.Width),
+                e.Y / ((float)this.Height / world.Map.Height)
+                );
+            listener.DoGameAreaClick(worldCoordinate, e.Button);
         }
 
         public void Render(object sender, PaintEventArgs e)
