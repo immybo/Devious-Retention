@@ -17,15 +17,27 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Unit : Entity, Attackable
     {
+        protected int maxHitpoints;
+        protected int hitpoints;
+
         public Unit(Player player, double x, double y)
             : base(player, x, y)
         {
-
+            
         }
-
+        
         public abstract void Damage(int amount, int damageType);
-        public abstract void Heal(int amount);
-        public abstract bool IsDead();
+        public virtual void Heal(int amount)
+        {
+            if (hitpoints < maxHitpoints - amount)
+                hitpoints += amount;
+            else
+                hitpoints = maxHitpoints;
+        }
+        public virtual bool IsDead()
+        {
+            return hitpoints <= 0;
+        }
 
         public override void Draw(Graphics g, PositionTransformation p)
         {
