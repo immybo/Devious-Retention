@@ -18,6 +18,8 @@ namespace Devious_Retention_SP
     /// </summary>
     public partial class HumanPlayerWindow : Form
     {
+        public const bool DEBUG_INPUT = true;
+
         private World world;
         private HumanPlayerListener listener;
         private Timer windowRefreshTimer;
@@ -33,11 +35,18 @@ namespace Devious_Retention_SP
             windowRefreshTimer.Interval = 16;
             windowRefreshTimer.Tick += new EventHandler(RefreshWindow);
             windowRefreshTimer.Start();
+
+            this.KeyPress += new KeyPressEventHandler(DoKeyPress);
         }
 
         public void RefreshWindow(object sender, EventArgs e)
         {
             this.Refresh();
+        }
+
+        private void DoKeyPress(object sender, KeyPressEventArgs e)
+        {
+            listener.DoKeyPress(e.KeyChar);
         }
 
         /// <summary>

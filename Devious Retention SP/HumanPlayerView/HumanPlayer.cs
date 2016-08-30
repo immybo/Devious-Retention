@@ -24,12 +24,12 @@ namespace Devious_Retention_SP
 
         public void DoGameAreaClick(PointF worldCoordinate, MouseButtons buttons)
         {
-            Console.WriteLine("Mouse pressed at " + worldCoordinate.X + "," + worldCoordinate.Y);
+            Console.WriteLine("Mouse pressed at " + worldCoordinate.X + ", " + worldCoordinate.Y + ".");
         }
 
-        public void DoKeyPress(PointF mouseWorldCoordinate, Keys keyPress)
+        public void DoKeyPress(char keyChar)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Key " + keyChar + " pressed.");
         }
     }
 }
