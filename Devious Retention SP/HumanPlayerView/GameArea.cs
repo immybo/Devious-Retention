@@ -85,6 +85,7 @@ namespace Devious_Retention_SP.HumanPlayerView
             PositionTransformation worldTransform = new PositionTransformation(
                 (int)(bounds.X + playerView.X*tileWidth), (int)(bounds.Y + playerView.Y* tileHeight),
                 tileWidth, tileHeight);
+
             world.Draw(g, worldTransform);
         }
     }

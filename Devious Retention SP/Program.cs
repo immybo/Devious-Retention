@@ -11,7 +11,13 @@ namespace Devious_Retention_SP
         [STAThread]
         static void Main()
         {
-            new Game(new Player[] { new HumanPlayer(new World()) }, new World(), new GameConfiguration(30)).RunGame();
+            World world = new World();
+            Player player = new HumanPlayer(world);
+            world.AddEntity(new Entities.TestUnit(player, 3, 3, 1));
+            Game game = new Game(new Player[] { player }, world, new GameConfiguration(30));
+            game.RunGame();
+
+            ((HumanPlayer)player).Run();
         }
     }
 }

@@ -15,10 +15,12 @@ namespace Devious_Retention_SP
     public class World : Drawable
     {
         public Map Map { get; private set; }
+        private List<Entity> entities;
 
         public World()
         {
             this.Map = new Map();
+            this.entities = new List<Entity>();
         }
 
         /// <summary>
@@ -26,12 +28,24 @@ namespace Devious_Retention_SP
         /// </summary>
         public void Tick()
         {
-
         }
 
         public void Draw(Graphics g, PositionTransformation p)
         {
             Map.Draw(g, p);
+            foreach(Entity e in entities)
+            {
+                e.Draw(g, p);
+            }
+        }
+
+        public void AddEntity(Entity e)
+        {
+            entities.Add(e);
+        }
+        public List<Entity> GetEntities()
+        {
+            return entities;
         }
     }
 }

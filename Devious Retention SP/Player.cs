@@ -14,7 +14,7 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Player
     {
-        private World world;
+        protected World world;
 
         public Player(World world)
         {

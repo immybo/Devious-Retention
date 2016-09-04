@@ -17,8 +17,8 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Resource : Entity, Gatherable
     {
-        public Resource(Player player, double x, double y)
-            : base(player, x, y)
+        public Resource(Player player, double x, double y, double size)
+            : base(player, x, y, size)
         {
 
         }

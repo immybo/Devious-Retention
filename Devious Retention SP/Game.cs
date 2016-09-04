@@ -25,6 +25,8 @@ namespace Devious_Retention_SP
             this.world = world;
             this.config = config;
             tickClock = new Timer(config.DEFAULT_TICK_TIME);
+            tickClock.Elapsed += new ElapsedEventHandler(Tick);
+            tickClock.Start();
         }
 
         public void SetTickSpeed(int percentage)
@@ -58,6 +60,11 @@ namespace Devious_Retention_SP
         public void StopGame()
         {
             tickClock.Stop();
+        }
+
+        public void Tick(object o, ElapsedEventArgs e)
+        {
+            world.Tick();
         }
     }
 }

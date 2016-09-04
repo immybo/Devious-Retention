@@ -23,6 +23,7 @@ namespace Devious_Retention_SP
 
         public double X { get; private set; }
         public double Y { get; private set; }
+        public double Size { get; private set; }
 
         public Player Player { get; private set; }
 
@@ -34,12 +35,13 @@ namespace Devious_Retention_SP
         /// Note that the ID is only unique to the local client;
         /// i.e. this should only be used on the server.
         /// </summary>
-        public Entity(Player player, double x, double y)
+        public Entity(Player player, double x, double y, double size)
         {
             ID = nextID++;
             this.Player = player;
             this.X = x;
             this.Y = y;
+            this.Size = size;
         }
 
         /// <summary>
@@ -73,6 +75,11 @@ namespace Devious_Retention_SP
             this.X += x;
             this.Y += y;
             
+        }
+
+        public PointF GetPosition()
+        {
+            return new PointF((float)X, (float)Y);
         }
 
         /// <summary>

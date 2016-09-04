@@ -20,8 +20,8 @@ namespace Devious_Retention_SP
         protected int maxHitpoints;
         protected int hitpoints;
 
-        public Unit(Player player, double x, double y)
-            : base(player, x, y)
+        public Unit(Player player, double x, double y, double size)
+            : base(player, x, y, size)
         {
             
         }
@@ -37,26 +37,6 @@ namespace Devious_Retention_SP
         public virtual bool IsDead()
         {
             return hitpoints <= 0;
-        }
-
-        public override void Draw(Graphics g, PositionTransformation p)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SendCommand(Entity entity, PointF point, Command command)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SendKeyboardCommand(Entity entity, PointF point, Keys input)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SendMouseCommand(Entity entity, PointF point, MouseButtons input)
-        {
-            throw new NotImplementedException();
         }
 
         public override Command[] ValidCommands()
