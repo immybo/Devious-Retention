@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Timers;
+using System.Windows.Forms;
 
 namespace Devious_Retention_SP
 {
@@ -24,14 +24,14 @@ namespace Devious_Retention_SP
             this.players = players;
             this.world = world;
             this.config = config;
-            tickClock = new Timer(config.DEFAULT_TICK_TIME);
-            tickClock.Elapsed += new ElapsedEventHandler(Tick);
-            tickClock.Start();
+
+            tickClock = new Timer();
+            tickClock.Tick += Tick;
         }
 
         public void SetTickSpeed(int percentage)
         {
-            tickClock.Interval = config.DEFAULT_TICK_TIME * percentage;
+            tickClock.Interval = percentage * config.DEFAULT_TICK_TIME;
         }
 
         /// <summary>
@@ -39,6 +39,7 @@ namespace Devious_Retention_SP
         /// </summary>
         public void RunGame()
         {
+            tickClock.Interval = config.DEFAULT_TICK_TIME;
             tickClock.Start();
         }
 
@@ -62,7 +63,7 @@ namespace Devious_Retention_SP
             tickClock.Stop();
         }
 
-        public void Tick(object o, ElapsedEventArgs e)
+        public void Tick(object o, EventArgs e)
         {
             world.Tick();
         }
