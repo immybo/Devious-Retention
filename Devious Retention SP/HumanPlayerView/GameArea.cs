@@ -34,8 +34,11 @@ namespace Devious_Retention_SP.HumanPlayerView
             this.MouseClick += new MouseEventHandler(DoMouse);
 
             this.MouseDown += delegate (object o, MouseEventArgs e) {
-                mouseDownLocation = e.Location;
-                isMouseDown = true;
+                if (e.Button == MouseButtons.Left)
+                {
+                    mouseDownLocation = e.Location;
+                    isMouseDown = true;
+                }
             };
             this.MouseUp += delegate (object o, MouseEventArgs e) { isMouseDown = false; };
             this.MouseEnter += delegate (object o, EventArgs e) { isMouseDown = false; };
@@ -45,8 +48,8 @@ namespace Devious_Retention_SP.HumanPlayerView
         private void DoMouse(object o, MouseEventArgs e)
         {
             PointF worldCoordinate = new PointF(
-                e.X / ((float)this.Width / world.Map.Width),
-                e.Y / ((float)this.Height / world.Map.Height)
+                e.X / ((float)this.Width / world.Map.Width) - playerView.X,
+                e.Y / ((float)this.Height / world.Map.Height) - playerView.Y
                 );
             listener.DoGameAreaClick(worldCoordinate, e.Button);
         }
