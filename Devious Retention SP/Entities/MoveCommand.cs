@@ -22,6 +22,9 @@ namespace Devious_Retention_SP
 
         public void Execute()
         {
+            foreach(Command c in unit.GetPendingCommands()){
+                if (c is MoveCommand) unit.RemovePendingCommand(c);
+            }
             unit.AddPendingCommand(this);
         }
 
@@ -32,10 +35,8 @@ namespace Devious_Retention_SP
 
             double moveSpeed = unit.MovementSpeed;
 
-            double xMovespeed = moveSpeed * (xDifference / (xDifference + yDifference));
-            double yMovespeed = moveSpeed * (yDifference / (xDifference + yDifference));
-            xMovespeed = xDifference > 0 ? xMovespeed : -xMovespeed;
-            yMovespeed = yDifference > 0 ? yMovespeed : -yMovespeed;
+            double xMovespeed = moveSpeed * (xDifference / (Math.Abs(xDifference) + Math.Abs(yDifference)));
+            double yMovespeed = moveSpeed * (yDifference / (Math.Abs(xDifference) + Math.Abs(yDifference)));
 
             double newX = Math.Abs(xMovespeed) >= Math.Abs(xDifference) ? endPoint.X : unit.X + xMovespeed;
             double newY = Math.Abs(yMovespeed) >= Math.Abs(yDifference) ? endPoint.Y : unit.Y + yMovespeed;
