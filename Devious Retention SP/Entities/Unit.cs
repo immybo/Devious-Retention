@@ -20,10 +20,15 @@ namespace Devious_Retention_SP
         protected int maxHitpoints;
         protected int hitpoints;
 
-        public Unit(Player player, double x, double y, double size)
+        /// <summary>
+        /// How far this unit can move every tick
+        /// </summary>
+        public float MovementSpeed { get; private set; }
+
+        public Unit(Player player, double x, double y, double size, float movementSpeed)
             : base(player, x, y, size)
         {
-            
+            this.MovementSpeed = movementSpeed;
         }
         
         public abstract void Damage(int amount, int damageType);
@@ -37,14 +42,6 @@ namespace Devious_Retention_SP
         public virtual bool IsDead()
         {
             return hitpoints <= 0;
-        }
-
-        public override Command[] ValidCommands()
-        {
-            return new Command[]
-            {
-                Command.MOVE
-            };
         }
     }
 }

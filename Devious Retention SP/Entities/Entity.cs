@@ -10,15 +10,6 @@ namespace Devious_Retention_SP
 {
     public abstract class Entity : Drawable
     {
-        /// <summary>
-        /// A command is some action that an entity can do.
-        /// </summary>
-        public enum Command
-        {
-            ATTACK,
-            MOVE
-        }
-
         public string Name { get; private set; }
 
         public double X { get; private set; }
@@ -29,6 +20,9 @@ namespace Devious_Retention_SP
 
         public int ID { get; private set; }
         private static int nextID = 0;
+
+        // Commands which are ongoing and must be ticked
+        private List<Command> pendingCommands;
 
         /// <summary>
         /// Creates an entity, generating a new unique ID for it.
@@ -42,6 +36,7 @@ namespace Devious_Retention_SP
             this.X = x;
             this.Y = y;
             this.Size = size;
+            pendingCommands = new List<Command>();
         }
 
         /// <summary>
@@ -50,7 +45,12 @@ namespace Devious_Retention_SP
         /// </summary>
         public void Tick()
         {
-            // Default implementation: do nothing
+            List<Command> toRemove = new List<Command>();
+            foreach (Command c in pendingCommands)
+                if (!c.Tick())
+                    toRemove.Add(c);
+            foreach (Command c in toRemove)
+                pendingCommands.Remove(c);
         }
 
         public abstract void Draw(Graphics g, PositionTransformation p);
@@ -74,7 +74,6 @@ namespace Devious_Retention_SP
         {
             this.X += x;
             this.Y += y;
-            
         }
 
         public PointF GetPosition()
@@ -82,39 +81,14 @@ namespace Devious_Retention_SP
             return new PointF((float)X, (float)Y);
         }
 
-        /// <summary>
-        /// Returns the list of commands that this entity can perform.
-        /// </summary>
-        public abstract Command[] ValidCommands();
+        public void AddPendingCommand(Command c)
+        {
+            pendingCommands.Add(c);
+        }
 
-        /// <summary>
-        /// Tells this entity to perform a command.
-        /// If the command can't be performed by this entity, throws an exception.
-        /// </summary>
-        /// <param name="entity">The entity to perform the command on, or null if there is none.</param>
-        /// <param name="point">The point to perform the command to. May just be the coordinate of the entity.</param>
-        /// <param name="command">The command to perform.</param>
-        public abstract void SendCommand(Entity entity, PointF point, Command command);
-
-        /// <summary>
-        /// Sends a key or key combination as a command to this entity.
-        /// The entity will either perform the related command if it exists, or
-        /// do nothing if there is no command associated with that key or key
-        /// combination.
-        /// </summary>
-        /// <param name="entity">The entity to perform the command on, or null if there is none.</param>
-        /// <param name="point">The point to perform the command to. May just be the coordinate of the entity.</param>
-        /// <param name="input">The input to interpret.</param>
-        public abstract void SendKeyboardCommand(Entity entity, PointF point, Keys input);
-
-        /// <summary>
-        /// Sends a mouse button press or combination to this entity.
-        /// The entity will either perform the related command if it exists,
-        /// or do nothing if there is no command associated with it.
-        /// </summary>
-        /// <param name="entity">The entity to perform the command on, or null if there is none.</param>
-        /// <param name="point">The point to perform the command to. May just be the coordinate of the entity.</param>
-        /// <param name="input">The input to interpret.</param>
-        public abstract void SendMouseCommand(Entity entity, PointF point, MouseButtons input);
+        public void RemovePendingCommand(Command c)
+        {
+            pendingCommands.Remove(c);
+        }
     }
 }

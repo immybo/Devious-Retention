@@ -28,6 +28,8 @@ namespace Devious_Retention_SP
         /// </summary>
         public void Tick()
         {
+            foreach (Entity e in entities)
+                e.Tick();
         }
 
         public void Draw(Graphics g, PositionTransformation p)

@@ -31,25 +31,5 @@ namespace Devious_Retention_SP
         {
             throw new NotImplementedException();
         }
-
-        public override void SendCommand(Entity entity, PointF point, Command command)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SendKeyboardCommand(Entity entity, PointF point, Keys input)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SendMouseCommand(Entity entity, PointF point, MouseButtons input)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Command[] ValidCommands()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
