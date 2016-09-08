@@ -85,6 +85,6 @@ namespace Devious_Retention_SP
         private System.Windows.Forms.Panel resourceBar;
         private System.Windows.Forms.Panel bottomRightPanel;
         private System.Windows.Forms.Panel topRightPanel;
-        private System.Windows.Forms.Panel gameArea;
+        private GameArea gameArea;
     }
 }

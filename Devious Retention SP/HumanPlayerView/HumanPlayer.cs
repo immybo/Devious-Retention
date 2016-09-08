@@ -49,12 +49,12 @@ namespace Devious_Retention_SP
                 e.GetCommand(worldCoordinate, buttons, world).Execute();
         }
 
-        public void DoKeyPress(char keyChar)
+        public void DoKeyPress(Keys keys)
         {
-            Console.WriteLine("Key " + keyChar + " pressed.");
+            Console.WriteLine("Key " + keys.ToString() + " pressed.");
 
             foreach (Entity e in selectedEntities)
-                e.GetCommand(keyChar, world).Execute();
+                e.GetCommand(keys, world).Execute();
         }
 
         public void DoGameAreaDrag(RectangleF bounds)

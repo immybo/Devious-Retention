@@ -54,7 +54,7 @@ namespace Devious_Retention_SP
             return base.GetCommand(worldCoordinate, button, world);
         }
 
-        public override Command GetCommand(char key, World world)
+        public override Command GetCommand(Keys key, World world)
         {
             return base.GetCommand(key, world);
         }

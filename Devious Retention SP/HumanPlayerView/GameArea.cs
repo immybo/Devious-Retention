@@ -10,8 +10,7 @@ namespace Devious_Retention_SP.HumanPlayerView
 {
     class GameArea : Panel
     {
-        // Relative to 1:1 scrolling
-        private const float SCROLL_SPEED = 1f;
+        public const float SCROLL_SPEED = 1f;
 
         private World world;
         private HumanPlayerListener listener;
@@ -21,7 +20,7 @@ namespace Devious_Retention_SP.HumanPlayerView
         private Rectangle selectedRect;
 
         // The top left point of the player's view; this is used to calculate what to show the player
-        public PointF playerView;
+        public PointF PlayerView;
 
         public GameArea(World world, HumanPlayerListener listener, PointF initialPlayerView)
         {
@@ -30,7 +29,7 @@ namespace Devious_Retention_SP.HumanPlayerView
             this.isMouseDown = false;
             this.world = world;
             this.listener = listener;
-            this.playerView = initialPlayerView;
+            this.PlayerView = initialPlayerView;
 
             this.MouseClick += new MouseEventHandler(DoMouse);
 
@@ -78,9 +77,6 @@ namespace Devious_Retention_SP.HumanPlayerView
             int deltaX = e.X - mouseDownLocation.X;
             int deltaY = e.Y - mouseDownLocation.Y;
 
-            //playerView.X += deltaX * SCROLL_SPEED / tileWidth;
-            //playerView.Y += deltaY * SCROLL_SPEED / tileHeight;
-
             int leftMost = Math.Min(mouseDownLocation.X, e.X);
             int width = Math.Max(mouseDownLocation.X, e.X) - leftMost;
             int topMost = Math.Min(mouseDownLocation.Y, e.Y);
@@ -112,8 +108,8 @@ namespace Devious_Retention_SP.HumanPlayerView
             float tileWidth = (float)this.Width / world.Map.Width;
             float tileHeight = (float)this.Height / world.Map.Height;
             return new PositionTransformation(
-                    (int)(playerView.X * tileWidth),
-                    (int)(playerView.Y * tileHeight),
+                    (int)(PlayerView.X * tileWidth),
+                    (int)(PlayerView.Y * tileHeight),
                     tileWidth,
                     tileHeight);
         }

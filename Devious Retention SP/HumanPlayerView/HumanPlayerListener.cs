@@ -13,7 +13,7 @@ namespace Devious_Retention_SP
     /// </summary>
     public interface HumanPlayerListener
     {
-        void DoKeyPress(char keyChar);
+        void DoKeyPress(Keys keys);
         void DoGameAreaClick(PointF worldCoordinate, MouseButtons buttons);
         void DoGameAreaDrag(RectangleF worldBounds);
     }

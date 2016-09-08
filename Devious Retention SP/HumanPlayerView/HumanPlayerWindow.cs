@@ -36,7 +36,7 @@ namespace Devious_Retention_SP
             windowRefreshTimer.Tick += new EventHandler(RefreshWindow);
             windowRefreshTimer.Start();
 
-            this.KeyPress += new KeyPressEventHandler(DoKeyPress);
+            this.KeyDown += new KeyEventHandler(DoKeyPress);
         }
 
         public void RefreshWindow(object sender, EventArgs e)
@@ -44,9 +44,18 @@ namespace Devious_Retention_SP
             this.Refresh();
         }
 
-        private void DoKeyPress(object sender, KeyPressEventArgs e)
+        private void DoKeyPress(object sender, KeyEventArgs e)
         {
-            listener.DoKeyPress(e.KeyChar);
+            if (e.KeyCode == Keys.Left)
+                gameArea.PlayerView.X += HumanPlayerView.GameArea.SCROLL_SPEED;
+            else if (e.KeyCode == Keys.Right)
+                gameArea.PlayerView.X -= HumanPlayerView.GameArea.SCROLL_SPEED;
+            else if (e.KeyCode == Keys.Up)
+                gameArea.PlayerView.Y += HumanPlayerView.GameArea.SCROLL_SPEED;
+            else if (e.KeyCode == Keys.Down)
+                gameArea.PlayerView.Y -= HumanPlayerView.GameArea.SCROLL_SPEED;
+
+            listener.DoKeyPress(e.KeyCode);
         }
 
         /// <summary>

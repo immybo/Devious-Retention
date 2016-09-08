@@ -85,7 +85,7 @@ namespace Devious_Retention_SP
         {
             return new NullCommand();
         }
-        public virtual Command GetCommand(char key, World world)
+        public virtual Command GetCommand(Keys key, World world)
         {
             return new NullCommand();
         }
