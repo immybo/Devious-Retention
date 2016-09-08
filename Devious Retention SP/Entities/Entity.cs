@@ -85,6 +85,10 @@ namespace Devious_Retention_SP
         {
             return new NullCommand();
         }
+        public virtual Command GetCommand(PointF worldCoordinate, Keys key, World world)
+        {
+            return new NullCommand();
+        }
 
         public void AddPendingCommand(Command c)
         {

@@ -51,7 +51,12 @@ namespace Devious_Retention_SP
                 return new MoveCommand(this, worldCoordinate, world);
             }
 
-            return new NullCommand();
+            return base.GetCommand(worldCoordinate, button, world);
+        }
+
+        public override Command GetCommand(PointF worldCoordinate, Keys key, World world)
+        {
+            return base.GetCommand(worldCoordinate, key, world);
         }
     }
 }
