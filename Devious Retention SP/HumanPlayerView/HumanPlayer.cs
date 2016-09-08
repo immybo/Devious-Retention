@@ -45,12 +45,16 @@ namespace Devious_Retention_SP
         {
             Console.WriteLine("Mouse pressed at " + worldCoordinate.X + ", " + worldCoordinate.Y + ".");
 
-            world.GetEntities()[0].GetCommand(worldCoordinate, buttons, world).Execute();
+            foreach (Entity e in selectedEntities)
+                e.GetCommand(worldCoordinate, buttons, world).Execute();
         }
 
         public void DoKeyPress(char keyChar)
         {
             Console.WriteLine("Key " + keyChar + " pressed.");
+
+            foreach (Entity e in selectedEntities)
+                e.GetCommand(keyChar, world).Execute();
         }
 
         public void Tick()
