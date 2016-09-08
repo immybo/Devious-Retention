@@ -43,5 +43,15 @@ namespace Devious_Retention_SP
         {
             return hitpoints <= 0;
         }
+
+        public override Command GetCommand(PointF worldCoordinate, MouseButtons button, World world)
+        {
+            if (button.Equals(MouseButtons.Right))
+            {
+                return new MoveCommand(this, worldCoordinate, world);
+            }
+
+            return new NullCommand();
+        }
     }
 }

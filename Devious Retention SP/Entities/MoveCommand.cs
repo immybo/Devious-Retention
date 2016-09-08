@@ -17,9 +17,10 @@ namespace Devious_Retention_SP
         {
             this.unit = unit;
 
-            this.endPoint = new PointF((float)(endPoint.X - unit.Size / 2), (float)(endPoint.Y - unit.Size / 2));
-            this.endPoint.X = (float)(endPoint.X < 0 ? 0 : endPoint.X + unit.Size > world.Map.Width ? world.Map.Width - unit.Size : endPoint.X);
-            this.endPoint.Y = (float)(endPoint.Y < 0 ? 0 : endPoint.Y + unit.Size > world.Map.Height ? world.Map.Height - unit.Size : endPoint.Y);
+            endPoint = new PointF((float)(endPoint.X - unit.Size / 2), (float)(endPoint.Y - unit.Size / 2));
+            endPoint.X = (float)(endPoint.X < 0 ? 0 : endPoint.X + unit.Size > world.Map.Width ? world.Map.Width - unit.Size : endPoint.X);
+            endPoint.Y = (float)(endPoint.Y < 0 ? 0 : endPoint.Y + unit.Size > world.Map.Height ? world.Map.Height - unit.Size : endPoint.Y);
+            this.endPoint = endPoint;
 
             this.world = world;
         }

@@ -50,6 +50,7 @@
     <Compile Include="Entities\Command.cs" />
     <Compile Include="Entities\Gatherable.cs" />
     <Compile Include="Entities\MoveCommand.cs" />
+    <Compile Include="Entities\NullCommand.cs" />
     <Compile Include="Entities\TestUnit.cs" />
     <Compile Include="HumanPlayerView\BottomRightPanel.cs">
       <SubType>Component</SubType>

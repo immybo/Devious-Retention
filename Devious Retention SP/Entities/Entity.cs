@@ -81,6 +81,11 @@ namespace Devious_Retention_SP
             return new PointF((float)X, (float)Y);
         }
 
+        public virtual Command GetCommand(PointF worldCoordinate, MouseButtons button, World world)
+        {
+            return new NullCommand();
+        }
+
         public void AddPendingCommand(Command c)
         {
             pendingCommands.Add(c);
@@ -89,6 +94,11 @@ namespace Devious_Retention_SP
         public void RemovePendingCommand(Command c)
         {
             pendingCommands.Remove(c);
+        }
+
+        public Command[] GetPendingCommands()
+        {
+            return pendingCommands.ToArray();
         }
     }
 }

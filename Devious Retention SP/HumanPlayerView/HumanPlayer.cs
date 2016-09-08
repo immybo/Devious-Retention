@@ -16,9 +16,12 @@ namespace Devious_Retention_SP
         private HumanPlayerWindow window;
         private Timer drawClock;
 
+        private List<Entity> selectedEntities;
+
         public HumanPlayer(World world)
             : base(world)
         {
+            selectedEntities = new List<Entity>();
         }
 
         public void Run()
@@ -41,6 +44,8 @@ namespace Devious_Retention_SP
         public void DoGameAreaClick(PointF worldCoordinate, MouseButtons buttons)
         {
             Console.WriteLine("Mouse pressed at " + worldCoordinate.X + ", " + worldCoordinate.Y + ".");
+
+            world.GetEntities()[0].GetCommand(worldCoordinate, buttons, world).Execute();
         }
 
         public void DoKeyPress(char keyChar)
