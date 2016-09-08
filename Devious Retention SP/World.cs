@@ -49,5 +49,26 @@ namespace Devious_Retention_SP
         {
             return entities;
         }
+
+        /// <summary>
+        /// Returns a list of entities, containing all entities
+        /// which are at least partially contained within the given
+        /// area.
+        /// </summary>
+        public List<Entity> GetEntitiesInArea(RectangleF area)
+        {
+            List<Entity> ret = new List<Entity>();
+            foreach(Entity e in entities)
+            {
+                if(e.X + e.Size > area.X &&
+                   e.Y + e.Size > area.Y &&
+                   e.X < area.Right &&
+                   e.Y < area.Bottom)
+                {
+                    ret.Add(e);
+                }
+            }
+            return ret;
+        }
     }
 }

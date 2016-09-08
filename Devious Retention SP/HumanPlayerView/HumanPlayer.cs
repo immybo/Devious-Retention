@@ -57,6 +57,13 @@ namespace Devious_Retention_SP
                 e.GetCommand(keyChar, world).Execute();
         }
 
+        public void DoGameAreaDrag(RectangleF bounds)
+        {
+            Console.WriteLine("Dragging around area: " + bounds);
+
+            selectedEntities = world.GetEntitiesInArea(bounds);
+        }
+
         public void Tick()
         {
             window.Refresh();

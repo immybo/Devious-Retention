@@ -15,5 +15,6 @@ namespace Devious_Retention_SP
     {
         void DoKeyPress(char keyChar);
         void DoGameAreaClick(PointF worldCoordinate, MouseButtons buttons);
+        void DoGameAreaDrag(RectangleF worldBounds);
     }
 }

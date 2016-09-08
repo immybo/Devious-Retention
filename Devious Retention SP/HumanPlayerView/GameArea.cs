@@ -18,6 +18,7 @@ namespace Devious_Retention_SP.HumanPlayerView
 
         private Point mouseDownLocation;
         private bool isMouseDown;
+        private Rectangle selectedRect;
 
         // The top left point of the player's view; this is used to calculate what to show the player
         public PointF playerView;
@@ -40,18 +41,26 @@ namespace Devious_Retention_SP.HumanPlayerView
                     isMouseDown = true;
                 }
             };
-            this.MouseUp += delegate (object o, MouseEventArgs e) { isMouseDown = false; };
+            this.MouseUp += delegate (object o, MouseEventArgs e)
+            {
+                if (isMouseDown)
+                {
+                    PositionTransformation transformation = GetTransformation();
+                    PointF startPoint = transformation.TransformReverse(new Point(selectedRect.Left, selectedRect.Top));
+                    SizeF size = new SizeF((float)(selectedRect.Right - selectedRect.Left) / transformation.Scale().X,
+                                           (float)(selectedRect.Bottom - selectedRect.Top) / transformation.Scale().Y);
+                    listener.DoGameAreaDrag(new RectangleF(startPoint, size));
+                }
+                selectedRect = new Rectangle(0, 0,0,0);
+                isMouseDown = false;
+            };
             this.MouseEnter += delegate (object o, EventArgs e) { isMouseDown = false; };
             this.MouseMove += DoMouseDrag;
         }
 
         private void DoMouse(object o, MouseEventArgs e)
         {
-            PointF worldCoordinate = new PointF(
-                e.X / ((float)this.Width / world.Map.Width) - playerView.X,
-                e.Y / ((float)this.Height / world.Map.Height) - playerView.Y
-                );
-            listener.DoGameAreaClick(worldCoordinate, e.Button);
+            listener.DoGameAreaClick(GetTransformation().TransformReverse(e.Location), e.Button);
         }
 
         /// <summary>
@@ -62,17 +71,22 @@ namespace Devious_Retention_SP.HumanPlayerView
         private void DoMouseDrag(object o, MouseEventArgs e)
         {
             if (!isMouseDown) return;
-
+            
             float tileWidth = this.Bounds.Width / world.Map.Width;
             float tileHeight = this.Bounds.Height / world.Map.Height;
 
             int deltaX = e.X - mouseDownLocation.X;
             int deltaY = e.Y - mouseDownLocation.Y;
 
-            playerView.X += deltaX * SCROLL_SPEED / tileWidth;
-            playerView.Y += deltaY * SCROLL_SPEED / tileHeight;
+            //playerView.X += deltaX * SCROLL_SPEED / tileWidth;
+            //playerView.Y += deltaY * SCROLL_SPEED / tileHeight;
 
-            mouseDownLocation = e.Location;
+            int leftMost = Math.Min(mouseDownLocation.X, e.X);
+            int width = Math.Max(mouseDownLocation.X, e.X) - leftMost;
+            int topMost = Math.Min(mouseDownLocation.Y, e.Y);
+            int height = Math.Max(mouseDownLocation.Y, e.Y) - topMost;
+
+            selectedRect = new Rectangle(leftMost, topMost, width, height);                         
 
             Refresh();
         }
@@ -85,11 +99,23 @@ namespace Devious_Retention_SP.HumanPlayerView
             float tileWidth = bounds.Width / world.Map.Width;
             float tileHeight = bounds.Height / world.Map.Height;
 
-            PositionTransformation worldTransform = new PositionTransformation(
-                (int)(bounds.X + playerView.X*tileWidth), (int)(bounds.Y + playerView.Y* tileHeight),
-                tileWidth, tileHeight);
+            world.Draw(g, GetTransformation());
 
-            world.Draw(g, worldTransform);
+            if(isMouseDown && selectedRect != null)
+            {
+                g.DrawRectangle(Pens.Black, selectedRect);
+            }
+        }
+
+        private PositionTransformation GetTransformation()
+        {
+            float tileWidth = (float)this.Width / world.Map.Width;
+            float tileHeight = (float)this.Height / world.Map.Height;
+            return new PositionTransformation(
+                    (int)(playerView.X * tileWidth),
+                    (int)(playerView.Y * tileHeight),
+                    tileWidth,
+                    tileHeight);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Player
     {
+        // TODO add player colors
         protected World world;
 
         public Player(World world)
