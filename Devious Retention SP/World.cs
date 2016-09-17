@@ -51,19 +51,41 @@ namespace Devious_Retention_SP
         }
 
         /// <summary>
+        /// Returns an entity which overlaps the given point.
+        /// No guarantee is made as to which type of entity it will be,
+        /// or what types of entities priority will be given to.
+        /// Returns null if no entity is present at the given location.
+        /// </summary>
+        public Entity GetEntityAtPoint(PointF worldPoint)
+        {
+            foreach(Entity e in entities)
+            {
+                if (e.X + e.Size > worldPoint.X &&
+                   e.Y + e.Size > worldPoint.Y &&
+                   e.X < worldPoint.X &&
+                   e.Y < worldPoint.Y)
+                {
+                    return e; // just return the first one found
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Returns a list of entities, containing all entities
         /// which are at least partially contained within the given
         /// area.
         /// </summary>
-        public List<Entity> GetEntitiesInArea(RectangleF area)
+        public List<Entity> GetEntitiesInArea(RectangleF worldArea)
         {
             List<Entity> ret = new List<Entity>();
             foreach(Entity e in entities)
             {
-                if(e.X + e.Size > area.X &&
-                   e.Y + e.Size > area.Y &&
-                   e.X < area.Right &&
-                   e.Y < area.Bottom)
+                if(e.X + e.Size > worldArea.X &&
+                   e.Y + e.Size > worldArea.Y &&
+                   e.X < worldArea.Right &&
+                   e.Y < worldArea.Bottom)
                 {
                     ret.Add(e);
                 }

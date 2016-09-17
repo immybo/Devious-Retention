@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP
 {
-    public abstract class Entity : Drawable
+    public abstract class Entity : IEntity
     {
         public string Name { get; private set; }
 

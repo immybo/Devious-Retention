@@ -10,7 +10,7 @@ namespace Devious_Retention_SP
     /// Defines an entity which has hitpoints.
     /// This entity can then be attacked and healed.
     /// </summary>
-    interface Attackable
+    public interface Attackable : IEntity
     {
         void Damage(int amount, int type);
         void Heal(int amount);

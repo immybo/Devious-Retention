@@ -14,6 +14,7 @@ namespace Devious_Retention_SP
             World world = new World();
             Player player = new HumanPlayer(world);
             world.AddEntity(new Entities.TestUnit(player, 3, 3, 1));
+            world.AddEntity(new Entities.TestUnit(player, 6, 6, 1));
             Game game = new Game(new Player[] { player }, world, new GameConfiguration(30));
             game.RunGame();
 
