@@ -18,8 +18,8 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Building : Entity, Attackable
     {
-        public Building(Player player, double x, double y, double size)
-            : base(player, x, y, size)
+        public Building(Player player, double x, double y, double size, string name)
+            : base(player, x, y, size, name)
         {
             
         }

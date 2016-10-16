@@ -29,13 +29,14 @@ namespace Devious_Retention_SP
         /// Note that the ID is only unique to the local client;
         /// i.e. this should only be used on the server.
         /// </summary>
-        public Entity(Player player, double x, double y, double size)
+        public Entity(Player player, double x, double y, double size, string name)
         {
             ID = nextID++;
             this.Player = player;
             this.X = x;
             this.Y = y;
             this.Size = size;
+            this.Name = name;
             pendingCommands = new List<Command>();
         }
 

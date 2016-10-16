@@ -26,7 +26,7 @@ namespace Devious_Retention_SP
 
         public void Run()
         {
-            window = new HumanPlayerWindow(this, this.world);
+            window = new HumanPlayerWindow(this, this, this.world);
 
             drawClock = new Timer();
             drawClock.Interval = 16;
@@ -64,9 +64,9 @@ namespace Devious_Retention_SP
             selectedEntities = world.GetEntitiesInArea(bounds);
         }
 
-        public void Tick()
+        public Entity[] GetSelectedEntities()
         {
-            window.Refresh();
+            return selectedEntities.ToArray();
         }
     }
 }

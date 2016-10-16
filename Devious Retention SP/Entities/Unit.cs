@@ -17,16 +17,16 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Unit : Entity, Attackable
     {
-        protected int maxHitpoints;
-        protected int hitpoints;
+        public int MaxHitpoints { get; protected set; }
+        public int Hitpoints { get; protected set; }
 
         /// <summary>
         /// How far this unit can move every tick
         /// </summary>
         public float MovementSpeed { get; private set; }
 
-        public Unit(Player player, double x, double y, double size, float movementSpeed)
-            : base(player, x, y, size)
+        public Unit(Player player, double x, double y, double size, float movementSpeed, string name)
+            : base(player, x, y, size, name)
         {
             this.MovementSpeed = movementSpeed;
         }
@@ -34,14 +34,14 @@ namespace Devious_Retention_SP
         public abstract void Damage(int amount, int damageType);
         public virtual void Heal(int amount)
         {
-            if (hitpoints < maxHitpoints - amount)
-                hitpoints += amount;
+            if (Hitpoints < MaxHitpoints - amount)
+                Hitpoints += amount;
             else
-                hitpoints = maxHitpoints;
+                Hitpoints = MaxHitpoints;
         }
         public virtual bool IsDead()
         {
-            return hitpoints <= 0;
+            return Hitpoints <= 0;
         }
 
         public override Command GetCommand(PointF worldCoordinate, MouseButtons button, World world)

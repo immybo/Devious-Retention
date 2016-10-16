@@ -13,14 +13,14 @@ namespace Devious_Retention_SP.Entities
         private const float MOVEMENT_SPEED = 0.1f;
 
         public TestUnit(Player player, double x, double y, double size)
-            : base(player, x, y, size, MOVEMENT_SPEED)
+            : base(player, x, y, size, MOVEMENT_SPEED, "TestUnit")
         {
-            this.maxHitpoints = 100;
+            this.MaxHitpoints = 100;
         }
 
         public override void Damage(int amount, int damageType)
         {
-            this.hitpoints -= amount;
+            this.Hitpoints -= amount;
         }
 
         public override void Draw(Graphics g, PositionTransformation p)

@@ -22,12 +22,14 @@ namespace Devious_Retention_SP
 
         private World world;
         private HumanPlayerListener listener;
+        private HumanPlayer player;
         private Timer windowRefreshTimer;
 
-        public HumanPlayerWindow(HumanPlayerListener listener, World world)
+        public HumanPlayerWindow(HumanPlayerListener listener, HumanPlayer player, World world)
         {
             this.listener = listener;
             this.world = world;
+            this.player = player;
 
             InitializeComponent();
 
