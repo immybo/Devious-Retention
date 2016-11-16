@@ -133,10 +133,10 @@ namespace Devious_Retention_SP
             PointF vector = new PointF(defenderPoint.X - attackerPoint.X, defenderPoint.Y - attackerPoint.Y);
             double vectorLength = Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
 
-            if (vectorLength <= attacker.GetRange())
+            if (vectorLength <= attacker.GetRange() - 0.5)
                 return attackerPoint;
 
-            PointF inRangeVector = new PointF((float)(vector.X * (attacker.GetRange()/vectorLength)), (float)(vector.Y * (attacker.GetRange()/vectorLength)));
+            PointF inRangeVector = new PointF((float)(vector.X * ((attacker.GetRange()-0.5)/vectorLength)), (float)(vector.Y * ((attacker.GetRange()-0.5)/vectorLength)));
 
             PointF newPoint = new PointF(defenderPoint.X - inRangeVector.X, defenderPoint.Y - inRangeVector.Y);
             return newPoint;

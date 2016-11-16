@@ -37,6 +37,9 @@ namespace Devious_Retention_SP
         {
             if (!base.Tick()) return false;
 
+            double distanceTo = Math.Sqrt(Math.Pow(endPoint.X - unit.X, 2) + Math.Pow(endPoint.Y - unit.Y, 2)); // this is just for floating point error
+            if (distanceTo <= 0.01) return false;
+
             double xDifference = endPoint.X - unit.X;
             double yDifference = endPoint.Y - unit.Y;
 
@@ -49,9 +52,7 @@ namespace Devious_Retention_SP
             double newY = Math.Abs(yMovespeed) >= Math.Abs(yDifference) ? endPoint.Y : unit.Y + yMovespeed;
 
             unit.Teleport(newX, newY);
-
-            double distanceTo = Math.Sqrt(Math.Pow(endPoint.X - unit.X, 2) + Math.Pow(endPoint.Y - unit.Y, 2)); // this is just for floating point error
-            return distanceTo > 0.01;
+            return true;
         }
     }
 }

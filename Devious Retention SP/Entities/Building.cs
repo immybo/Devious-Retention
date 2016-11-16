@@ -24,8 +24,6 @@ namespace Devious_Retention_SP
         public Building(Player player, double x, double y, double size, string name)
             : base(player, x, y, size, name)
         {
-            this.MaxHitpoints = 2500;
-            this.Hitpoints = MaxHitpoints;
         }
 
         public abstract void Damage(int amount, int damageType);
