@@ -25,16 +25,18 @@ namespace Devious_Retention_SP
             this.world = world;
         }
 
-        public void Execute()
+        public override void Execute()
         {
             foreach(Command c in unit.GetPendingCommands()){
-                if (c is MoveCommand) unit.RemovePendingCommand(c);
+                if (c is MoveCommand) c.SetFinished();
             }
             unit.AddPendingCommand(this);
         }
 
-        public bool Tick()
+        public override bool Tick()
         {
+            if (!base.Tick()) return false;
+
             double xDifference = endPoint.X - unit.X;
             double yDifference = endPoint.Y - unit.Y;
 
@@ -49,11 +51,6 @@ namespace Devious_Retention_SP
             unit.Teleport(newX, newY);
 
             return !(newX == endPoint.X && newY == endPoint.Y);
-        }
-
-        private void MoveTick()
-        {
-
         }
     }
 }

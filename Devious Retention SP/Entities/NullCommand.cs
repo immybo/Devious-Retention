@@ -8,11 +8,11 @@ namespace Devious_Retention_SP
 {
     public class NullCommand : Command
     {
-        public void Execute()
+        public override void Execute()
         {
         }
 
-        public bool Tick()
+        public override bool Tick()
         {
             return false;
         }

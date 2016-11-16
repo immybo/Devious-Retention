@@ -22,13 +22,15 @@ namespace Devious_Retention_SP
             this.world = world;
         }
 
-        public void Execute()
+        public override void Execute()
         {
             attacker.AddPendingCommand(this);
         }
 
-        public bool Tick()
+        public override bool Tick()
         {
+            if (!base.Tick()) return false;
+
             if (attacker is Unit)
             {
                 Unit unit = (Unit)attacker;

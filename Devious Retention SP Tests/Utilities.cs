@@ -14,11 +14,11 @@ namespace Devious_Retention_SP_Tests
         /// until the command removes itself from the given entity's
         /// command list.
         /// </summary>
-        public static void ApplyCommandSynchronous(Command command, IEntity entity)
+        public static void ApplyCommandSynchronous(Command command, IEntity entity, World world)
         {
             command.Execute();
             while (entity.GetPendingCommands().Contains(command))
-                entity.Tick();
+                entity.Tick(world);
         }
 
         public static WorldConfiguration BuildWorldFromTemplate(WorldTemplate template)

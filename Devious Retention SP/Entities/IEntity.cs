@@ -24,7 +24,7 @@ namespace Devious_Retention_SP
         /// Ticks anything that this entity is running; for example,
         /// ticks attack and movement animations if applicable.
         /// </summary>
-        void Tick();
+        void Tick(World world);
 
         /// <summary>
         /// Teleports this entity to a given position, disregarding

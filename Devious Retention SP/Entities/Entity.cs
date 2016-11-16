@@ -24,6 +24,9 @@ namespace Devious_Retention_SP
         // Commands which are ongoing and must be ticked
         private List<Command> pendingCommands;
 
+        private List<Command> pendingCommandsToAdd;
+        private List<Command> pendingCommandsToRemove;
+
         /// <summary>
         /// Creates an entity, generating a new unique ID for it.
         /// Note that the ID is only unique to the local client;
@@ -38,20 +41,31 @@ namespace Devious_Retention_SP
             this.Size = size;
             this.Name = name;
             pendingCommands = new List<Command>();
+            pendingCommandsToAdd = new List<Command>();
+            pendingCommandsToRemove = new List<Command>();
         }
 
         /// <summary>
         /// Ticks anything that this entity is running; for example,
         /// ticks attack and movement animations if applicable.
         /// </summary>
-        public void Tick()
+        public void Tick(World world)
         {
-            List<Command> toRemove = new List<Command>();
+            foreach (Command c in pendingCommandsToAdd)
+                pendingCommands.Add(c);
+            foreach (Command c in pendingCommandsToRemove)
+                pendingCommands.Remove(c);
+            pendingCommandsToAdd.Clear();
+            pendingCommandsToRemove.Clear();
+
             foreach (Command c in pendingCommands)
                 if (!c.Tick())
-                    toRemove.Add(c);
-            foreach (Command c in toRemove)
-                pendingCommands.Remove(c);
+                    pendingCommandsToRemove.Add(c);
+
+            if(this is Attackable && ((Attackable)this).IsDead())
+            {
+                world.RemoveEntity(this);
+            }
         }
 
         public abstract void Draw(Graphics g, PositionTransformation p);
@@ -93,12 +107,12 @@ namespace Devious_Retention_SP
 
         public void AddPendingCommand(Command c)
         {
-            pendingCommands.Add(c);
+            pendingCommandsToAdd.Add(c);
         }
 
         public void RemovePendingCommand(Command c)
         {
-            pendingCommands.Remove(c);
+            pendingCommandsToRemove.Remove(c);
         }
 
         public Command[] GetPendingCommands()

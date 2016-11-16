@@ -9,9 +9,21 @@ namespace Devious_Retention_SP
     /// <summary>
     /// A command is something that can be executed with relation to an entity.
     /// </summary>
-    public interface Command
+    public abstract class Command
     {
-        void Execute();
+        private bool finished = false;
+
+        /// <summary>
+        /// Sets a command as finished; that is, it will no longer execute
+        /// and will be removed from its entity as soon as possible.
+        /// </summary>
+        public void SetFinished()
+        {
+            finished = true;
+        }
+
+        public abstract void Execute();
+
         /// <summary>
         /// A command is not obliged to take time, but if it does,
         /// it should add itself to an entity's list of pending commands.
@@ -19,6 +31,9 @@ namespace Devious_Retention_SP
         /// The return value of this indicates whether it should still
         /// run in the next tick or not.
         /// </summary>
-        bool Tick();
+        public virtual bool Tick()
+        {
+            return !finished;
+        }
     }
 }
