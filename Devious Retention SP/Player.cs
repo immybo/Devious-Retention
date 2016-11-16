@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,11 +15,12 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Player
     {
-        // TODO add player colors
+        public Color Color { get; private set; }
         protected World world;
 
-        public Player(World world)
+        public Player(World world, Color color)
         {
+            this.Color = color;
             this.world = world;
         }
     }

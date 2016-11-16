@@ -26,7 +26,7 @@ namespace Devious_Retention_SP.Entities
         public override void Draw(Graphics g, PositionTransformation p)
         {
             PointF topLeft = p.Transform(this.GetPosition());
-            g.FillRectangle(new SolidBrush(Color.Blue), new Rectangle((int)topLeft.X, (int)topLeft.Y, (int)(p.Scale().X*this.Size), (int)(p.Scale().Y*this.Size)));
+            g.FillRectangle(new SolidBrush(this.Player.Color), new Rectangle((int)topLeft.X, (int)topLeft.Y, (int)(p.Scale().X*this.Size), (int)(p.Scale().Y*this.Size)));
         }
     }
 }

@@ -18,8 +18,8 @@ namespace Devious_Retention_SP
 
         private List<Entity> selectedEntities;
 
-        public HumanPlayer(World world)
-            : base(world)
+        public HumanPlayer(World world, Color color)
+            : base(world, color)
         {
             selectedEntities = new List<Entity>();
         }
