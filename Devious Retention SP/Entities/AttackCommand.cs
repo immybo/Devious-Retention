@@ -14,6 +14,7 @@ namespace Devious_Retention_SP
         private World world;
 
         private MoveCommand movement = null;
+        private int currentTick = 10;
 
         public AttackCommand(Attacker attacker, Attackable defender, World world)
         {
@@ -38,12 +39,6 @@ namespace Devious_Retention_SP
                 // Make sure we actually can attack it
                 MoveWithinRange(unit);
 
-                // We've gotten to the end location and can now attack
-                if (movement != null && !unit.GetPendingCommands().Contains(movement))
-                {
-                    movement = null;
-                }
-
                 // Only attack if we're not moving; i.e., we're already within range of the enemy
                 if (movement == null)
                 {
@@ -55,17 +50,33 @@ namespace Devious_Retention_SP
                 PerformAttackTick();
             }
 
-            return true;
+            return !defender.IsDead();
         }
 
         private void MoveWithinRange(Unit uAttacker)
         {
             // Move to an applicable point if we have to
-            if (!WithinRangeBuffer(attacker, defender, 0.5f))
+            if (!WithinRangeBuffer(attacker, defender, 0.2f))
             {
-                PointF attackPoint = GetAttackPoint(attacker, defender, world);
-                this.movement = new MoveCommand(uAttacker, attackPoint, world);
-                movement.Execute();
+                // Only redo movement every 10 ticks
+                if (currentTick == 10)
+                {
+                    if(movement != null)
+                    {
+                        uAttacker.RemovePendingCommand(movement);
+                    }
+                    PointF attackPoint = GetAttackPoint(attacker, defender, world);
+                    this.movement = new MoveCommand(uAttacker, attackPoint, world);
+                    movement.Execute();
+
+                    currentTick = 0;
+                }
+
+                currentTick++;
+            }
+            else
+            {
+                movement = null;
             }
         }
 
@@ -117,44 +128,18 @@ namespace Devious_Retention_SP
         public static PointF GetAttackPoint(Attacker attacker, Attackable defender, World world)
         {
             PointF defenderPoint = defender.GetPosition();
-            PointF attackerPoint = defender.GetPosition();
+            PointF attackerPoint = attacker.GetPosition();
+
             PointF vector = new PointF(defenderPoint.X - attackerPoint.X, defenderPoint.Y - attackerPoint.Y);
-            PointF attackPoint = new PointF(0, 0);
+            double vectorLength = Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
 
-            float toGo = attacker.GetRange();
+            if (vectorLength <= attacker.GetRange())
+                return attackerPoint;
 
-            if(vector.X != 0)
-            {
-                if(Math.Abs(vector.X) <= attacker.GetRange() / 2)
-                {
-                    toGo -= Math.Abs(vector.X);
-                }
-                else if (vector.X < 0) {
-                    attackPoint.X = defender.GetPosition().X + attacker.GetRange()/2;
-                }
-                else
-                {
-                    attackPoint.X = defender.GetPosition().X - attacker.GetRange()/2;
-                }
-            }
-            
-            if(vector.Y != 0)
-            {
-                if(Math.Abs(vector.Y) <= toGo)
-                {
-                    toGo -= Math.Abs(vector.Y);
-                }
-                else if(vector.Y < 0)
-                {
-                    attackPoint.Y = defender.GetPosition().Y + attacker.GetRange() / 2;
-                }
-                else
-                {
-                    attackPoint.Y = defender.GetPosition().Y - attacker.GetRange() / 2;
-                }
-            }
+            PointF inRangeVector = new PointF((float)(vector.X * (attacker.GetRange()/vectorLength)), (float)(vector.Y * (attacker.GetRange()/vectorLength)));
 
-            return attackPoint;
+            PointF newPoint = new PointF(defenderPoint.X - inRangeVector.X, defenderPoint.Y - inRangeVector.Y);
+            return newPoint;
         }
     }
 }

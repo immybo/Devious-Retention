@@ -15,16 +15,16 @@ namespace Devious_Retention_SP
     public class World : Drawable
     {
         public Map Map { get; private set; }
-        private List<Entity> entities;
-        private List<Entity> toAddEntities;
-        private List<Entity> toRemoveEntities;
+        private List<IEntity> entities;
+        private List<IEntity> toAddEntities;
+        private List<IEntity> toRemoveEntities;
 
         public World()
         {
             this.Map = new Map();
-            this.entities = new List<Entity>();
-            toAddEntities = new List<Entity>();
-            toRemoveEntities = new List<Entity>();
+            this.entities = new List<IEntity>();
+            toAddEntities = new List<IEntity>();
+            toRemoveEntities = new List<IEntity>();
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Devious_Retention_SP
                 toRemoveEntities.Add(e);
         }
 
-        public List<Entity> GetEntities()
+        public List<IEntity> GetEntities()
         {
             return entities;
         }

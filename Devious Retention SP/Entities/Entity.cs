@@ -93,7 +93,7 @@ namespace Devious_Retention_SP
 
         public PointF GetPosition()
         {
-            return new PointF((float)X, (float)Y);
+            return new PointF((float)(X + Size/2), (float)(Y + Size/2));
         }
 
         public virtual Command GetCommand(PointF worldCoordinate, MouseButtons button, World world)

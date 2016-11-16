@@ -17,6 +17,7 @@ namespace Devious_Retention_SP_Tests
         public static void ApplyCommandSynchronous(Command command, IEntity entity, World world)
         {
             command.Execute();
+            entity.Tick(world);
             while (entity.GetPendingCommands().Contains(command))
                 entity.Tick(world);
         }

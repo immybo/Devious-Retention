@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Devious_Retention_SP
 {
-    class MoveCommand : Command
+    public class MoveCommand : Command
     {
         private Unit unit;
         private PointF endPoint;
@@ -50,7 +50,8 @@ namespace Devious_Retention_SP
 
             unit.Teleport(newX, newY);
 
-            return !(newX == endPoint.X && newY == endPoint.Y);
+            double distanceTo = Math.Sqrt(Math.Pow(endPoint.X - unit.X, 2) + Math.Pow(endPoint.Y - unit.Y, 2)); // this is just for floating point error
+            return distanceTo > 0.01;
         }
     }
 }
