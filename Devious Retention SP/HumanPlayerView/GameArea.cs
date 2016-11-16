@@ -82,7 +82,11 @@ namespace Devious_Retention_SP.HumanPlayerView
             int topMost = Math.Min(mouseDownLocation.Y, e.Y);
             int height = Math.Max(mouseDownLocation.Y, e.Y) - topMost;
 
-            selectedRect = new Rectangle(leftMost, topMost, width, height);                         
+            // Make sure we're not selecting too small an area; this is for QoL
+            Rectangle proposedSelection = new Rectangle(leftMost, topMost, width, height);
+            if (proposedSelection.Width * proposedSelection.Height < 0.1) return;
+
+            selectedRect = new Rectangle(leftMost, topMost, width, height);
 
             Refresh();
         }
