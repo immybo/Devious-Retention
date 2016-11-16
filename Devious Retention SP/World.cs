@@ -90,6 +90,11 @@ namespace Devious_Retention_SP
             return null;
         }
 
+        public List<Entity> GetEntitiesAtPoint(PointF worldPoint)
+        {
+            return GetEntitiesInArea(new RectangleF(worldPoint.X, worldPoint.Y, 0, 0));
+        }
+
         /// <summary>
         /// Returns a list of entities, containing all entities
         /// which are at least partially contained within the given

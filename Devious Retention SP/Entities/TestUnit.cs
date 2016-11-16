@@ -34,10 +34,20 @@ namespace Devious_Retention_SP.Entities
         {
             if (button.Equals(MouseButtons.Right))
             {
-                IEntity e = world.GetEntityAtPoint(worldCoordinate);
-                if (e != null && e is Attackable)
+                List<Entity> entitiesAtPoint = world.GetEntitiesAtPoint(worldCoordinate);
+                Entity availableEntity = null;
+                foreach(Entity e in entitiesAtPoint)
                 {
-                    return new AttackCommand(this, (Attackable)e, world);
+                    if(e.Player != Player && e is Attackable)
+                    {
+                        availableEntity = e;
+                        break;
+                    }
+                }
+
+                if(availableEntity != null)
+                {
+                    return new AttackCommand(this, (Attackable)availableEntity, world);
                 }
             }
 
