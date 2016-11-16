@@ -16,11 +16,15 @@ namespace Devious_Retention_SP
     {
         public Map Map { get; private set; }
         private List<Entity> entities;
+        private List<Entity> toAddEntities;
+        private List<Entity> toRemoveEntities;
 
         public World()
         {
             this.Map = new Map();
             this.entities = new List<Entity>();
+            toAddEntities = new List<Entity>();
+            toRemoveEntities = new List<Entity>();
         }
 
         /// <summary>
@@ -28,8 +32,15 @@ namespace Devious_Retention_SP
         /// </summary>
         public void Tick()
         {
+            foreach (Entity e in toAddEntities)
+                entities.Add(e);
+            foreach (Entity e in toRemoveEntities)
+                entities.Remove(e);
+            toAddEntities.Clear();
+            toRemoveEntities.Clear();
+
             foreach (Entity e in entities)
-                e.Tick();
+                e.Tick(this);
         }
 
         public void Draw(Graphics g, PositionTransformation p)
@@ -43,11 +54,40 @@ namespace Devious_Retention_SP
 
         public void AddEntity(Entity e)
         {
-            entities.Add(e);
+            toAddEntities.Add(e);
         }
+
+        public void RemoveEntity(Entity e)
+        {
+            if (entities.Contains(e))
+                toRemoveEntities.Add(e);
+        }
+
         public List<Entity> GetEntities()
         {
             return entities;
+        }
+
+        /// <summary>
+        /// Returns an entity which overlaps the given point.
+        /// No guarantee is made as to which type of entity it will be,
+        /// or what types of entities priority will be given to.
+        /// Returns null if no entity is present at the given location.
+        /// </summary>
+        public Entity GetEntityAtPoint(PointF worldPoint)
+        {
+            foreach(Entity e in entities)
+            {
+                if (e.X + e.Size > worldPoint.X &&
+                   e.Y + e.Size > worldPoint.Y &&
+                   e.X < worldPoint.X &&
+                   e.Y < worldPoint.Y)
+                {
+                    return e; // just return the first one found
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -55,15 +95,15 @@ namespace Devious_Retention_SP
         /// which are at least partially contained within the given
         /// area.
         /// </summary>
-        public List<Entity> GetEntitiesInArea(RectangleF area)
+        public List<Entity> GetEntitiesInArea(RectangleF worldArea)
         {
             List<Entity> ret = new List<Entity>();
             foreach(Entity e in entities)
             {
-                if(e.X + e.Size > area.X &&
-                   e.Y + e.Size > area.Y &&
-                   e.X < area.Right &&
-                   e.Y < area.Bottom)
+                if(e.X + e.Size > worldArea.X &&
+                   e.Y + e.Size > worldArea.Y &&
+                   e.X < worldArea.Right &&
+                   e.Y < worldArea.Bottom)
                 {
                     ret.Add(e);
                 }
