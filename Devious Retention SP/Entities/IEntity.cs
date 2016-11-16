@@ -40,6 +40,7 @@ namespace Devious_Retention_SP
         void ChangePosition(double x, double y);
 
         PointF GetPosition();
+        PointF GetCenterPosition();
 
         Command GetCommand(PointF worldCoordinate, MouseButtons button, World world);
         Command GetCommand(Keys key, World world);

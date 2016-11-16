@@ -127,8 +127,8 @@ namespace Devious_Retention_SP
         /// <returns></returns>
         public static PointF GetAttackPoint(Attacker attacker, Attackable defender, World world)
         {
-            PointF defenderPoint = defender.GetPosition();
-            PointF attackerPoint = attacker.GetPosition();
+            PointF defenderPoint = defender.GetCenterPosition();
+            PointF attackerPoint = attacker.GetCenterPosition();
 
             PointF vector = new PointF(defenderPoint.X - attackerPoint.X, defenderPoint.Y - attackerPoint.Y);
             double vectorLength = Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
