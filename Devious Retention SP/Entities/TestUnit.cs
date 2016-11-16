@@ -56,7 +56,7 @@ namespace Devious_Retention_SP.Entities
 
         public int GetAttackTime()
         {
-            return 1;
+            return 20;
         }
 
         public int GetDamage()

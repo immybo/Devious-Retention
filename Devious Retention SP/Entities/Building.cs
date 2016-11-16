@@ -18,19 +18,27 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Building : Entity, Attackable
     {
+        public int MaxHitpoints { get; protected set; }
+        public int Hitpoints { get; protected set; }
+
         public Building(Player player, double x, double y, double size, string name)
             : base(player, x, y, size, name)
         {
-            
+            this.MaxHitpoints = 2500;
+            this.Hitpoints = MaxHitpoints;
         }
 
         public abstract void Damage(int amount, int damageType);
-        public abstract void Heal(int amount);
-        public abstract bool IsDead();
-
-        public override void Draw(Graphics g, PositionTransformation p)
+        public virtual void Heal(int amount)
         {
-            throw new NotImplementedException();
+            if (Hitpoints < MaxHitpoints - amount)
+                Hitpoints += amount;
+            else
+                Hitpoints = MaxHitpoints;
+        }
+        public virtual bool IsDead()
+        {
+            return Hitpoints <= 0;
         }
     }
 }

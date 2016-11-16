@@ -110,7 +110,7 @@ namespace Devious_Retention_SP.HumanPlayerView
         /// <param name="building">The building to display information of.</param>
         private void RenderBuildingDisplay(Graphics g, Building building)
         {
-
+            Console.WriteLine("A building is selected.");
         }
 
         /// <summary>
