@@ -16,12 +16,31 @@ namespace Devious_Retention_SP
     public abstract class Player
     {
         public Color Color { get; private set; }
+        public int[] Resources { get; private set; }
         protected World world;
 
         public Player(World world, Color color)
         {
             this.Color = color;
             this.world = world;
+        }
+
+        public void SetResource(int resourceID, int newAmount)
+        {
+            if (newAmount < 0)
+                throw new ArgumentOutOfRangeException("Attempting to give a player a negative amount of a resource.");
+            if (resourceID < 0 || resourceID >= Resources.Length)
+                throw new ArgumentOutOfRangeException("Attempting to set an invalid resource ID to a player.");
+
+            Resources[resourceID] = newAmount;
+        }
+
+        public void ChangeResource(int resourceID, int change)
+        {
+            if (resourceID < 0 || resourceID >= Resources.Length)
+                throw new ArgumentOutOfRangeException("Attempting to set an invalid resource ID to a player.");
+
+            SetResource(resourceID, Resources[resourceID] + change);
         }
     }
 }
