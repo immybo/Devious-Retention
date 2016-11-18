@@ -17,15 +17,38 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Resource : Entity, Gatherable
     {
-        public Resource(Player player, double x, double y, double size, string name)
-            : base(player, x, y, size, name)
-        {
+        private int resourceType;
+        private int currentResourceAmount;
+        private int maxResourceAmount;
 
+        public Resource(double x, double y, double size, string name, int resourceType, int maxResourceAmount, int currentResourceAmount)
+            : base(new NullPlayer(null), x, y, size, name)
+        {
+            this.resourceType = resourceType;
+            this.currentResourceAmount = currentResourceAmount;
+            this.maxResourceAmount = maxResourceAmount;
         }
 
-        public abstract int MaxResourceCount();
-        public abstract int CurrentResourceCount();
-        public abstract void Gather(int amount);
+        public int MaxResourceCount()
+        {
+            return maxResourceAmount;
+        }
+        public int CurrentResourceCount()
+        {
+            return currentResourceAmount;
+        }
+
+        public void Gather(Player player, int amount)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException("Can't gather a negative amount from a resource!");
+
+            int gatheredAmount = amount;
+            if (currentResourceAmount < gatheredAmount)
+                gatheredAmount = currentResourceAmount;
+            currentResourceAmount -= gatheredAmount;
+            player.ChangeResource(resourceType, gatheredAmount);
+        }
 
         public override void Draw(Graphics g, PositionTransformation p)
         {

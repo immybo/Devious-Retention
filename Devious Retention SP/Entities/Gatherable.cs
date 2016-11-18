@@ -13,6 +13,6 @@ namespace Devious_Retention_SP
     {
         int MaxResourceCount();
         int CurrentResourceCount();
-        void Gather(int amount);
+        void Gather(Player player, int amount);
     }
 }
