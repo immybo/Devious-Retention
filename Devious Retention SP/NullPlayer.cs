@@ -9,7 +9,7 @@ namespace Devious_Retention_SP
 {
     public class NullPlayer : Player
     {
-        public NullPlayer(World world) : base(world, Color.Black)
+        public NullPlayer(World world) : base(world, Color.Black, new GameConfiguration())
         {
         }
     }

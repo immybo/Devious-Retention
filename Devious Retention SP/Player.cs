@@ -19,11 +19,13 @@ namespace Devious_Retention_SP
         public int[] Resources { get; private set; }
         protected World world;
 
-        public Player(World world, Color color)
+        public Player(World world, Color color, GameConfiguration config)
         {
             this.Color = color;
             this.world = world;
+            Resources = new int[config.RESOURCE_COUNT];
         }
+
 
         public void SetResource(int resourceID, int newAmount)
         {
