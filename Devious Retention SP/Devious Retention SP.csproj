@@ -50,6 +50,8 @@
     <Compile Include="Entities\AttackCommand.cs" />
     <Compile Include="Entities\Attacker.cs" />
     <Compile Include="Entities\Command.cs" />
+    <Compile Include="Entities\GatherCommand.cs" />
+    <Compile Include="Entities\Gatherer.cs" />
     <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Entities\Gatherable.cs" />
     <Compile Include="Entities\MoveCommand.cs" />
