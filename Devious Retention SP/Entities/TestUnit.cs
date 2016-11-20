@@ -8,12 +8,18 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP.Entities
 {
-    public class TestUnit : Unit, Attacker
+    public class TestUnit : Gatherer, Attacker 
     {
         private const float MOVEMENT_SPEED = 0.1f;
 
+        public TestUnit(Player player, double x, double y, double size, int gatherAmount, int gatherTicks)
+            : base(player, x, y, size, MOVEMENT_SPEED, "TestUnit", gatherAmount, gatherTicks)
+        {
+            this.MaxHitpoints = 100;
+            this.Hitpoints = MaxHitpoints;
+        }
         public TestUnit(Player player, double x, double y, double size)
-            : base(player, x, y, size, MOVEMENT_SPEED, "TestUnit")
+            : base(player, x, y, size, MOVEMENT_SPEED, "TestUnit", 1, 1)
         {
             this.MaxHitpoints = 100;
             this.Hitpoints = MaxHitpoints;

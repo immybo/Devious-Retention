@@ -16,8 +16,6 @@ namespace Devious_Retention_SP
         public MoveCommand(Unit unit, PointF endPoint, World world)
         {
             this.unit = unit;
-
-            endPoint = new PointF((float)(endPoint.X - unit.Size / 2), (float)(endPoint.Y - unit.Size / 2));
             endPoint.X = (float)(endPoint.X < 0 ? 0 : endPoint.X + unit.Size > world.Map.Width ? world.Map.Width - unit.Size : endPoint.X);
             endPoint.Y = (float)(endPoint.Y < 0 ? 0 : endPoint.Y + unit.Size > world.Map.Height ? world.Map.Height - unit.Size : endPoint.Y);
             this.endPoint = endPoint;

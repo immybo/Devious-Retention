@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Devious_Retention_SP.Entities;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -57,6 +58,28 @@ namespace Devious_Retention_SP
         public override Command GetCommand(Keys key, World world)
         {
             return base.GetCommand(key, world);
+        }
+
+        /// <summary>
+        /// Schedules a command on this unit to move within the given range of 
+        /// another entity. Calls the callback method on the given
+        /// object when this command is finished. Does not move, but does
+        /// callback, if this unit was already within range. Moves only
+        /// to within range of the other entity's original position if it
+        /// moves.
+        /// </summary>
+        public void MoveWithinRange(IEntity other, float range, ICallback callback, World world)
+        {
+            if(Entity.WithinRange(this, other, range))
+            {
+                callback.Callback();
+                return;
+            }
+
+            PointF newPoint = Entity.GetClosestPoint(this, other, range, world);
+            MoveCommand movement = new MoveCommand(this, newPoint, world);
+            movement.Execute();
+            this.RegisterCallback(movement, callback);
         }
     }
 }
