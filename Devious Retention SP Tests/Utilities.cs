@@ -11,8 +11,7 @@ namespace Devious_Retention_SP_Tests
     {
         /// <summary>
         /// Executes the given command and ticks the given entity
-        /// until the command removes itself from the given entity's
-        /// command list.
+        /// until the given command is removed from the entity.
         /// </summary>
         public static void ApplyCommandSynchronous(Command command, IEntity entity, World world)
         {

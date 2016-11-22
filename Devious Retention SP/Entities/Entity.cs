@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Devious_Retention_SP.Entities;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -27,6 +28,8 @@ namespace Devious_Retention_SP
         private List<Command> pendingCommandsToAdd;
         private List<Command> pendingCommandsToRemove;
 
+        private Dictionary<Command, ICallback> callbacks;
+
         /// <summary>
         /// Creates an entity, generating a new unique ID for it.
         /// Note that the ID is only unique to the local client;
@@ -43,6 +46,7 @@ namespace Devious_Retention_SP
             pendingCommands = new List<Command>();
             pendingCommandsToAdd = new List<Command>();
             pendingCommandsToRemove = new List<Command>();
+            callbacks = new Dictionary<Command, ICallback>();
         }
 
         /// <summary>
@@ -52,9 +56,16 @@ namespace Devious_Retention_SP
         public void Tick(World world)
         {
             foreach (Command c in pendingCommandsToAdd)
+            {
+                // TODO there should only really be one pending command... tidy this up
                 pendingCommands.Add(c);
+            }
             foreach (Command c in pendingCommandsToRemove)
+            {
+                if (callbacks.ContainsKey(c))
+                    callbacks[c].Callback();
                 pendingCommands.Remove(c);
+            }
             pendingCommandsToAdd.Clear();
             pendingCommandsToRemove.Clear();
 
@@ -123,6 +134,48 @@ namespace Devious_Retention_SP
         public Command[] GetPendingCommands()
         {
             return pendingCommands.ToArray();
+        }
+
+        public void RegisterCallback(Command command, ICallback callback)
+        {
+            callbacks.Add(command, callback);
+        }
+
+        /// <summary>
+        /// Returns whether or not the two given entities
+        /// are within the given range of each other.
+        /// </summary>
+        public static bool WithinRange(IEntity e1, IEntity e2, float range)
+        {
+            double xDiff = e1.X - e2.X;
+            double yDiff = e1.Y - e2.Y;
+            double totalDiff = Math.Sqrt(xDiff * xDiff + yDiff * yDiff);
+            return totalDiff <= range;
+        }
+
+        /// <summary>
+        /// Returns the point which
+        /// - Is within the given range of the second entity
+        /// - The first entity can move to
+        /// - Has the shortest path from the first entity's
+        ///   current position in the given world
+        /// </summary>
+        /// <returns></returns>
+        public static PointF GetClosestPoint(IEntity firstEntity, IEntity secondEntity, float range, World world)
+        {
+            PointF defenderPoint = firstEntity.GetCenterPosition();
+            PointF attackerPoint = secondEntity.GetCenterPosition();
+
+            PointF vector = new PointF(defenderPoint.X - attackerPoint.X, defenderPoint.Y - attackerPoint.Y);
+            double vectorLength = Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
+
+            if (vectorLength <= range - 0.5)
+                return attackerPoint;
+
+            PointF inRangeVector = new PointF((float)(vector.X * (range/vectorLength)), (float)(vector.Y * (range/vectorLength)));
+
+            PointF newPoint = new PointF(defenderPoint.X - inRangeVector.X, defenderPoint.Y - inRangeVector.Y);
+            return newPoint;
         }
     }
 }

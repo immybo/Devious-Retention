@@ -9,7 +9,7 @@ namespace Devious_Retention_SP
     /// <summary>
     /// Defines an entity which can be gathered from.
     /// </summary>
-    public interface Gatherable
+    public interface Gatherable : IEntity
     {
         int MaxResourceCount();
         int CurrentResourceCount();
