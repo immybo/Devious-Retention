@@ -57,7 +57,14 @@ namespace Devious_Retention_SP
             else
             {
                 // TODO don't attack if we're not within range
-                PerformAttackTick();
+                if(Unit.WithinRange(attacker, defender, attacker.GetRange()))
+                {
+                    PerformAttackTick();
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             return !defender.IsDead();
