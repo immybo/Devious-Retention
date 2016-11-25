@@ -49,6 +49,8 @@
     <Compile Include="Entities\Attackable.cs" />
     <Compile Include="Entities\AttackCommand.cs" />
     <Compile Include="Entities\Attacker.cs" />
+    <Compile Include="Entities\BuildCommand.cs" />
+    <Compile Include="Entities\Builder.cs" />
     <Compile Include="Entities\Command.cs" />
     <Compile Include="Entities\GatherCommand.cs" />
     <Compile Include="Entities\Gatherer.cs" />

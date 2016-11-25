@@ -21,9 +21,42 @@ namespace Devious_Retention_SP
         public int MaxHitpoints { get; protected set; }
         public int Hitpoints { get; protected set; }
 
-        public Building(Player player, double x, double y, double size, string name)
+        private int builtHitpoints;
+        public bool IsFullyBuilt { get; private set; }
+        // A higher value will cause this building to be built slower.
+        public float BuildResistace { get; private set; }
+
+        public Building(Player player, double x, double y, double size, string name, float buildResistance)
             : base(player, x, y, size, name)
         {
+            IsFullyBuilt = false;
+            builtHitpoints = 0;
+            this.BuildResistance = buildResistance;
+        }
+
+        /// <summary>
+        /// Adds up to the given amount of hitpoints to this building
+        /// through building it. No more hitpoints may be added if
+        /// IsFullyBuilt.
+        /// </summary>
+        /// <param name="amount">The amount of hitpoints to build.</param>
+        public void Build(int amount)
+        {
+            if (IsFullyBuilt)
+            {
+                return;
+            }
+            else if (builtHitpoints + amount < MaxHitpoints)
+            { 
+                builtHitpoints += amount;
+                Heal(amount);
+            }
+            else
+            {
+                Heal(MaxHitpoints - builtHitpoints);
+                builtHitpoints = MaxHitpoints;
+                IsFullyBuilt = true;
+            }
         }
 
         public abstract void Damage(int amount, int damageType);

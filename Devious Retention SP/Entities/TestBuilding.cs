@@ -12,8 +12,8 @@ namespace Devious_Retention_SP.Entities
     {
         private const float MOVEMENT_SPEED = 0.1f;
 
-        public TestBuilding(Player player, double x, double y, double size)
-            : base(player, x, y, size, "TestBuilding")
+        public TestBuilding(Player player, double x, double y, double size, float buildResistance)
+            : base(player, x, y, size, "TestBuilding", buildResistance)
         {
             this.MaxHitpoints = 100;
             this.Hitpoints = MaxHitpoints;
