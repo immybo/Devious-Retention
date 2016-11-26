@@ -61,12 +61,8 @@ namespace Devious_Retention_SP
         }
 
         /// <summary>
-        /// Schedules a command on this unit to move within the given range of 
-        /// another entity. Calls the callback method on the given
-        /// object when this command is finished. Does not move, but does
-        /// callback, if this unit was already within range. Moves only
-        /// to within range of the other entity's original position if it
-        /// moves.
+        /// Moves this unit within a certain range of the other entity given.
+        /// Calls the callback when finished.
         /// </summary>
         public void MoveWithinRange(IEntity other, float range, ICallback callback, World world)
         {
@@ -76,7 +72,7 @@ namespace Devious_Retention_SP
                 return;
             }
 
-            PointF newPoint = Entity.GetClosestPoint(this, other, range, world);
+            PointF newPoint = Entity.GetClosestPoint(other, this, range, world);
             MoveCommand movement = new MoveCommand(this, newPoint, world);
             movement.Execute();
             this.RegisterCallback(movement, callback);

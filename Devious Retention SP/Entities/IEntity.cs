@@ -46,9 +46,10 @@ namespace Devious_Retention_SP
         Command GetCommand(Keys key, World world);
 
         void AddPendingCommand(Command c);
-
-        void RemovePendingCommand(Command c);
-
+        void RegisterCallback(Command c, ICallback call);
         Command[] GetPendingCommands();
+        bool IsExecutingCommand();
+        Command GetExecutingCommand();
+        void OverrideExecutingCommand(Command c);
     }
 }

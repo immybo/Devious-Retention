@@ -16,7 +16,7 @@ namespace Devious_Retention_SP.Entities
             : base(player, x, y, size, "TestBuilding", buildResistance)
         {
             this.MaxHitpoints = 100;
-            this.Hitpoints = MaxHitpoints;
+            this.Hitpoints = 1;
         }
 
         public override void Damage(int amount, int damageType)

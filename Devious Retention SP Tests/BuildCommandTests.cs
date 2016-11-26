@@ -29,7 +29,7 @@ namespace Devious_Retention_SP_Tests
         {
             WorldConfiguration world = Utilities.BuildWorldFromTemplate(CONFIG_DEFAULT);
             Builder builder = new TestUnit(world.players[0], 3, 3, 1);
-            Building building = new TestBuilding(world.players[1], 7, 7, 1, 1);
+            Building building = new TestBuilding(world.players[1], 3.5, 3.5, 1, 1);
             BuildCommand command = new BuildCommand(builder, building, world.world);
             Utilities.ApplyCommandSynchronous(command, builder, world.world);
 

@@ -21,9 +21,7 @@ namespace Devious_Retention_SP_Tests
             Utilities.ApplyCommandSynchronous(command, attacker, world.world);
 
             // Make sure the attacker is within range of the defender
-            double actualRange = Math.Sqrt(Math.Pow(Math.Abs(attacker.X - defender.X), 2)
-                                        + Math.Pow(Math.Abs(attacker.Y - defender.Y), 2));
-            Assert.IsTrue(actualRange < attacker.GetRange() + 0.1);
+            Assert.IsTrue(Entity.WithinRange(attacker, defender, attacker.GetRange()+0.2f));
         }
 
         [TestMethod]

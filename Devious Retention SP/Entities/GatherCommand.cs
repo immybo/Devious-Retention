@@ -13,8 +13,7 @@ namespace Devious_Retention_SP
         private Gatherer gatherer;
         private Gatherable gathered;
         private World world;
-
-        private bool inRange;
+        
         private int currentTick;
 
         public GatherCommand(Gatherer gatherer, Gatherable gathered, World world)
@@ -26,21 +25,17 @@ namespace Devious_Retention_SP
 
         public override void Execute()
         {
-            inRange = false;
             gatherer.MoveWithinRange(gathered, 1, this, world);
             currentTick = 1;
-            gatherer.AddPendingCommand(this);
         }
 
         public void Callback()
         {
-            inRange = true;
+            gatherer.OverrideExecutingCommand(this);
         }
 
         public override bool Tick()
         {
-            if (!inRange) return true;
-
             if (currentTick % gatherer.GatherTicks == 0 && gathered.CurrentResourceCount() > 0)
             {
                 gathered.Gather(gatherer.Player, gatherer.GatherAmount);

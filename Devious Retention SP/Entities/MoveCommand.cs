@@ -25,10 +25,7 @@ namespace Devious_Retention_SP
 
         public override void Execute()
         {
-            foreach(Command c in unit.GetPendingCommands()){
-                if (c is MoveCommand) c.SetFinished();
-            }
-            unit.AddPendingCommand(this);
+            unit.OverrideExecutingCommand(this);
         }
 
         public override bool Tick()

@@ -17,7 +17,7 @@ namespace Devious_Retention_SP_Tests
         {
             command.Execute();
             entity.Tick(world);
-            while (entity.GetPendingCommands().Contains(command))
+            while (entity.IsExecutingCommand())
                 entity.Tick(world);
         }
 

@@ -25,62 +25,42 @@ namespace Devious_Retention_SP
 
         public override void Execute()
         {
-            builder.AddPendingCommand(this);
-            currentTick = 1;
+            builder.OverrideExecutingCommand(this);
+            currentTick = 10;
         }
 
         public override bool Tick()
         {
             if (!base.Tick()) return false;
 
-            if (builder is Unit)
+            if (Entity.WithinRange(builder, building, 1.1f))
+            {
+                PerformBuildTick();
+                return !building.IsFullyBuilt;
+            }
+            else if (builder is Unit)
             {
                 Unit uBuilder = (Unit)builder;
                 MoveWithinRange(uBuilder);
-                
-                bool ok = true;
-                foreach (Command c in builder.GetPendingCommands())
-                {
-                    if (c is MoveCommand)
-                    {
-                        ok = false;
-                        break;
-                    }
-                }
-
-                if (ok)
-                {
-                    PerformBuildTick();
-                }
-            }
-            else if(Entity.WithinRange(builder, building, 1))
-            {
-                PerformBuildTick();
+                return false; // We re-add ourselves on the callback
             }
             else
             {
-                // We can't build it, because we're unable to move
                 return false;
             }
-
-            return !building.IsFullyBuilt;
         }
 
         // TODO factor this out, since both buildcommand and attackcommand use it
         private void MoveWithinRange(Unit uBuilder)
         {
-            // Move to an applicable point if we have to
-            if (!Entity.WithinRange(builder, building, 1))
+            // Only redo movement every 10 ticks
+            if (currentTick == 10)
             {
-                // Only redo movement every 10 ticks
-                if (currentTick == 10)
-                {
-                    uBuilder.MoveWithinRange(building, 1, this, world);
-                    currentTick = 0;
-                }
-
-                currentTick++;
+                uBuilder.MoveWithinRange(building, 1, this, world);
+                currentTick = 0;
             }
+
+            currentTick++;
         }
 
         private void PerformBuildTick()
@@ -93,6 +73,7 @@ namespace Devious_Retention_SP
         public void Callback()
         {
             // We're within range now
+            builder.OverrideExecutingCommand(this);
         }
     }
 }

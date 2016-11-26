@@ -22,13 +22,15 @@ namespace Devious_Retention_SP
         public int ID { get; private set; }
         private static int nextID = 0;
 
-        // Commands which are ongoing and must be ticked
-        private List<Command> pendingCommands;
-
-        private List<Command> pendingCommandsToAdd;
-        private List<Command> pendingCommandsToRemove;
-
+        // Commands which are waiting for the current command to finish before they can start
+        private Queue<Command> pendingCommands;
         private Dictionary<Command, ICallback> callbacks;
+
+        // Synchronous add buffer for pendingCommands
+        private Queue<Command> pendingCommandsToAdd;
+
+        // The command which is being executed at the moment
+        private Command executingCommand;
 
         /// <summary>
         /// Creates an entity, generating a new unique ID for it.
@@ -43,9 +45,9 @@ namespace Devious_Retention_SP
             this.Y = y;
             this.Size = size;
             this.Name = name;
-            pendingCommands = new List<Command>();
-            pendingCommandsToAdd = new List<Command>();
-            pendingCommandsToRemove = new List<Command>();
+
+            pendingCommands = new Queue<Command>();
+            pendingCommandsToAdd = new Queue<Command>();
             callbacks = new Dictionary<Command, ICallback>();
         }
 
@@ -56,22 +58,28 @@ namespace Devious_Retention_SP
         public void Tick(World world)
         {
             foreach (Command c in pendingCommandsToAdd)
-            {
-                // TODO there should only really be one pending command... tidy this up
-                pendingCommands.Add(c);
-            }
-            foreach (Command c in pendingCommandsToRemove)
-            {
-                if (callbacks.ContainsKey(c))
-                    callbacks[c].Callback();
-                pendingCommands.Remove(c);
-            }
+                pendingCommands.Enqueue(c);
             pendingCommandsToAdd.Clear();
-            pendingCommandsToRemove.Clear();
 
-            foreach (Command c in pendingCommands)
-                if (!c.Tick())
-                    pendingCommandsToRemove.Add(c);
+            if(executingCommand == null && pendingCommands.Count > 0)
+            {
+                executingCommand = pendingCommands.Dequeue();
+            }
+
+            if(executingCommand != null)
+            {
+                Command currentCommand = executingCommand;
+                bool done = !currentCommand.Tick();
+                if (done)
+                {
+                    if (callbacks.ContainsKey(currentCommand))
+                        callbacks[currentCommand].Callback();
+                    // Potentially, ticking the command could change the executing command
+                    // so we keep a reference to it that they can't change.
+                    if (executingCommand == currentCommand)
+                        executingCommand = null;
+                }
+            }
 
             if(this is Attackable && ((Attackable)this).IsDead())
             {
@@ -121,14 +129,15 @@ namespace Devious_Retention_SP
             return new NullCommand();
         }
 
+        /// <summary>
+        /// Adds a command which will execute after the current
+        /// command is completed.
+        /// If the current command is manually removed rather than
+        /// being completed, pending commands will never execute.
+        /// </summary>
         public void AddPendingCommand(Command c)
         {
-            pendingCommandsToAdd.Add(c);
-        }
-
-        public void RemovePendingCommand(Command c)
-        {
-            pendingCommandsToRemove.Remove(c);
+            pendingCommandsToAdd.Enqueue(c);
         }
 
         public Command[] GetPendingCommands()
@@ -139,6 +148,35 @@ namespace Devious_Retention_SP
         public void RegisterCallback(Command command, ICallback callback)
         {
             callbacks.Add(command, callback);
+        }
+
+        /// <summary>
+        /// Returns whether or not this entity is currently executing a command.
+        /// </summary>
+        public bool IsExecutingCommand()
+        {
+            return executingCommand != null;
+        }
+
+        /// <summary>
+        /// Returns the currently executing command, or null if
+        /// !this.IsExecutingCommand().
+        /// </summary>
+        public Command GetExecutingCommand()
+        {
+            return executingCommand;
+        }
+
+        /// <summary>
+        /// Removes the currently executing command, if there is one,
+        /// and adds the given command to be executed.
+        /// Also removes all pending commands.
+        /// </summary>
+        public void OverrideExecutingCommand(Command newCommand)
+        {
+            pendingCommands.Clear();
+            pendingCommandsToAdd.Clear();
+            executingCommand = newCommand;
         }
 
         /// <summary>

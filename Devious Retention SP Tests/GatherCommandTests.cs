@@ -19,11 +19,8 @@ namespace Devious_Retention_SP_Tests
             Resource resource = new TestResource(5, 5, 1, 0, 1000, 1000);
             GatherCommand command = new GatherCommand(gatherer, resource, world.world);
             Utilities.ApplyCommandSynchronous(command, gatherer, world.world);
-
-            // Make sure the attacker is within range of the defender
-            double actualRange = Math.Sqrt(Math.Pow(Math.Abs(gatherer.GetCenterPosition().X - resource.GetCenterPosition().X), 2)
-                                        + Math.Pow(Math.Abs(gatherer.GetCenterPosition().Y - resource.GetCenterPosition().Y), 2));
-            Assert.IsTrue(actualRange < 1.2);
+            
+            Assert.IsTrue(Entity.WithinRange(gatherer, resource, 1.2f));
             
             // Make sure that the resource has no resource left
             Assert.IsTrue(resource.CurrentResourceCount() == 0);
