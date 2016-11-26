@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP.Entities
 {
-    public class TestUnit : Gatherer, Attacker 
+    public class TestUnit : Gatherer, Attacker, Builder
     {
         private const float MOVEMENT_SPEED = 0.1f;
 
@@ -78,6 +78,11 @@ namespace Devious_Retention_SP.Entities
         public float GetRange()
         {
             return 2;
+        }
+
+        public float GetBuildSpeed()
+        {
+            return 1;
         }
     }
 }

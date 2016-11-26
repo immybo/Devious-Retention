@@ -24,7 +24,7 @@ namespace Devious_Retention_SP
         private int builtHitpoints;
         public bool IsFullyBuilt { get; private set; }
         // A higher value will cause this building to be built slower.
-        public float BuildResistace { get; private set; }
+        public float BuildResistance { get; private set; }
 
         public Building(Player player, double x, double y, double size, string name, float buildResistance)
             : base(player, x, y, size, name)

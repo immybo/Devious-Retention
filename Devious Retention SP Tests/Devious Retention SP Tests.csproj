@@ -51,6 +51,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BuildCommandTests.cs" />
     <Compile Include="GatherCommandTests.cs" />
     <Compile Include="AttackCommandTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

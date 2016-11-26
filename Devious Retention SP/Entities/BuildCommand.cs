@@ -8,7 +8,7 @@ using Devious_Retention_SP.Entities;
 
 namespace Devious_Retention_SP
 {
-    public class BuildCommand : Command
+    public class BuildCommand : Command, ICallback
     {
         private Builder builder;
         private Building building;
@@ -36,7 +36,7 @@ namespace Devious_Retention_SP
             if (builder is Unit)
             {
                 Unit uBuilder = (Unit)builder;
-                MoveWithinRange(builder);
+                MoveWithinRange(uBuilder);
                 
                 bool ok = true;
                 foreach (Command c in builder.GetPendingCommands())
@@ -53,10 +53,14 @@ namespace Devious_Retention_SP
                     PerformBuildTick();
                 }
             }
+            else if(Entity.WithinRange(builder, building, 1))
+            {
+                PerformBuildTick();
+            }
             else
             {
-                // TODO don't attack if we're not within range
-                PerformAttackTick();
+                // We can't build it, because we're unable to move
+                return false;
             }
 
             return !building.IsFullyBuilt;
@@ -66,7 +70,7 @@ namespace Devious_Retention_SP
         private void MoveWithinRange(Unit uBuilder)
         {
             // Move to an applicable point if we have to
-            if (!Entity.WithinRange(builder, building, 1)
+            if (!Entity.WithinRange(builder, building, 1))
             {
                 // Only redo movement every 10 ticks
                 if (currentTick == 10)
@@ -79,10 +83,11 @@ namespace Devious_Retention_SP
             }
         }
 
-        private void PerformAttackTick()
+        private void PerformBuildTick()
         {
-            // TODO: Check within range every tick
-            defender.Damage(attacker.GetDamage(), attacker.GetDamageType());
+            int amountBuilt = (int)(builder.GetBuildSpeed() / building.BuildResistance);
+            amountBuilt = amountBuilt == 0 ? 1 : amountBuilt;
+            building.Build(amountBuilt);
         }
 
         public void Callback()
