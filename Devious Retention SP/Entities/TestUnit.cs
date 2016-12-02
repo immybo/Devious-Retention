@@ -36,30 +36,6 @@ namespace Devious_Retention_SP.Entities
             g.FillRectangle(new SolidBrush(this.Player.Color), new Rectangle((int)topLeft.X, (int)topLeft.Y, (int)(p.Scale().X*this.Size), (int)(p.Scale().Y*this.Size)));
         }
 
-        public override Command GetCommand(PointF worldCoordinate, MouseButtons button, World world)
-        {
-            if (button.Equals(MouseButtons.Right))
-            {
-                List<Entity> entitiesAtPoint = world.GetEntitiesAtPoint(worldCoordinate);
-                Entity availableEntity = null;
-                foreach(Entity e in entitiesAtPoint)
-                {
-                    if(e.Player != Player && e is Attackable)
-                    {
-                        availableEntity = e;
-                        break;
-                    }
-                }
-
-                if(availableEntity != null)
-                {
-                    return new AttackCommand(this, (Attackable)availableEntity, world);
-                }
-            }
-
-            return base.GetCommand(worldCoordinate, button, world);
-        }
-
         public int GetAttackTime()
         {
             return 20;

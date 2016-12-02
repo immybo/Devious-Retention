@@ -120,15 +120,6 @@ namespace Devious_Retention_SP
             return new PointF((float)(X + Size/2), (float)(Y + Size/2));
         }
 
-        public virtual Command GetCommand(PointF worldCoordinate, MouseButtons button, World world)
-        {
-            return new NullCommand();
-        }
-        public virtual Command GetCommand(Keys key, World world)
-        {
-            return new NullCommand();
-        }
-
         /// <summary>
         /// Adds a command which will execute after the current
         /// command is completed.

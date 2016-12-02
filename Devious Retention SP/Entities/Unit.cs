@@ -45,21 +45,6 @@ namespace Devious_Retention_SP
             return Hitpoints <= 0;
         }
 
-        public override Command GetCommand(PointF worldCoordinate, MouseButtons button, World world)
-        {
-            if (button.Equals(MouseButtons.Right))
-            {
-                return new MoveCommand(this, worldCoordinate, world);
-            }
-
-            return base.GetCommand(worldCoordinate, button, world);
-        }
-
-        public override Command GetCommand(Keys key, World world)
-        {
-            return base.GetCommand(key, world);
-        }
-
         /// <summary>
         /// Moves this unit within a certain range of the other entity given.
         /// Calls the callback when finished.

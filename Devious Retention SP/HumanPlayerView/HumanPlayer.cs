@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Devious_Retention_SP.Entities;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -46,8 +47,8 @@ namespace Devious_Retention_SP
             Console.WriteLine("Mouse pressed at " + worldCoordinate.X + ", " + worldCoordinate.Y + ".");
             
             foreach (Entity e in selectedEntities)
-                if (e.Player == this) // Only execute commands if they belong to the current player
-                    e.GetCommand(worldCoordinate, buttons, world).Execute();
+                if (e.Player == this)
+                    doClick(worldCoordinate, buttons, e);
         }
 
         public void DoKeyPress(Keys keys)
@@ -55,7 +56,8 @@ namespace Devious_Retention_SP
             Console.WriteLine("Key " + keys.ToString() + " pressed.");
 
             foreach (Entity e in selectedEntities)
-                e.GetCommand(keys, world).Execute();
+                if (e.Player == this)
+                    doKeys(keys, e);
         }
 
         public void DoGameAreaDrag(RectangleF bounds)
@@ -68,6 +70,60 @@ namespace Devious_Retention_SP
         public Entity[] GetSelectedEntities()
         {
             return selectedEntities.ToArray();
+        }
+
+        /// <summary>
+        /// Performs the action which a specific entity should perform on the press of
+        /// the given set of mouse buttons.
+        /// </summary>
+        private void doClick(PointF worldCoordinate, MouseButtons buttons, Entity entity)
+        {
+            if (buttons == MouseButtons.Right)
+            {
+                List<Entity> overlappingEntities = world.GetEntitiesAtPoint(worldCoordinate);
+
+                // The highest priority is to attack 
+                if (entity is Attacker)
+                {
+                    foreach (Entity e in overlappingEntities)
+                    {
+                        if (e is Attackable && e.Player != this)
+                        {
+                            new AttackCommand((Attacker)entity, (Attackable)e, world).Execute();
+                            return;
+                        }
+                    }
+                }
+
+                // Then to gather
+                if(entity is Gatherer)
+                {
+                    foreach(Entity e in overlappingEntities)
+                    {
+                        if(e is Gatherable && ((Gatherable)e).CurrentResourceCount() > 0)
+                        {
+                            new GatherCommand((Gatherer)entity, (Gatherable)e, world).Execute();
+                            return;
+                        }
+                    }
+                }
+
+                // Then to move
+                if(entity is Unit)
+                {
+                    new MoveCommand((Unit)entity, worldCoordinate, world).Execute();
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Performs the action which a specific entity should perform on the press of
+        /// the given set of keys.
+        /// </summary>
+        private void doKeys(Keys keys, Entity entity)
+        {
+
         }
     }
 }

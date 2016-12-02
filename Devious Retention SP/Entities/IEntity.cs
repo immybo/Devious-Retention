@@ -42,9 +42,6 @@ namespace Devious_Retention_SP
         PointF GetPosition();
         PointF GetCenterPosition();
 
-        Command GetCommand(PointF worldCoordinate, MouseButtons button, World world);
-        Command GetCommand(Keys key, World world);
-
         void AddPendingCommand(Command c);
         void RegisterCallback(Command c, ICallback call);
         Command[] GetPendingCommands();
