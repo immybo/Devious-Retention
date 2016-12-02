@@ -57,8 +57,9 @@ namespace Devious_Retention_SP
                 return;
             }
 
-            PointF newPoint = Entity.GetClosestPoint(other, this, range, world);
-            MoveCommand movement = new MoveCommand(this, newPoint, world);
+            PointF newPoint = Entity.GetClosestPoint(this, other, range, world);
+            PointF adjustedForSize = PointF.Subtract(newPoint, new SizeF((float)(this.Size / 2), (float)(this.Size / 2)));
+            MoveCommand movement = new MoveCommand(this, adjustedForSize, world);
             movement.Execute();
             this.RegisterCallback(movement, callback);
         }

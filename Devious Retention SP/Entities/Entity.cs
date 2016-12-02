@@ -176,15 +176,18 @@ namespace Devious_Retention_SP
         /// </summary>
         public static bool WithinRange(IEntity e1, IEntity e2, float range)
         {
-            double xDiff = e1.X - e2.X;
-            double yDiff = e1.Y - e2.Y;
+            PointF e1C = e1.GetCenterPosition();
+            PointF e2C = e2.GetCenterPosition();
+
+            double xDiff = e1C.X - e2C.X;
+            double yDiff = e1C.Y - e2C.Y;
             double totalDiff = Math.Sqrt(xDiff * xDiff + yDiff * yDiff);
             return totalDiff <= range;
         }
 
         /// <summary>
         /// Returns the point which
-        /// - Is within the given range of the second entity
+        /// - The center point of which is within the given range of the second entity
         /// - The first entity can move to
         /// - Has the shortest path from the first entity's
         ///   current position in the given world
@@ -192,18 +195,18 @@ namespace Devious_Retention_SP
         /// <returns></returns>
         public static PointF GetClosestPoint(IEntity firstEntity, IEntity secondEntity, float range, World world)
         {
-            PointF defenderPoint = firstEntity.GetCenterPosition();
-            PointF attackerPoint = secondEntity.GetCenterPosition();
+            PointF attackerPoint = firstEntity.GetCenterPosition();
+            PointF defenderPoint = secondEntity.GetCenterPosition();
 
             PointF vector = new PointF(defenderPoint.X - attackerPoint.X, defenderPoint.Y - attackerPoint.Y);
             double vectorLength = Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y);
 
-            if (vectorLength <= range - 0.5)
+            if (vectorLength <= range)
                 return attackerPoint;
 
-            PointF inRangeVector = new PointF((float)(vector.X * (range/vectorLength)), (float)(vector.Y * (range/vectorLength)));
+            PointF inRangeVector = new PointF(vector.X - (float)(vector.X / vectorLength * range), vector.Y - (float)(vector.Y / vectorLength * range));
 
-            PointF newPoint = new PointF(defenderPoint.X - inRangeVector.X, defenderPoint.Y - inRangeVector.Y);
+            PointF newPoint = new PointF(attackerPoint.X + inRangeVector.X, attackerPoint.Y + inRangeVector.Y);
             return newPoint;
         }
     }
