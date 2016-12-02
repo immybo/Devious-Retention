@@ -17,6 +17,7 @@ namespace Devious_Retention_SP.HumanPlayerView
         private Image[] damageIcons;
         private Image healthIcon;
         private Image movementSpeedIcon;
+        private Image[] resourceIcons;
 
         private Font titleFont;
         private Font regularFont;
@@ -36,12 +37,17 @@ namespace Devious_Retention_SP.HumanPlayerView
             titleFont = new Font("Arial", 28);
             regularFont = new Font("Arial", 14);
             fontBrush = Brushes.Black;
-
-            Console.WriteLine(Directory.GetCurrentDirectory());
+            
             damageIcons = new Image[3];
             damageIcons[0] = Image.FromFile("../../Images/DamageTypeIcons/melee.png");
             damageIcons[1] = Image.FromFile("../../Images/DamageTypeIcons/ranged.png");
             damageIcons[2] = Image.FromFile("../../Images/DamageTypeIcons/explosion.png");
+
+            resourceIcons = new Image[4];
+            resourceIcons[0] = Image.FromFile("../../Images/ResourceIcons/energy.png");
+            resourceIcons[1] = Image.FromFile("../../Images/ResourceIcons/metal.png");
+            resourceIcons[2] = Image.FromFile("../../Images/ResourceIcons/oil.png");
+            resourceIcons[3] = Image.FromFile("../../Images/ResourceIcons/science.png");
 
             healthIcon = Image.FromFile("../../Images/MiscIcons/health.png");
             movementSpeedIcon = Image.FromFile("../../Images/MiscIcons/speed.png");
@@ -110,7 +116,22 @@ namespace Devious_Retention_SP.HumanPlayerView
         /// <param name="building">The building to display information of.</param>
         private void RenderBuildingDisplay(Graphics g, Building building)
         {
-            Console.WriteLine("A building is selected.");
+            PointF currentPoint = new PointF(MARGIN, MARGIN);
+
+            g.DrawString(building.Name, titleFont, fontBrush, currentPoint);
+            currentPoint.Y += titleFont.Size + MARGIN * 2;
+
+            g.DrawImage(healthIcon, new RectangleF(currentPoint.X, currentPoint.Y, ICON_SIZE, ICON_SIZE));
+            currentPoint.X += ICON_SIZE + MARGIN;
+            currentPoint.Y += 10;
+            g.DrawString(building.Hitpoints + " / " + building.MaxHitpoints, regularFont, fontBrush, currentPoint);
+            currentPoint.X = MARGIN;
+            currentPoint.Y += ICON_SIZE + MARGIN - 10;
+
+            if (!building.IsFullyBuilt)
+            {
+                g.DrawString("Not built yet!", regularFont, fontBrush, currentPoint);
+            }
         }
 
         /// <summary>
@@ -121,7 +142,17 @@ namespace Devious_Retention_SP.HumanPlayerView
         /// <param name="resource">The resource to display information of.</param>
         private void RenderResourceDisplay(Graphics g, Resource resource)
         {
+            PointF currentPoint = new PointF(MARGIN, MARGIN);
 
+            g.DrawString(resource.Name, titleFont, fontBrush, currentPoint);
+            currentPoint.Y += titleFont.Size + MARGIN * 2;
+
+            g.DrawImage(resourceIcons[resource.ResourceType], new RectangleF(currentPoint.X, currentPoint.Y, ICON_SIZE, ICON_SIZE));
+            currentPoint.X += ICON_SIZE + MARGIN;
+            currentPoint.Y += 10;
+            g.DrawString(resource.CurrentResourceCount() + " / " + resource.MaxResourceCount(), regularFont, fontBrush, currentPoint);
+            currentPoint.X = MARGIN;
+            currentPoint.Y += ICON_SIZE + MARGIN - 10;
         }
 
         /// <summary>

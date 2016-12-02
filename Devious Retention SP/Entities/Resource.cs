@@ -17,14 +17,14 @@ namespace Devious_Retention_SP
     /// </summary>
     public abstract class Resource : Entity, Gatherable
     {
-        private int resourceType;
+        public int ResourceType { get; private set; }
         private int currentResourceAmount;
         private int maxResourceAmount;
 
         public Resource(double x, double y, double size, string name, int resourceType, int maxResourceAmount, int currentResourceAmount)
             : base(new NullPlayer(null), x, y, size, name)
         {
-            this.resourceType = resourceType;
+            this.ResourceType = resourceType;
             this.currentResourceAmount = currentResourceAmount;
             this.maxResourceAmount = maxResourceAmount;
         }
@@ -47,7 +47,7 @@ namespace Devious_Retention_SP
             if (currentResourceAmount < gatheredAmount)
                 gatheredAmount = currentResourceAmount;
             currentResourceAmount -= gatheredAmount;
-            player.ChangeResource(resourceType, gatheredAmount);
+            player.ChangeResource(ResourceType, gatheredAmount);
         }
 
         public override void Draw(Graphics g, PositionTransformation p)
