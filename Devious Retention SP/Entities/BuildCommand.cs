@@ -49,8 +49,7 @@ namespace Devious_Retention_SP
                 return false;
             }
         }
-
-        // TODO factor this out, since both buildcommand and attackcommand use it
+        
         private void MoveWithinRange(Unit uBuilder)
         {
             // Only redo movement every 10 ticks
