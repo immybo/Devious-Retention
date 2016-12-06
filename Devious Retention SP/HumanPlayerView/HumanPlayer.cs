@@ -78,10 +78,17 @@ namespace Devious_Retention_SP
         /// </summary>
         private void doClick(PointF worldCoordinate, MouseButtons buttons, Entity entity)
         {
-            if (buttons == MouseButtons.Right)
-            {
-                List<Entity> overlappingEntities = world.GetEntitiesAtPoint(worldCoordinate);
+            List<Entity> overlappingEntities = world.GetEntitiesAtPoint(worldCoordinate);
 
+            if (buttons == MouseButtons.left){
+                // Select an entity if we left click on it
+                if (overlappingEntities.Count > 0){
+                    selectedEntities.Clear();
+                    selectedEntities.Add(overlappingEntities[0]);
+                }
+            }
+            else if (buttons == MouseButtons.Right)
+            {
                 // The highest priority is to attack 
                 if (entity is Attacker)
                 {
