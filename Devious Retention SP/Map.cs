@@ -51,5 +51,9 @@ namespace Devious_Retention_SP
                 }
             }
         }
+
+        public Tile GetTile(int x, int y){
+            return tiles[x, y];
+        }
     }
 }

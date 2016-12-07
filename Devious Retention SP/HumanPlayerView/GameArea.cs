@@ -11,6 +11,9 @@ namespace Devious_Retention_SP.HumanPlayerView
     class GameArea : Panel
     {
         public const float SCROLL_SPEED = 1f;
+        // Compared to width
+        public const float MINIMAP_SIZE = 0.1f;
+        public const int MINIMAP_BORDER_SIZE = 5;
 
         private World world;
         private HumanPlayerListener listener;
@@ -104,6 +107,48 @@ namespace Devious_Retention_SP.HumanPlayerView
             if(isMouseDown && selectedRect != null)
             {
                 g.DrawRectangle(Pens.Black, selectedRect);
+            }
+
+            float minimapSize = bounds.Width * MINIMAP_SIZE;
+            float minimapX = bounds.Width - minimapSize;
+            float minimapY = bounds.Height - minimapSize;
+            RectangleF minimapBounds = new RectangleF(minimapX, minimapY, minimapSize, minimapSize);
+            g.ClipBounds = minimapBounds;
+            RenderMinimap(g);
+        }
+
+        public void RenderMinimap(Graphics g){
+            RectangleF bounds = g.ClipBounds;
+
+            g.SetColor(Color.BLACK);
+            g.FillRectangle(bounds);
+
+            bounds.X += MINIMAP_BORDER_SIZE;
+            bounds.Y += MINIMAP_BORDER_SIZE;
+            bounds.Width -= MINIMAP_BORDER_SIZE * 2;
+            bounds.Height -= MINIMAP_BORDER_SIZE * 2;
+            
+            Map map = world.Map;
+            float tileWidth = bounds.Width / map.Width;
+
+            // Account for non-square maps
+            int dimensionDifference = Math.Abs(map.Width - map.Height);
+            bool widthGreater = map.Width > map.Height;
+
+            float greatestMapDimension = widthGreater ? map.Width : map.Height;
+            float tileSize = bounds.Width / greatestMapDimension;
+
+            // Center the smallest side 
+            float xOffset = widthGreater ? 0 : tileSize * dimensionDifference / 2;
+            float yOffset = widthGreater ? tileSize * dimensionDifference / 2 : 0;
+
+            for (int x = 0; x < map.Width; x++){
+                for (int y = 0; y < map.Height; y++){
+                    RectangleF tileRect = new RectangleF(xOffset + x*tileSize,
+                                                         yOffset + y*tileSize,
+                                                         tileSize, tileSize);
+                    MapDraw.DrawTile(map.GetTile(x, y), g, tileRect);
+                }
             }
         }
 
