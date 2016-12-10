@@ -45,8 +45,9 @@ namespace Devious_Retention_SP
         public void DoGameAreaClick(PointF worldCoordinate, MouseButtons buttons)
         {
             Console.WriteLine("Mouse pressed at " + worldCoordinate.X + ", " + worldCoordinate.Y + ".");
-            
-            foreach (Entity e in selectedEntities)
+
+            Entity[] entities = selectedEntities.ToArray();
+            foreach (Entity e in entities)
                 if (e.Player == this)
                     doClick(worldCoordinate, buttons, e);
         }
@@ -55,7 +56,8 @@ namespace Devious_Retention_SP
         {
             Console.WriteLine("Key " + keys.ToString() + " pressed.");
 
-            foreach (Entity e in selectedEntities)
+            Entity[] entities = selectedEntities.ToArray();
+            foreach (Entity e in entities)
                 if (e.Player == this)
                     doKeys(keys, e);
         }
