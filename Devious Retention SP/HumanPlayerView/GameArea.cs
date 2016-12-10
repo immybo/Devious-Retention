@@ -65,6 +65,18 @@ namespace Devious_Retention_SP.HumanPlayerView
 
         private void DoMouse(object o, MouseEventArgs e)
         {
+            PointF mousePoint = new PointF(e.X, e.Y);
+            if (GetMinimapBoundsWithBorder().Contains(mousePoint))
+            {
+                if (OnMinimap(mousePoint))
+                {
+                    PlayerView = GetMinimapPoint(mousePoint);
+                }
+
+                // If the click was on the minimap border, do nothing
+                return;
+            }
+
             listener.DoGameAreaClick(GetTransformation().TransformReverse(e.Location), e.Button);
         }
 
@@ -116,7 +128,7 @@ namespace Devious_Retention_SP.HumanPlayerView
             RenderMinimap(g, minimapBounds);
         }
 
-        public void RenderMinimap(Graphics g, RectangleF bounds){
+        private void RenderMinimap(Graphics g, RectangleF bounds){
             g.FillRectangle(Brushes.Black, bounds);
 
             bounds.X += MINIMAP_BORDER_SIZE;
@@ -159,11 +171,63 @@ namespace Devious_Retention_SP.HumanPlayerView
             }
         }
 
+        private bool OnMinimap(PointF screenPos)
+        {
+            return GetMinimapBounds().Contains(screenPos);
+        }
+
+        private RectangleF GetMinimapBounds()
+        {
+            return new RectangleF(Width - MINIMAP_SIZE*Width + MINIMAP_BORDER_SIZE,
+                                  Height - MINIMAP_SIZE*Width + MINIMAP_BORDER_SIZE,
+                                  MINIMAP_SIZE * Width - MINIMAP_BORDER_SIZE*2,
+                                  MINIMAP_SIZE * Width - MINIMAP_BORDER_SIZE*2);
+        }
+
+        private RectangleF GetMinimapBoundsWithBorder()
+        {
+            return new RectangleF(Width - MINIMAP_SIZE * Width,
+                                  Height - MINIMAP_SIZE * Width,
+                                  MINIMAP_SIZE * Width,
+                                  MINIMAP_SIZE * Width);
+        }
+
+        private PointF GetMinimapPoint(PointF screenPos)
+        {
+            if (!OnMinimap(screenPos))
+                throw new ArgumentException("Can't get minimap point from a point that isn't on the minimap!");
+            RectangleF bounds = GetMinimapBounds();
+
+            // This can't be trivial since the world doesn't have to be square
+            float midX = world.Map.Width / 2;
+            float midY = world.Map.Height / 2;
+
+            float minimapX = screenPos.X - bounds.X;
+            float minimapY = screenPos.Y - bounds.Y;
+
+            int greatestDimension = world.Map.Width > world.Map.Height ? world.Map.Width : world.Map.Height;
+            float tileSize = bounds.Width / greatestDimension;
+
+            float worldPosX = minimapX / tileSize;
+            float worldPosY = minimapY / tileSize;
+
+            float numXTiles = this.Width / TILE_SIZE;
+            float numYTiles = this.Height / TILE_SIZE;
+
+            worldPosX -= numXTiles / 2;
+            worldPosY -= numYTiles / 2;
+
+            worldPosX = worldPosX < 0 ? 0 : worldPosX + numXTiles >= world.Map.Width ? world.Map.Width - numXTiles - 1 : worldPosX;
+            worldPosY = worldPosY < 0 ? 0 : worldPosY + numYTiles >= world.Map.Height ? world.Map.Height - numYTiles - 1 : worldPosY;
+
+            return new PointF(worldPosX, worldPosY);
+        }
+
         private PositionTransformation GetTransformation()
         {
             return new PositionTransformation(
-                    (int)(PlayerView.X * TILE_SIZE),
-                    (int)(PlayerView.Y * TILE_SIZE),
+                    (int)(-PlayerView.X * TILE_SIZE),
+                    (int)(-PlayerView.Y * TILE_SIZE),
                     TILE_SIZE,
                     TILE_SIZE);
         }

@@ -49,13 +49,13 @@ namespace Devious_Retention_SP
         private void DoKeyPress(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Left)
-                gameArea.PlayerView.X += HumanPlayerView.GameArea.SCROLL_SPEED;
-            else if (e.KeyCode == Keys.Right)
                 gameArea.PlayerView.X -= HumanPlayerView.GameArea.SCROLL_SPEED;
+            else if (e.KeyCode == Keys.Right)
+                gameArea.PlayerView.X += HumanPlayerView.GameArea.SCROLL_SPEED;
             else if (e.KeyCode == Keys.Up)
-                gameArea.PlayerView.Y += HumanPlayerView.GameArea.SCROLL_SPEED;
-            else if (e.KeyCode == Keys.Down)
                 gameArea.PlayerView.Y -= HumanPlayerView.GameArea.SCROLL_SPEED;
+            else if (e.KeyCode == Keys.Down)
+                gameArea.PlayerView.Y += HumanPlayerView.GameArea.SCROLL_SPEED;
 
             listener.DoKeyPress(e.KeyCode);
         }
