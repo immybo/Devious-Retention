@@ -15,6 +15,9 @@ namespace Devious_Retention_SP.HumanPlayerView
         public const float MINIMAP_SIZE = 0.2f;
         public const int MINIMAP_BORDER_SIZE = 5;
 
+        // Static
+        public const int TILE_SIZE = 100;
+
         private World world;
         private HumanPlayerListener listener;
 
@@ -99,9 +102,6 @@ namespace Devious_Retention_SP.HumanPlayerView
             Graphics g = e.Graphics;
             RectangleF bounds = g.ClipBounds;
 
-            float tileWidth = bounds.Width / world.Map.Width;
-            float tileHeight = bounds.Height / world.Map.Height;
-
             world.Draw(g, GetTransformation());
 
             if(isMouseDown && selectedRect != null)
@@ -161,13 +161,11 @@ namespace Devious_Retention_SP.HumanPlayerView
 
         private PositionTransformation GetTransformation()
         {
-            float tileWidth = (float)this.Width / world.Map.Width;
-            float tileHeight = (float)this.Height / world.Map.Height;
             return new PositionTransformation(
-                    (int)(PlayerView.X * tileWidth),
-                    (int)(PlayerView.Y * tileHeight),
-                    tileWidth,
-                    tileHeight);
+                    (int)(PlayerView.X * TILE_SIZE),
+                    (int)(PlayerView.Y * TILE_SIZE),
+                    TILE_SIZE,
+                    TILE_SIZE);
         }
     }
 }
