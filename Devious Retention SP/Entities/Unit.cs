@@ -20,6 +20,7 @@ namespace Devious_Retention_SP
     {
         public int MaxHitpoints { get; protected set; }
         public int Hitpoints { get; protected set; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// How far this unit can move every tick
@@ -30,6 +31,7 @@ namespace Devious_Retention_SP
             : base(player, x, y, size, name)
         {
             this.MovementSpeed = movementSpeed;
+            this.Name = name;
         }
         
         public abstract void Damage(int amount, int damageType);

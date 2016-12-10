@@ -8,15 +8,19 @@ using System.Windows.Forms;
 
 namespace Devious_Retention_SP.Entities
 {
-    public class TestBuilding : Building, Attacker
+    public class TestBuilding : Building, Attacker, Trainer
     {
-        private const float MOVEMENT_SPEED = 0.1f;
+        private const float TRAINING_SPEED = 1f;
+
+        private Queue<Unit> trainingQueue;
 
         public TestBuilding(Player player, double x, double y, double size, float buildResistance)
             : base(player, x, y, size, "TestBuilding", buildResistance)
         {
             this.MaxHitpoints = 100;
             this.Hitpoints = 1;
+
+            this.trainingQueue = new Queue<Unit>();
         }
 
         public override void Damage(int amount, int damageType)
@@ -50,6 +54,26 @@ namespace Devious_Retention_SP.Entities
         public float GetRange()
         {
             return 2;
+        }
+
+        public <Class extends Unit> GetTrainableUnits()
+        {
+            return new <class extends Unit>[]{TestUnit.class};
+        }
+        
+        public Unit[] GetTrainingQueue()
+        {
+            return trainingQueue.ToArray();
+        }
+
+        public float GetTrainingSpeed(){
+            return TRAINING_SPEED;
+        }
+
+        public void Train(<Class extends Unit> unitType)
+        {
+            Unit unit = <new instance of unitType>
+            trainingQueue.Push(unit);
         }
     }
 }
