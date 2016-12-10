@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -21,6 +22,11 @@ namespace Devious_Retention_SP
 
         public int ID { get; private set; }
         private static int nextID = 0;
+
+        // Constructors which are used to build entities from names.
+        // These constructors have no arguments and always create an entity,
+        // as asserted when adding to this dictionary.
+        private static Dictionary<string, ConstructorInfo> entityConstructors;
 
         // Commands which are waiting for the current command to finish before they can start
         private Queue<Command> pendingCommands;
@@ -208,6 +214,46 @@ namespace Devious_Retention_SP
 
             PointF newPoint = new PointF(attackerPoint.X + inRangeVector.X, attackerPoint.Y + inRangeVector.Y);
             return newPoint;
+        }
+
+        /// <summary>
+        /// Registers a given entity such that it can be constructed
+        /// with a default configuration when required (e.g. when a 
+        /// building is built, when a unit is trained).
+        /// 
+        /// This constructor must take no arguments.
+        /// </summary>
+        public static void RegisterEntity(string entityName, ConstructorInfo defaultConstructor)
+        {
+            if (entityConstructors.ContainsKey(entityName))
+                throw new ArgumentException("Attempting to register a constructor for an entity name which already has one.");
+            if (defaultConstructor.GetParameters().Count() != 0)
+                throw new ArgumentException("Attempting to register a constructor with a non-empty parameter list for an entity " + entityName + ".");
+
+            entityConstructors.Add(entityName, defaultConstructor);
+        }
+
+        /// <summary>
+        /// Attempts to build an entity from the given name, with
+        /// that entity's default configuration.
+        /// 
+        /// The position of this entity should be set before use,
+        /// as a default one will be set.
+        /// </summary>
+        /// <throws></throws>
+        public static Entity FromName(string entityName)
+        {
+            if (entityConstructors.ContainsKey(entityName))
+            {
+                // This assumes that an entity is created and that it has no parameters,
+                // which means it relies on the preconditions when an entity is registered.
+                Entity constructed = (Entity)entityConstructors[entityName].Invoke(new object[] { });
+                return constructed;
+            }
+            else
+            {
+                throw new InvalidOperationException("No entity with the name " + entityName + " was found to create.");
+            }
         }
     }
 }

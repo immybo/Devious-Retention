@@ -80,7 +80,7 @@ namespace Devious_Retention_SP
         {
             List<Entity> overlappingEntities = world.GetEntitiesAtPoint(worldCoordinate);
 
-            if (buttons == MouseButtons.left){
+            if (buttons == MouseButtons.Left){
                 // Select an entity if we left click on it
                 if (overlappingEntities.Count > 0){
                     selectedEntities.Clear();

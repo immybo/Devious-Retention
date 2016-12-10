@@ -113,15 +113,14 @@ namespace Devious_Retention_SP.HumanPlayerView
             float minimapX = bounds.Width - minimapSize;
             float minimapY = bounds.Height - minimapSize;
             RectangleF minimapBounds = new RectangleF(minimapX, minimapY, minimapSize, minimapSize);
-            g.ClipBounds = minimapBounds;
+            g.SetClip(minimapBounds);
             RenderMinimap(g);
         }
 
         public void RenderMinimap(Graphics g){
             RectangleF bounds = g.ClipBounds;
-
-            g.SetColor(Color.BLACK);
-            g.FillRectangle(bounds);
+            
+            g.FillRectangle(Brushes.Black, bounds);
 
             bounds.X += MINIMAP_BORDER_SIZE;
             bounds.Y += MINIMAP_BORDER_SIZE;
@@ -144,9 +143,9 @@ namespace Devious_Retention_SP.HumanPlayerView
 
             for (int x = 0; x < map.Width; x++){
                 for (int y = 0; y < map.Height; y++){
-                    RectangleF tileRect = new RectangleF(xOffset + x*tileSize,
-                                                         yOffset + y*tileSize,
-                                                         tileSize, tileSize);
+                    Rectangle tileRect = new Rectangle((int)(xOffset + x*tileSize),
+                                                       (int)(yOffset + y*tileSize),
+                                                       (int)(tileSize), (int)(tileSize));
                     MapDraw.DrawTile(map.GetTile(x, y), g, tileRect);
                 }
             }

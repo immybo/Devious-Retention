@@ -56,9 +56,10 @@ namespace Devious_Retention_SP.Entities
             return 2;
         }
 
-        public <Class extends Unit> GetTrainableUnits()
+        public string[] GetTrainableUnits()
         {
-            return new <class extends Unit>[]{TestUnit.class};
+            // TODO something so we don't specify the literals
+            return new string[] { "testUnit" };
         }
         
         public Unit[] GetTrainingQueue()
@@ -70,10 +71,14 @@ namespace Devious_Retention_SP.Entities
             return TRAINING_SPEED;
         }
 
-        public void Train(<Class extends Unit> unitType)
+        public void Train(string entityStr)
         {
-            Unit unit = <new instance of unitType>
-            trainingQueue.Push(unit);
+            if (!GetTrainableUnits().Contains(entityStr))
+                throw new ArgumentException("Attempting to create a " + entityStr + " which can't be created from this Trainer.");
+            Entity entity = Entity.FromName(entityStr);
+            if (!(entity is Unit))
+                throw new InvalidOperationException("Attempting to create a non-unit from a trainer!");
+            trainingQueue.Enqueue((Unit)entity);
         }
     }
 }

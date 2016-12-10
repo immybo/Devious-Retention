@@ -12,7 +12,7 @@ namespace Devious_Retention_SP
     /// (e.g. some are green, some grey), and can be walked over by different
     /// types of entity.
     /// </summary>
-    abstract class Tile : Drawable
+    public abstract class Tile : Drawable
     {
         private PointF position;
 
@@ -36,6 +36,6 @@ namespace Devious_Retention_SP
         /// <summary>
         /// Draws this tile at the given world coordinate.
         /// </summary>
-        protected abstract void DrawAtPosition(Graphics g, RectangleF graphicsRect);
+        public abstract void DrawAtPosition(Graphics g, RectangleF graphicsRect);
     }
 }

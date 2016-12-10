@@ -62,6 +62,7 @@
     <Compile Include="Entities\TestBuilding.cs" />
     <Compile Include="Entities\TestResource.cs" />
     <Compile Include="Entities\TestUnit.cs" />
+    <Compile Include="Entities\Trainer.cs" />
     <Compile Include="HumanPlayerView\BottomRightPanel.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -82,6 +83,7 @@
     <Compile Include="HumanPlayerView\HumanPlayerWindow.Designer.cs">
       <DependentUpon>HumanPlayerWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="HumanPlayerView\MapDraw.cs" />
     <Compile Include="HumanPlayerView\ResourceBar.cs">
       <SubType>Component</SubType>
     </Compile>

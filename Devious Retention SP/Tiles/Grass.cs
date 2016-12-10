@@ -9,7 +9,7 @@ namespace Devious_Retention_SP.Tiles
 {
     class Grass : Tile
     {
-        protected override void DrawAtPosition(Graphics g, RectangleF graphicsRect)
+        public override void DrawAtPosition(Graphics g, RectangleF graphicsRect)
         {
             g.FillRectangle(new SolidBrush(Color.Green), graphicsRect);
         }

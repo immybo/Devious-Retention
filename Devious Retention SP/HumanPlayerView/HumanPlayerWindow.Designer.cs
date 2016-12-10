@@ -30,7 +30,7 @@ namespace Devious_Retention_SP
         /// </summary>
         private void InitializeComponent()
         {
-            this.resourceBar = new ResourceBar();
+            this.resourceBar = new ResourceBar(player);
             this.bottomRightPanel = new BottomRightPanel(player);
             this.topRightPanel = new TopRightPanel();
             this.gameArea = new GameArea(this.world, this.listener, new System.Drawing.PointF(0,0));

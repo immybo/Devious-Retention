@@ -26,7 +26,7 @@ namespace Devious_Retention_SP.HumanPlayerView
             this.Paint += new PaintEventHandler(Render);
             this.DoubleBuffered = true;
 
-            regularFont = new Font("Arial", 14);
+            font = new Font("Arial", 14);
             fontBrush = Brushes.Black;
 
             resourceIcons = new Image[4];
@@ -42,18 +42,18 @@ namespace Devious_Retention_SP.HumanPlayerView
             RectangleF bounds = g.ClipBounds;
             g.FillRectangle(new SolidBrush(Color.Blue), bounds);
 
-            iconSize = bounds.Height - 2 * MARGIN;
+            iconSize = (int)(bounds.Height - 2 * MARGIN);
 
-            float resourceWidth = bounds.Width / resourceIcons.Count - MARGIN * (1 + 1/resourceIcons.Count);
-            for(int i = 0; i < resourceIcons.Count; i++){
-                int x = MARGIN + resourceWidth * i;
+            float resourceWidth = bounds.Width / resourceIcons.Count() - MARGIN * (1 + 1/resourceIcons.Count());
+            for(int i = 0; i < resourceIcons.Count(); i++){
+                int x = (int)(MARGIN + resourceWidth * i);
                 RectangleF imgRect = new RectangleF(x, MARGIN, iconSize, iconSize);
-                g.drawImage(resourceIcons[i], imgRect);
+                g.DrawImage(resourceIcons[i], imgRect);
                 x += iconSize + MARGIN;
 
                 PointF strPt = new PointF(x, MARGIN);
                 // TODO determine height of string to center in y as icon is
-                g.drawString(player.resources[i]+"", font, fontBrush, strPt);
+                g.DrawString(player.Resources[i]+"", font, fontBrush, strPt);
             }
         }
     }
