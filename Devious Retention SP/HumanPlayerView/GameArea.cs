@@ -12,7 +12,7 @@ namespace Devious_Retention_SP.HumanPlayerView
     {
         public const float SCROLL_SPEED = 1f;
         // Compared to width
-        public const float MINIMAP_SIZE = 0.1f;
+        public const float MINIMAP_SIZE = 0.2f;
         public const int MINIMAP_BORDER_SIZE = 5;
 
         private World world;
@@ -113,13 +113,10 @@ namespace Devious_Retention_SP.HumanPlayerView
             float minimapX = bounds.Width - minimapSize;
             float minimapY = bounds.Height - minimapSize;
             RectangleF minimapBounds = new RectangleF(minimapX, minimapY, minimapSize, minimapSize);
-            g.SetClip(minimapBounds);
-            RenderMinimap(g);
+            RenderMinimap(g, minimapBounds);
         }
 
-        public void RenderMinimap(Graphics g){
-            RectangleF bounds = g.ClipBounds;
-            
+        public void RenderMinimap(Graphics g, RectangleF bounds){
             g.FillRectangle(Brushes.Black, bounds);
 
             bounds.X += MINIMAP_BORDER_SIZE;
@@ -138,16 +135,27 @@ namespace Devious_Retention_SP.HumanPlayerView
             float tileSize = bounds.Width / greatestMapDimension;
 
             // Center the smallest side 
-            float xOffset = widthGreater ? 0 : tileSize * dimensionDifference / 2;
-            float yOffset = widthGreater ? tileSize * dimensionDifference / 2 : 0;
+            float xOffset = bounds.X + (widthGreater ? 0 : tileSize * dimensionDifference / 2);
+            float yOffset = bounds.Y + (widthGreater ? tileSize * dimensionDifference / 2 : 0);
 
             for (int x = 0; x < map.Width; x++){
                 for (int y = 0; y < map.Height; y++){
-                    Rectangle tileRect = new Rectangle((int)(xOffset + x*tileSize),
-                                                       (int)(yOffset + y*tileSize),
-                                                       (int)(tileSize), (int)(tileSize));
+                    RectangleF tileRect = new RectangleF(xOffset + x*tileSize,
+                                                         yOffset + y*tileSize,
+                                                         tileSize, tileSize);
                     MapDraw.DrawTile(map.GetTile(x, y), g, tileRect);
                 }
+            }
+            
+            foreach (Entity e in world.GetEntities())
+            {
+                double x = xOffset + tileSize * e.X;
+                double y = yOffset + tileSize * e.Y;
+
+                int size = (int)(e.Size * tileSize);
+                if (size < 1) size = 1;
+
+                g.FillRectangle(new SolidBrush(e.Player.Color), new Rectangle((int)x, (int)y, size, size));
             }
         }
 

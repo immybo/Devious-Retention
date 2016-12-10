@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
@@ -8,7 +9,7 @@ namespace Devious_Retention_SP.HumanPlayerView
     {
         /// Draws the specified tile over the given rectangle
         /// on the given graphics pane.
-        public static void DrawTile(Tile t, Graphics g, Rectangle r){
+        public static void DrawTile(Tile t, Graphics g, RectangleF r){
             // TODO : delegate this functionality into here
             t.DrawAtPosition(g, r);
         }

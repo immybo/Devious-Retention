@@ -22,9 +22,9 @@ namespace Devious_Retention_SP
         /// </summary>
         public Map()
         {
-            tiles = new Tile[10,10];
-            this.Width = 10;
-            this.Height = 10;
+            tiles = new Tile[20,20];
+            this.Width = 20;
+            this.Height = 20;
 
             Random random = new Random();
             for(int i = 0; i < Width; i++)
